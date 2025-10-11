@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bgMain: #0c0f12;
+  --color-bgCard: #13171b;
+  --color-bgHighlight: #1a1f24;
+  --color-bgInput: #1e242b;
+
+  --color-textPrimary: #e5e7eb;
+  --color-textSecondary: #9ca3af;
+
+  --color-accent: #16a34a;
+  --color-accentHover: #22c55e;
+  --color-infoBlue: #2563eb;
+  --color-warningYellow: #facc15;
+
+  --color-borderSoft: #1f2937;
+  --color-borderStrong: #374151;
+}
+
+:root {
+  margin: 0;
+  padding: 0;
+}
