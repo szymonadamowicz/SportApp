@@ -2,47 +2,41 @@
 
 import * as React from "react";
 import clsx from "clsx";
-
-export type PanelItem = {
-  title: string;
-  subtitle?: string;
-  right?: React.ReactNode;
-};
-
-type InfoPanelProps = {
-  title: string;
-  desc?: React.ReactNode;
-  items: PanelItem[];
-  layout?: "column" | "row";
-  maxPerRow?: number;
-  progress?: number;
-  className?: string;
-};
+import { InfoPanelProps } from "@/types/types";
 
 export default function InfoPanel({
   title,
   desc,
+  anchorDesc,
   items,
   layout = "column",
   maxPerRow = 3,
   progress,
   className,
-}: InfoPanelProps) {
+  dimOthers = false,
+}: InfoPanelProps & { dimOthers?: boolean }) {
   const isRow = layout === "row";
 
   return (
     <section
       className={clsx(
-        "bg-bgCard border border-borderSoft rounded-2xl p-4 md:p-5 shadow-sm",
+        "bg-bgCard border border-borderSoft rounded-2xl mt-6 p-4 md:p-5 shadow-sm",
         className
       )}
     >
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-textPrimary text-lg font-semibold">{title}</h3>
-        {desc ? (
-          <div className="text-sm text-infoBlue hover:opacity-90 cursor-pointer select-none">
-            {desc}
-          </div>
+
+        {anchorDesc ? (
+          <a
+            href={anchorDesc.href ?? "#"}
+            onClick={anchorDesc.onClick}
+            className="text-sm text-infoBlue hover:underline hover:opacity-90 cursor-pointer select-none"
+          >
+            {anchorDesc.label}
+          </a>
+        ) : desc ? (
+          <div className="text-sm text-textSecondary select-none">{desc}</div>
         ) : null}
       </div>
 
@@ -73,21 +67,32 @@ export default function InfoPanel({
           <div
             key={idx}
             className={clsx(
-              "rounded-xl border border-borderSoft bg-bgHighlight",
-              isRow ? "p-4 flex items-center justify-between" : "px-4 py-3 flex items-start justify-between gap-3"
+              "rounded-xl border border-borderSoft transition duration-300",
+              isRow
+                ? "p-4 flex flex-col justify-center items-center text-center"
+                : "px-4 py-3 flex items-start justify-between gap-3",
+              dimOthers && idx !== 0
+                ? "opacity-40 hover:opacity-100"
+                : "opacity-100",
+              it.bgColor ?? "bg-bgHighlight"
             )}
           >
-            <div className={clsx("min-w-0", isRow ? "" : "")}>
+            <div className="min-w-0">
               <div className="text-textPrimary font-semibold truncate">
                 {it.title}
               </div>
-              {it.subtitle ? (
-                <div className="text-textSecondary text-sm truncate">
+              {it.subtitle && (
+                <div className="text-textPrimary text-xl font-bold mt-1 truncate">
                   {it.subtitle}
                 </div>
-              ) : null}
+              )}
             </div>
-            {it.right ? <div className="shrink-0">{it.right}</div> : null}
+
+            {it.right && (
+              <div className="shrink-0 px-2.5 py-1 rounded-full bg-accent text-white text-xs font-semibold whitespace-nowrap mt-2">
+                {it.right}
+              </div>
+            )}
           </div>
         ))}
       </div>

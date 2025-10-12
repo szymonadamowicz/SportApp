@@ -16,7 +16,7 @@ export default function RootLayout({
     <html lang="en" className="bg-bgMain text-textPrimary">
       <body>
         <Navbar />
-        <main id="__main" className="pt-24 relative z-0 min-h-screen">
+        <main id="__main" className="pt-16 relative z-0 min-h-screen">
           <div className="max-w-7xl mx-auto px-4 md:px-6">
             {children}
           </div>
