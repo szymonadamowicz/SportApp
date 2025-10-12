@@ -40,9 +40,11 @@ export default function Navbar() {
                   onClick={() => router.push(item.href)}
                   className={`
                     text-lg font-medium transition
-                    ${active
-                      ? "text-accent"
-                      : "text-textSecondary hover:text-textPrimary"}
+                    ${
+                      active
+                        ? "text-accent"
+                        : "text-textSecondary hover:text-textPrimary"
+                    }
                   `}
                 >
                   {item.label}
@@ -59,18 +61,6 @@ export default function Navbar() {
             );
           })}
         </ul>
-
-        <button
-          onClick={() => router.push("/start")}
-          className="
-            px-4 py-2 rounded-lg font-semibold text-sm
-            bg-accent hover:bg-accentHover text-white
-            shadow-sm transition-transform duration-150
-            hover:scale-[1.05] active:scale-[0.98]
-          "
-        >
-          Start Workout
-        </button>
       </nav>
     </header>
   );

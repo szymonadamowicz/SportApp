@@ -47,6 +47,12 @@ export const tipForTheDay: { tip: PanelItem[] } = {
     {
       title: "Brace before you press",
     },
+    {
+      title: "Lock you elbows before the press"
+    },
+    {
+      title: "Stay hydrated"
+    }
   ],
 };
 
@@ -85,3 +91,14 @@ export const recentHighlights: PanelItem[] = [
     right: "Level Up",
   },
 ];
+
+export const nextUp: PanelItem[] = [
+  {
+    title:"",
+    subtitle:`${trainings.length > 0 ? `Today: ${trainings[0].workout?.name}` : "You are done for the week"}`,
+    rightButton:{
+      href:"start-trainig",
+      label:"Start training"
+    }
+  },
+]

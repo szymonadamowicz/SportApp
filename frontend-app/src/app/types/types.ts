@@ -23,6 +23,10 @@ export interface PanelItem {
   right?: React.ReactNode;
   workout?: Workout;
   bgColor?: string;
+  rightButton?: {
+    href: string;
+    label: string;
+  };
 }
 
 export interface InfoPanelProps {

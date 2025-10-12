@@ -20,18 +20,18 @@ export default function InfoPanel({
   return (
     <section
       className={clsx(
-        "bg-bgCard border border-borderSoft rounded-2xl mt-6 p-4 md:p-5 shadow-sm",
+        "bg-bgCard border border-borderSoft rounded-2xl mt-6 p-6 md:p-7 shadow-sm",
         className
       )}
     >
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-textPrimary text-lg font-semibold">{title}</h3>
+        <h3 className="text-textPrimary text-xl font-semibold">{title}</h3>
 
         {anchorDesc ? (
           <a
             href={anchorDesc.href ?? "#"}
             onClick={anchorDesc.onClick}
-            className="text-sm text-infoBlue hover:underline hover:opacity-90 cursor-pointer select-none"
+            className="text-sm text-accent hover:underline hover:opacity-90 cursor-pointer select-none"
           >
             {anchorDesc.label}
           </a>
@@ -41,7 +41,7 @@ export default function InfoPanel({
       </div>
 
       {typeof progress === "number" && (
-        <div className="mt-3 h-1.5 w-full rounded-full bg-bgHighlight overflow-hidden">
+        <div className="mt-4 h-2 w-full rounded-full bg-bgHighlight overflow-hidden">
           <div
             className="h-full bg-accent transition-[width] duration-300"
             style={{ width: `${Math.min(Math.max(progress, 0), 1) * 100}%` }}
@@ -51,7 +51,7 @@ export default function InfoPanel({
       )}
 
       <div
-        className={clsx("mt-4", isRow ? "grid gap-3" : "flex flex-col gap-3")}
+        className={clsx("mt-5", isRow ? "grid gap-4" : "flex flex-col gap-4")}
         style={
           isRow
             ? ({
@@ -69,8 +69,8 @@ export default function InfoPanel({
             className={clsx(
               "rounded-xl border border-borderSoft transition duration-300",
               isRow
-                ? "p-4 flex flex-col justify-center items-center text-center"
-                : "px-4 py-3 flex items-start justify-between gap-3",
+                ? "p-5 flex flex-col justify-center items-center text-center"
+                : "px-5 py-4 flex items-start justify-between gap-4",
               dimOthers && idx !== 0
                 ? "opacity-40 hover:opacity-100"
                 : "opacity-100",
@@ -78,21 +78,40 @@ export default function InfoPanel({
             )}
           >
             <div className="min-w-0">
-              <div className="text-textPrimary font-semibold truncate">
+              <div className="text-textPrimary text-lg font-semibold truncate">
                 {it.title}
               </div>
               {it.subtitle && (
-                <div className="text-textPrimary text-xl font-bold mt-1 truncate">
+                <div className="text-textPrimary text-2xl font-bold mt-1.5 truncate">
                   {it.subtitle}
                 </div>
               )}
             </div>
 
-            {it.right && (
-              <div className="shrink-0 px-2.5 py-1 rounded-full bg-accent text-white text-xs font-semibold whitespace-nowrap mt-2">
+            {it.rightButton ? (
+              <a
+                href={it.rightButton.href}
+                className={clsx(
+                  "shrink-0 inline-flex items-center justify-center",
+                  "px-5 py-2.5 rounded-lg bg-accent text-white text-base font-semibold shadow-md",
+                  "hover:bg-accentHover hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-accent/50",
+                  "transition-transform transform hover:scale-[1.03]",
+                  "whitespace-nowrap",
+                  isRow ? "mt-3" : ""
+                )}
+              >
+                {it.rightButton.label}
+              </a>
+            ) : it.right ? (
+              <div
+                className={clsx(
+                  "shrink-0 px-3.5 py-1.5 rounded-full bg-accent text-white text-sm font-semibold whitespace-nowrap",
+                  isRow ? "mt-3" : ""
+                )}
+              >
                 {it.right}
               </div>
-            )}
+            ) : null}
           </div>
         ))}
       </div>
