@@ -1,3 +1,9 @@
-export default function Home() {
-  return <div className="bg-red-600">workouts</div>;
+import WorkoutsPage from "../components/pagesComponents/WorkoutsPage";
+
+export default function Workouts() {
+  return (
+    <>
+      <WorkoutsPage />
+    </>
+  );
 }

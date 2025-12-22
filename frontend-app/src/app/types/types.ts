@@ -1,14 +1,17 @@
 export interface Exercise {
+  id: number;
   name: string;
   sets: number;
   reps: number;
   weight?: number;
   restTimeSec?: number;
+  completed?: boolean;
+
 }
 
 export interface Workout {
-  id: string;
-  name: string;
+  id: number;
+  title: string;
   date?: string;
   muscleGroup: string;
   exercises: Exercise[];
@@ -16,27 +19,33 @@ export interface Workout {
   completed: boolean;
 }
 
-export interface PanelItem {
-  id?: string;
+
+export interface Tip {
+  title: string;
+}
+
+export interface Achievement {
   title: string;
   subtitle?: string;
-  right?: React.ReactNode;
-  workout?: Workout;
-  bgColor?: string;
-  rightButton?: {
-    href: string;
-    label: string;
-  };
 }
+
+export interface Highlights {
+  title: string;
+  subtitle?: string;
+  rightPopup?: string;
+}
+
+export type InfoPanelItem = Workout | Tip | Achievement;
+export type InfoPanelItems = InfoPanelItem[];
 
 export interface InfoPanelProps {
   title: string;
-  desc?: React.ReactNode;
-  anchorDesc?: { label: string; href: string; onClick?: () => void };
-  items: PanelItem[];
+  items: InfoPanelItems;
+  link?: { link: string; label: string };
+  desc?: string;
+  displayExercises?: boolean;
+  progress?: number;
   layout?: "column" | "row";
   maxPerRow?: number;
-  progress?: number;
-  className?: string;
   dimOthers?: boolean;
 }
