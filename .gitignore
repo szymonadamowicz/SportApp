@@ -1,0 +1,44 @@
+# dependencies
+frontend-app/node_modules
+frontend-app/.pnp
+frontend-app/.pnp.*
+frontend-app/.yarn/*
+!frontend-app/.yarn/patches
+!frontend-app/.yarn/plugins
+!frontend-app/.yarn/releases
+!frontend-app/.yarn/versions
+
+# testing
+frontend-app/coverage
+
+# next.js
+frontend-app/.next/
+frontend-app/out/
+
+# production
+build/
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+frontend-app/npm-debug.log*
+frontend-app/yarn-debug.log*
+frontend-app/yarn-error.log*
+frontend-app/pnpm-debug.log*
+
+# env files
+.env*
+
+# vercel
+.vercel
+
+# typescript
+frontend-app/*.tsbuildinfo
+frontend-app/next-env.d.ts
+
+# backend
+backend-app/assets
+backend-app/lsenv
+backend-app/venv

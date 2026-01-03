@@ -19,7 +19,7 @@ export interface Workout {
 }
 
 export type ExerciseUpdate = Partial<
-  Pick<Exercise, "sets" | "reps" | "weight" | "muscleGroups" | "restTimeSec">
+  Pick<Exercise, "name" |"sets" | "reps" | "weight" | "muscleGroups" | "restTimeSec">
 >;
 
 export interface Tip {
@@ -27,37 +27,17 @@ export interface Tip {
 }
 
 export interface Achievement {
-  title: string;
+  achievementTitle: string;
   subtitle?: string;
 }
 
 export interface Highlights {
-  title: string;
+  highlightTitle: string;
   subtitle?: string;
   rightPopup?: string;
 }
 
-export type InfoPanelItem = Workout | Tip | Achievement;
-export type InfoPanelItems = InfoPanelItem[];
-
-export interface InfoPanelProps {
-  title: string;
-  items: InfoPanelItems;
-  link?: { link: string; label: string };
-  desc?: string;
-  displayExercises?: boolean;
-  progress?: number;
-  layout?: "column" | "row";
-  maxPerRow?: number;
-  dimOthers?: string;
-  showButton?: { onClick: (workoutId: string) => void; label: string };
-  variant?: "default" | "exercises" | "exercise_edit";
-  onUpdateExercise?: (exerciseId: string, changes: ExerciseUpdate) => void;
-}
-
-export interface WorkoutFormProps {
-  workout?: Workout;
-}
+export type InfoPanelItem = Workout | Tip | Achievement | Highlights;
 
 export type HeroState =
   | {
@@ -78,3 +58,19 @@ export type HeroState =
       title: string;
       subtitle: string;
     };
+
+export interface DraftExercise {
+  id: string;
+  name: string;
+  sets: string;
+  reps: string;
+  weight: string;
+  restTimeSec: string;
+  muscleGroups: string;
+}
+
+export type UpdateWorkoutPayload = {
+  workoutId: string;
+  exerciseId: string;
+  patch: ExerciseUpdate;
+};

@@ -43,10 +43,7 @@ export const getHeroState = (workouts: Workout[], now: Date): HeroState => {
         return {
           kind: "missed",
           title: missed.title,
-          subtitle: `Missed at ${missed.scheduledAt.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}`,
+          subtitle: `Missed at ${formatTimeDiff(missed.scheduledAt, now)}.`,
           workout: missed,
         };
       }
@@ -63,7 +60,7 @@ export const getHeroState = (workouts: Workout[], now: Date): HeroState => {
     return {
       kind: "missed",
       title: missed.title,
-      subtitle: "Missed earlier today",
+      subtitle: `Missed earlier today, scheduled for ${formatTimeDiff(missed.scheduledAt, now)}.`,
       workout: missed,
     };
   }

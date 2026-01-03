@@ -1,0 +1,48 @@
+"use client";
+
+import InfoPanel from "@/components/InfoPanel/InfoPanel";
+import { useWorkoutFormVM } from "./WorkoutFormVM";
+import { WorkoutExercisesSection } from "./sections/WorkoutExercisesSection";
+import { formatTimeDiff, isSameDay } from "@/helpers/utils/workoutTime";
+import { WorkoutFormProps } from "@/types/workoutPage";
+
+export default function WorkoutForm({ workout }: WorkoutFormProps) {
+  const vm = useWorkoutFormVM(workout);
+
+  const desc = `${workout.muscleGroup}, ${
+    isSameDay(workout.scheduledAt, new Date()) ? "today" : "in"
+  }: ${formatTimeDiff(workout.scheduledAt)}`;
+
+  return (
+    <InfoPanel
+      title={workout.title}
+      desc={desc}
+      showButton={{
+        label: vm.editMode
+          ? vm.hasChanges
+            ? "Save changes"
+            : "Cancel"
+          : "Edit workout",
+        onClick: () => {
+          if (!vm.editMode) {
+            vm.enterEdit();
+            return;
+          }
+
+          if (vm.hasChanges) {
+            vm.saveAllChanges();
+          } else {
+            vm.cancelEdit();
+          }
+        },
+      }}
+    >
+      <WorkoutExercisesSection
+        workout={workout}
+        editMode={vm.editMode}
+        draft={vm.draft}
+        onDraftChange={vm.updateDraft}
+      />
+    </InfoPanel>
+  );
+}

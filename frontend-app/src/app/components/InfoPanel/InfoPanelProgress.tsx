@@ -4,7 +4,9 @@ interface InfoPanelProgressProps {
   progress: number;
 }
 
-export const InfoPanelProgress: React.FC<InfoPanelProgressProps> = ({ progress }) => {
+export const InfoPanelProgress: React.FC<InfoPanelProgressProps> = ({
+  progress,
+}) => {
   return (
     <div className="mt-4 h-2 w-full rounded-full bg-bgHighlight overflow-hidden">
       <div

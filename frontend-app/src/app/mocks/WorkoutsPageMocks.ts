@@ -193,24 +193,24 @@ export const Tips: Tip[] = [
 
 export const WeeklyProgress: Achievement[] = [
   {
-    title: "Total Volume",
+    achievementTitle: "Total Volume",
     subtitle: "26,000kg",
   },
-  { title: "Avg Intensity", subtitle: "RPE 7.5" },
+  { achievementTitle: "Avg Intensity", subtitle: "RPE 7.5" },
   {
-    title: "PRs Achieved this week",
+    achievementTitle: "PRs Achieved this week",
     subtitle: "2",
   },
 ];
 
 export const RecentHighlights: Highlights[] = [
   {
-    title: "Deadlift PR",
+    highlightTitle: "Deadlift PR",
     subtitle: "200 kg × 3",
     rightPopup: "+15 kg",
   },
   {
-    title: "Streak",
+    highlightTitle: "Streak",
     subtitle: "7 days in a row",
     rightPopup: "Level Up",
   },
