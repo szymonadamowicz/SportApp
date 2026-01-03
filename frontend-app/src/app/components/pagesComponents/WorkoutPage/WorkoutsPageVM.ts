@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useWorkouts } from "@/hooks/useWorkouts";
 import { useNow } from "@/hooks/useNow";
 import { getWorkoutStatus } from "@/helpers/utils/workoutStatus";
-import { formatTimeDiff } from "@/helpers/utils/workoutTime";
+import { formatTimeDiff, isThisWeek } from "@/helpers/utils/workoutTime";
 import { getWorkoutDay } from "@/helpers/utils/workoutDay";
 import { WorkoutListItemVM, WorkoutListState } from "@/types/workoutPage";
 
@@ -15,22 +15,28 @@ export const useWorkoutsPageVM = () => {
   const [seeAll, setSeeAll] = useState(false);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string>();
 
-  const upcoming = workouts.filter(
-    (w) => !w.completedAt && w.scheduledAt > now
-  );
+  const notCompleted = workouts.filter((w) => !w.completedAt);
+  const completed = workouts.filter((w) => w.completedAt);
 
-  const upcomingWeek = upcoming.filter(
+  const missed = notCompleted.filter(
+    (w) => getWorkoutStatus(w, now) === "missed"
+  );
+  const upcoming = notCompleted.filter(
     (w) => getWorkoutStatus(w, now) === "upcoming"
   );
 
-  const baseList = seeAll ? upcoming : upcomingWeek;
+  const upcomingThisWeek = upcoming.filter((w) =>
+    isThisWeek(w.scheduledAt, now)
+  );
+
+  const visibleWorkouts = seeAll ? upcoming : upcomingThisWeek;
 
   const listState: WorkoutListState =
-    upcoming.length === 0 ? "empty" : "hasData";
+    visibleWorkouts.length === 0 ? "empty" : "hasData";
 
   const list: WorkoutListItemVM[] =
     listState === "hasData"
-      ? baseList.map((w) => ({
+      ? visibleWorkouts.map((w) => ({
           id: w.id,
           title: w.title,
           muscleGroup: w.muscleGroup,
@@ -50,5 +56,12 @@ export const useWorkoutsPageVM = () => {
     seeAll,
     toggleSeeAll: () => setSeeAll((v) => !v),
     selectWorkout: setSelectedWorkoutId,
+    meta: {
+      total: workouts.length,
+      upcoming: upcoming.length,
+      upcomingThisWeek: upcomingThisWeek.length,
+      completed: completed.length,
+      missed: missed.length,
+    },
   };
 };
