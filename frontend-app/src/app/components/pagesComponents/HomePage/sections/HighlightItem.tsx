@@ -13,7 +13,7 @@ export default function HighlightItem({ highlight }: Props) {
     <div className="rounded-2xl border border-borderSoft bg-bgHighlight/70 px-5 py-4 flex items-center justify-between gap-4">
       <div className="min-w-0">
         <p className="font-medium text-textPrimary truncate">
-          {highlight.highlightTitle}
+          {highlight.title}
         </p>
 
         {highlight.subtitle && (

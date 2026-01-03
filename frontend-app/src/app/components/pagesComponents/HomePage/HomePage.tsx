@@ -70,7 +70,7 @@ export default function HomePage() {
             {vm.info.weeklyProgress.map((item, idx) => (
               <WeeklyProgressItem
                 key={idx}
-                achievementTitle={item.achievementTitle}
+                title={item.title}
                 subtitle={item.subtitle}
               />
             ))}

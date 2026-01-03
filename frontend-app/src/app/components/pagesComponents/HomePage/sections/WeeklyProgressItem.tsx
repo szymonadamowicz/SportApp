@@ -2,14 +2,11 @@
 
 import { Achievement } from "@/types/workout";
 
-export default function WeeklyProgressItem({
-  achievementTitle,
-  subtitle,
-}: Achievement) {
+export default function WeeklyProgressItem({ title, subtitle }: Achievement) {
   return (
     <div className="rounded-2xl border border-borderSoft bg-bgHighlight/70 px-5 py-4 flex flex-col justify-between">
       <p className="text-xs uppercase tracking-wide text-textSecondary">
-        {achievementTitle}
+        {title}
       </p>
 
       {subtitle && (

@@ -19,7 +19,10 @@ export interface Workout {
 }
 
 export type ExerciseUpdate = Partial<
-  Pick<Exercise, "name" |"sets" | "reps" | "weight" | "muscleGroups" | "restTimeSec">
+  Pick<
+    Exercise,
+    "name" | "sets" | "reps" | "weight" | "muscleGroups" | "restTimeSec"
+  >
 >;
 
 export interface Tip {
@@ -27,12 +30,12 @@ export interface Tip {
 }
 
 export interface Achievement {
-  achievementTitle: string;
+  title: string;
   subtitle?: string;
 }
 
 export interface Highlights {
-  highlightTitle: string;
+  title: string;
   subtitle?: string;
   rightPopup?: string;
 }
