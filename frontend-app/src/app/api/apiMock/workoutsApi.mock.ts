@@ -1,5 +1,5 @@
 import { WorkoutsApiMock } from "@/mocks/WorkoutsPageMocks";
-import { WorkoutDTO } from "@/types/workoutDTO";
+import { WorkoutDTO } from "@/types/workout/workoutDTO";
 
 export const fetchWorkoutsMock = async (): Promise<WorkoutDTO[]> => {
   await new Promise((r) => setTimeout(r, 300));

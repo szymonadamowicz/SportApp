@@ -8,7 +8,7 @@ import {
   gridWrapper,
   columnWrapper,
 } from "@/helpers/ui/infoPanelStyles";
-import { InfoPanelProps } from "@/types/infoPanel";
+import { InfoPanelProps } from "@/types/components/infoPanel";
 
 export default function InfoPanel({
   title,

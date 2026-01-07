@@ -1,9 +1,11 @@
 import InfoPanel from "@/components/InfoPanel/InfoPanel";
-import { WorkoutListSectionProps } from "@/types/workoutPage";
+import { WorkoutListSectionProps } from "@/types/pages/workoutPage";
 import { WorkoutListItem } from "./WorkoutListItem";
+import EmptyState from "@/components/EmptyState/EmptyState";
 
 export function WorkoutListSection({
   item,
+  listState,
   selectedId,
   title,
   seeAllLabel,
@@ -11,21 +13,33 @@ export function WorkoutListSection({
   onSelect,
 }: WorkoutListSectionProps) {
   return (
-    <InfoPanel
-      title={title}
-      outerButton={{
-        label: seeAllLabel,
-        onClick: onToggleSeeAll,
-      }}
-    >
-      {item.map((vm) => (
-        <WorkoutListItem
-          key={vm.id}
-          item={vm}
-          selected={vm.id === selectedId}
-          onClick={() => onSelect(vm.id)}
+    <>
+      {listState === "hasData" ? (
+        <InfoPanel
+          title={title}
+          outerButton={{
+            label: seeAllLabel,
+            onClick: onToggleSeeAll,
+          }}
+        >
+          {item.map((vm) => (
+            <WorkoutListItem
+              key={vm.id}
+              item={vm}
+              selected={vm.id === selectedId}
+              onClick={() => onSelect(vm.id)}
+            />
+          ))}
+        </InfoPanel>
+      ) : (
+        <EmptyState
+          icon="📆"
+          title="No trainings this week"
+          description="You're all caught up. Enjoy your free time!"
+          actionLabel="See all trainings"
+          onAction={onToggleSeeAll}
         />
-      ))}
-    </InfoPanel>
+      )}
+    </>
   );
 }

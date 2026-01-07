@@ -10,9 +10,9 @@ import {
 import {
   ValueWithUnitProps,
   WorkoutExercisesSectionProps,
-} from "@/types/workoutPage";
+} from "@/types/pages/workoutPage";
 import EmptyState from "@/components/EmptyState/EmptyState";
-import { numericOnly } from "@/helpers/utils/workoutEditor";
+import { numericOnly } from "@/helpers/utils/workout/workoutDraftChanged";
 
 export const WorkoutExercisesSection = ({
   workout,

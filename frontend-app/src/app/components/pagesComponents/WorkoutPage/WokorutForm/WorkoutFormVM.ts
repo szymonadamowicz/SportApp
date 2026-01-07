@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Workout, DraftExercise } from "@/types/workout";
+import { Workout, DraftExercise } from "@/types/workout/workout";
 import {
   toDraftExercise,
   getExerciseUpdate,
-} from "@/helpers/utils/workoutDraftChanged";
-import { useUpdateWorkout } from "@/hooks/useUpdateWorkout";
-import { WorkoutFormVM } from "@/types/workoutPage";
+} from "@/helpers/utils/workout/workoutDraftChanged";
+import { useUpdateWorkout } from "@/hooks/apiHooks/useUpdateWorkout";
+import { WorkoutFormVM } from "@/types/pages/workoutPage";
 
 export const useWorkoutFormVM = (workout?: Workout | null): WorkoutFormVM => {
   const mutation = useUpdateWorkout();

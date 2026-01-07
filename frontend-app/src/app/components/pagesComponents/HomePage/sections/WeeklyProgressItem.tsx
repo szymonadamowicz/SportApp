@@ -1,6 +1,6 @@
 "use client";
 
-import { Achievement } from "@/types/workout";
+import { Achievement } from "@/types/workout/workout";
 
 export default function WeeklyProgressItem({ title, subtitle }: Achievement) {
   return (

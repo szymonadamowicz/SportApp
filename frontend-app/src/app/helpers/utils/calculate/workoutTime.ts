@@ -34,6 +34,7 @@ export const formatTimeDiff = (
 };
 
 export const isSameDay = (a: Date, b: Date) =>
+  a.getDay() === b.getDay() &&
   a.getDate() === b.getDate() &&
   a.getMonth() === b.getMonth() &&
   a.getFullYear() === b.getFullYear();

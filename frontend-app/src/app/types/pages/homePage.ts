@@ -1,4 +1,4 @@
-import { HeroState } from "./workout";
+import { HeroState } from "../workout/workout";
 
 export interface HeroProps {
   hero: HeroState;

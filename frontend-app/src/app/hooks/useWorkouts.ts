@@ -2,8 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { mapWorkoutDTO } from "@/api/mappers/workoutMapper";
-import { fetchWorkoutsMock } from "@/api/workoutsApi.mock";
-import { Workout } from "@/types/workout";
+import { fetchWorkoutsMock } from "@/api/apiMock/workoutsApi.mock";
+import { Workout } from "@/types/workout/workout";
 
 export const useWorkouts = () => {
   const query = useQuery<Workout[]>({

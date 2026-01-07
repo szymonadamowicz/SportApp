@@ -1,6 +1,6 @@
 "use client";
 
-import { Tip } from "@/types/workout";
+import { Tip } from "@/types/workout/workout";
 
 export default function TipItem({ title }: Tip) {
   return (

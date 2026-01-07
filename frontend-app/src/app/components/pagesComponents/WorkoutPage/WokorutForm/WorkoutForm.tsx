@@ -3,13 +3,13 @@
 import InfoPanel from "@/components/InfoPanel/InfoPanel";
 import { useWorkoutFormVM } from "./WorkoutFormVM";
 import { WorkoutExercisesSection } from "./sections/WorkoutExercisesSection";
-import { formatTimeDiff, isSameDay } from "@/helpers/utils/workoutTime";
-import { WorkoutFormProps } from "@/types/workoutPage";
+import { formatTimeDiff, isSameDay } from "@/helpers/utils/calculate/workoutTime";
+import { WorkoutFormProps } from "@/types/pages/workoutPage";
 
 export default function WorkoutForm({ workout }: WorkoutFormProps) {
   const vm = useWorkoutFormVM(workout);
 
-  const desc = `${workout.muscleGroup}, ${
+  const desc = `${workout.mainFocus}, ${
     isSameDay(workout.scheduledAt, new Date()) ? "today" : "in"
   }: ${formatTimeDiff(workout.scheduledAt)}`;
 

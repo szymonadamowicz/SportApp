@@ -1,4 +1,4 @@
-import { InfoPanelHeaderProps } from "@/types/infoPanel";
+import { InfoPanelHeaderProps } from "@/types/components/infoPanel";
 import { InfoPanelAnchor } from "./InfoPanelAnchor";
 
 export function InfoPanelHeader({

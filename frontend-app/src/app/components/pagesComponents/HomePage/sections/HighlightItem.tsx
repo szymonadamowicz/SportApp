@@ -1,8 +1,7 @@
 "use client";
 
 import Tag from "@/components/Tag/Tag";
-import { getWorkoutTagClass } from "@/helpers/ui/workoutTagStyles";
-import { Highlights } from "@/types/workout";
+import { Highlights } from "@/types/workout/workout";
 
 type Props = {
   highlight: Highlights;
@@ -26,7 +25,6 @@ export default function HighlightItem({ highlight }: Props) {
       {highlight.rightPopup && (
         <Tag
           label={highlight.rightPopup}
-          className={getWorkoutTagClass("default")}
         />
       )}
     </div>

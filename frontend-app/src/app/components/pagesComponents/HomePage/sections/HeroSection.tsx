@@ -2,8 +2,8 @@
 
 import Tag from "@/components/Tag/Tag";
 import { getHeroClassName, getHeroPrimaryLabel } from "@/helpers/ui/heroStyles";
-import { formatExerciseShort } from "@/helpers/utils/workoutFormatters";
-import { HeroProps } from "@/types/homePage";
+import { formatExerciseShort } from "@/helpers/utils/calculate/workoutFormatters";
+import { HeroProps } from "@/types/pages/homePage";
 
 export default function Hero({
   hero,

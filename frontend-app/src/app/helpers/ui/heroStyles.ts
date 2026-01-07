@@ -1,4 +1,4 @@
-import { HeroState } from "@/types/workout";
+import { HeroState } from "@/types/workout/workout";
 import clsx from "clsx";
 
 export const getHeroClassName = (hero: HeroState) =>

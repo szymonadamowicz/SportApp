@@ -4,7 +4,6 @@ export interface ExerciseDTO {
   sets: number;
   reps: number;
   weight?: number;
-  muscleGroups?: string[];
   restTimeSec?: number;
 }
 
@@ -14,6 +13,6 @@ export interface WorkoutDTO {
   scheduledAt: string;
   completedAt?: string | null;
   exercises: ExerciseDTO[];
-  muscleGroup: string;
-  notes?: string;
+  muscleGroups?: string[];
+  mainFocus?: string;
 }

@@ -1,4 +1,4 @@
-import { InfoPanelActionProps } from "@/types/infoPanel";
+import { InfoPanelActionProps } from "@/types/components/infoPanel";
 
 export const InfoPanelAnchor = ({ label, onClick }: InfoPanelActionProps) => {
   return (

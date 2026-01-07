@@ -1,6 +1,6 @@
-import { getHeroState } from "@/helpers/utils/workoutHero";
 import { useNow } from "@/hooks/useNow";
-import { Workout } from "@/types/workout";
+import { Workout } from "@/types/workout/workout";
+import { getHeroState } from "../utils/components/workoutHero";
 
 export const useHeroVM = (workouts: Workout[]) => {
   const baseNow = useNow(60_000);

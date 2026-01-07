@@ -1,6 +1,6 @@
-import { Workout, HeroState } from "@/types/workout";
-import { formatTimeDiff, isSameDay } from "./workoutTime";
+import { Workout, HeroState } from "@/types/workout/workout";
 import { useNow } from "@/hooks/useNow";
+import { formatTimeDiff, isSameDay } from "../calculate/workoutTime";
 
 const isInMissedWindow = (missedAt: Date, nextWorkoutAt: Date, now: Date) => {
   const gapMs = nextWorkoutAt.getTime() - missedAt.getTime();
@@ -25,7 +25,7 @@ export const getHeroState = (workouts: Workout[], now: Date): HeroState => {
     return {
       kind: "upcoming",
       title: next.title,
-      subtitle: next.muscleGroup,
+      subtitle: next.mainFocus,
       timeLabel: `Starts in ${formatTimeDiff(next.scheduledAt, now)}`,
       workout: next,
     };
@@ -51,7 +51,7 @@ export const getHeroState = (workouts: Workout[], now: Date): HeroState => {
       return {
         kind: "upcoming",
         title: next.title,
-        subtitle: next.muscleGroup,
+        subtitle: next.mainFocus,
         timeLabel: `Starts in ${formatTimeDiff(next.scheduledAt, now)}`,
         workout: next,
       };
@@ -60,7 +60,10 @@ export const getHeroState = (workouts: Workout[], now: Date): HeroState => {
     return {
       kind: "missed",
       title: missed.title,
-      subtitle: `Missed earlier today, scheduled for ${formatTimeDiff(missed.scheduledAt, now)}.`,
+      subtitle: `Missed earlier today, scheduled for ${formatTimeDiff(
+        missed.scheduledAt,
+        now
+      )}.`,
       workout: missed,
     };
   }

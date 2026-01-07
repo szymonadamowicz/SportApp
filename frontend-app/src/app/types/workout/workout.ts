@@ -1,3 +1,5 @@
+import { WorkoutDTO } from "./workoutDTO";
+
 export interface Exercise {
   id: string;
   name: string;
@@ -5,7 +7,6 @@ export interface Exercise {
   reps: number;
   weight?: number;
   restTimeSec?: number;
-  muscleGroups?: string[];
 }
 
 export interface Workout {
@@ -14,15 +15,12 @@ export interface Workout {
   scheduledAt: Date;
   completedAt?: Date;
   exercises: Exercise[];
-  muscleGroup?: string;
-  notes?: string;
+  muscleGroups?: string[];
+  mainFocus?: string;
 }
 
 export type ExerciseUpdate = Partial<
-  Pick<
-    Exercise,
-    "name" | "sets" | "reps" | "weight" | "muscleGroups" | "restTimeSec"
-  >
+  Pick<Exercise, "name" |"sets" | "reps" | "weight" | "restTimeSec">
 >;
 
 export interface Tip {
@@ -69,11 +67,13 @@ export interface DraftExercise {
   reps: string;
   weight: string;
   restTimeSec: string;
-  muscleGroups: string;
 }
 
 export type UpdateWorkoutPayload = {
   workoutId: string;
   exerciseId: string;
   patch: ExerciseUpdate;
+};
+export type CreateWorkoutPayload = {
+  workout: WorkoutDTO;
 };

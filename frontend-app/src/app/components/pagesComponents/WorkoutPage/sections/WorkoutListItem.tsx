@@ -2,13 +2,15 @@
 
 import clsx from "clsx";
 import Tag from "@/components/Tag/Tag";
-import { WorkoutListItemProps } from "@/types/workoutPage";
-import { getWorkoutTagClass } from "@/helpers/ui/workoutTagStyles";
+import { WorkoutListItemProps } from "@/types/pages/workoutPage";
+import { dateTagClass, getStatusTagClass } from "@/helpers/ui/workoutTagStyles";
 
-
-export function WorkoutListItem({ item, selected, dimmed, onClick }: WorkoutListItemProps) {
-  const tagClass = getWorkoutTagClass(item.status);
-
+export function WorkoutListItem({
+  item,
+  selected,
+  dimmed,
+  onClick,
+}: WorkoutListItemProps) {
   return (
     <div
       onClick={onClick}
@@ -23,16 +25,28 @@ export function WorkoutListItem({ item, selected, dimmed, onClick }: WorkoutList
       <div className="flex justify-between items-start gap-4">
         <div>
           <p className="font-semibold text-textPrimary">{item.title}</p>
-          {item.muscleGroup && (
+          {item.mainFocus && (
             <p className="text-sm text-textSecondary capitalize">
-              {item.muscleGroup}
+              {item.mainFocus}
             </p>
           )}
         </div>
 
         <div className="flex gap-1 text-sm font-semibold">
-          <Tag label={`⏱ ${item.timeLabel}`} className={tagClass} />
-          {item.dayLabel && <Tag label={`📅 ${item.dayLabel}`} className={getWorkoutTagClass("default")} />}
+          <div className="flex gap-1 text-sm font-semibold">
+            <Tag
+              label={`⏱ ${item.timeLabel}`}
+              className={getStatusTagClass(item.status)}
+            />
+
+            {item.dayLabel && (
+              <Tag
+                label={item.dayLabel}
+                className={getStatusTagClass(item.status)}
+              />
+            )}
+            <Tag label={`📅 ${item.dateLabel}`} className={dateTagClass} />
+          </div>
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useRememberedRoute } from "@/helpers/utils/navigation/navigationHelper";
 
 const navItems = [
   { href: "/workouts", label: "Workouts" },
@@ -14,6 +15,7 @@ const navItems = [
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const getHref = useRememberedRoute();
 
   return (
     <header
@@ -34,10 +36,11 @@ export default function Navbar() {
         <ul className="flex items-center gap-10">
           {navItems.map((item) => {
             const active = pathname === item.href;
+            const href = getHref(item.href);
             return (
               <li key={item.href} className="relative">
                 <button
-                  onClick={() => router.push(item.href)}
+                  onClick={() => router.push(href)}
                   className={`
                     text-lg font-medium transition
                     ${

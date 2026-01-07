@@ -1,5 +1,6 @@
 "use client";
 
+import { mapWorkoutToListItemVM } from "@/helpers/mappers/mapWorkoutToListItemVm";
 import InfoPanel from "../../InfoPanel/InfoPanel";
 import { WorkoutListItem } from "../WorkoutPage/sections/WorkoutListItem";
 import { useHomePageVM } from "./HomePageVM";
@@ -34,7 +35,7 @@ export default function HomePage() {
               {vm.today.items.map((item) => (
                 <WorkoutListItem
                   key={item.id}
-                  item={item}
+                  item={mapWorkoutToListItemVM(item, vm.now)}
                   onClick={() => vm.goTo(`/workouts/${item.id}`)}
                 />
               ))}
@@ -42,8 +43,10 @@ export default function HomePage() {
           ) : (
             <EmptyState
               icon="🎉"
-              title="No trainings today"
-              description="You’ve completed everything planned for today."
+              title="No upcoming workouts"
+              description="Nothing scheduled for now."
+              missed={vm.today.missedItems.length > 0}
+              missedItems={vm.today.missedItems}
             />
           )}
 

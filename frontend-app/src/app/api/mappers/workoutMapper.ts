@@ -1,5 +1,5 @@
-import { Exercise, Workout } from "@/types/workout";
-import { WorkoutDTO, ExerciseDTO } from "@/types/workoutDTO";
+import { Exercise, Workout } from "@/types/workout/workout";
+import { WorkoutDTO, ExerciseDTO } from "@/types/workout/workoutDTO";
 
 const mapExerciseDTO = (dto: ExerciseDTO): Exercise => ({
   id: dto.id,
@@ -8,7 +8,6 @@ const mapExerciseDTO = (dto: ExerciseDTO): Exercise => ({
   reps: dto.reps,
   weight: dto.weight,
   restTimeSec: dto.restTimeSec,
-  muscleGroups: dto.muscleGroups,
 });
 
 export const mapWorkoutDTO = (dto: WorkoutDTO): Workout => ({
@@ -16,7 +15,7 @@ export const mapWorkoutDTO = (dto: WorkoutDTO): Workout => ({
   title: dto.title,
   scheduledAt: new Date(dto.scheduledAt),
   completedAt: dto.completedAt ? new Date(dto.completedAt) : undefined,
-  muscleGroup: dto.muscleGroup ?? "",
+  muscleGroups: dto.muscleGroups ? dto.muscleGroups : undefined,
+  mainFocus: dto.mainFocus ? dto.mainFocus : undefined,
   exercises: dto.exercises.map(mapExerciseDTO),
-  notes: dto.notes,
 });

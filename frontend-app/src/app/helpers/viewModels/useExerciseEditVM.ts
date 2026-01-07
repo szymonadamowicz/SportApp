@@ -2,11 +2,11 @@ import {
   DraftExercise,
   Workout,
   ExerciseUpdate,
-} from "@/types/workout";
+} from "@/types/workout/workout";
 import {
   toDraftExercise,
   getExerciseUpdate,
-} from "@/helpers/utils/workoutDraftChanged";
+} from "@/helpers/utils/workout/workoutDraftChanged";
 
 export const createWorkoutEditorVM = (workout?: Workout | null) => {
   if (!workout || !Array.isArray(workout.exercises)) {

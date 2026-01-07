@@ -1,4 +1,4 @@
-import { InfoPanelItem, Workout, Tip, Achievement, Highlights } from "@/types/workout";
+import { InfoPanelItem, Workout, Tip, Achievement, Highlights } from "@/types/workout/workout";
 
 export const resolveInfoPanelItemType = (item: InfoPanelItem) => {
   if ("exercises" in item) return { type: "workout", item: item as Workout };

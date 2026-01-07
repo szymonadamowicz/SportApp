@@ -1,4 +1,4 @@
-import { DraftExercise, Exercise, ExerciseUpdate } from "@/types/workout";
+import { DraftExercise, Exercise, ExerciseUpdate } from "@/types/workout/workout";
 
 const toNumber = (v: string): number | undefined => {
   if (v.trim() === "") return undefined;
@@ -13,7 +13,6 @@ export const toDraftExercise = (ex: Exercise): DraftExercise => ({
   reps: String(ex.reps),
   weight: ex.weight?.toString() ?? "",
   restTimeSec: ex.restTimeSec?.toString() ?? "",
-  muscleGroups: (ex.muscleGroups ?? []).join(", "),
 });
 
 export const getExerciseUpdate = (
@@ -48,3 +47,6 @@ export const getExerciseUpdate = (
 
   return Object.keys(patch).length > 0 ? patch : null;
 };
+
+export const numericOnly = (v: string) =>
+  v.replace(/[^\d]/g, "");

@@ -1,4 +1,4 @@
-import { EmptyStateVariant } from "@/types/emptyState";
+import { EmptyStateVariant } from "@/types/components/emptyState";
 import clsx from "clsx";
 
 export const getWrapperClass = (variant: EmptyStateVariant) =>

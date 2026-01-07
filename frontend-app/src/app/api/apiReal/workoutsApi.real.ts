@@ -1,4 +1,4 @@
-import { WorkoutDTO } from "@/types/workoutDTO";
+import { WorkoutDTO } from "@/types/workout/workoutDTO";
 
 export const fetchWorkoutsApi = async (): Promise<WorkoutDTO[]> => {
   const res = await fetch("/api/workouts");
