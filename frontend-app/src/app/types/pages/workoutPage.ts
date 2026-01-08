@@ -77,6 +77,8 @@ export type WorkoutHistorySectionProps = {
     label: string;
     onClick: () => void;
   };
+  onSelect: (id: string) => void;
+  selectedId?: string;
 };
 
 export type CreateWorkoutProps = {
@@ -94,4 +96,9 @@ export type WorkoutCreateErrors = {
   time?: string;
   exercises?: string;
   exerciseFields?: Record<string, { sets?: string; reps?: string }>;
+};
+
+export type HistorySectionProps = {
+  onSelect: (id: string) => void;
+  selectedId?: string;
 };

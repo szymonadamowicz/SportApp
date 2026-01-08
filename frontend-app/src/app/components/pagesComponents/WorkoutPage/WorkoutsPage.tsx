@@ -37,7 +37,7 @@ export default function WorkoutsPage() {
       </div>
 
       <div className="space-y-6 mt-6">
-        <WorkoutHistory />
+        <WorkoutHistory onSelect={vm.selectWorkout} selectedId={vm.selected?.id}/>
       </div>
 
       <CreateWorkoutModal

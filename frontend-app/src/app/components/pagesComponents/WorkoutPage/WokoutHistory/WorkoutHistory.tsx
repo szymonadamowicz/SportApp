@@ -1,9 +1,10 @@
+import { HistorySectionProps } from "@/types/pages/workoutPage";
 import { WorkoutHistorySection } from "./sections/WorkoutHistorySection";
 import { useWorkoutsHistoryVM } from "./WorkoutHistoryVM";
 
-export const WorkoutHistory = () => {
+export const WorkoutHistory = ({ onSelect, selectedId }: HistorySectionProps) => {
   const vm = useWorkoutsHistoryVM();
-
+  
   return (
     <WorkoutHistorySection
       title={vm.seeAllHistory ? "All trainings" : "Missed trainings"}
@@ -17,6 +18,8 @@ export const WorkoutHistory = () => {
         title: "No missed trainings",
         description: "Nice work! You didn’t skip anything.",
       }}
+      onSelect={onSelect}
+      selectedId={selectedId}
     />
   );
 };

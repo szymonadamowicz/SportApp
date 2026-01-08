@@ -42,7 +42,7 @@ export default function Navbar() {
                 <button
                   onClick={() => router.push(href)}
                   className={`
-                    text-lg font-medium transition
+                    text-lg font-medium transition cursor-pointer
                     ${
                       active
                         ? "text-accent"

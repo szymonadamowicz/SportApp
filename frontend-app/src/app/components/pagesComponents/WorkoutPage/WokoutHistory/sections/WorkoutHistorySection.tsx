@@ -7,7 +7,9 @@ export function WorkoutHistorySection({
   title,
   items,
   empty,
-  outerButton
+  outerButton,
+  onSelect,
+  selectedId
 }: WorkoutHistorySectionProps) {
   if (items.length === 0) {
     return empty ? (
@@ -22,7 +24,7 @@ export function WorkoutHistorySection({
   return (
     <InfoPanel title={title} outerButton={outerButton}>
       {items.map((item) => (
-        <WorkoutListItem key={item.id} item={item} />
+        <WorkoutListItem key={item.id} item={item} onClick={() => onSelect(item.id)} selected={selectedId == item.id}/>
       ))}
     </InfoPanel>
   );
