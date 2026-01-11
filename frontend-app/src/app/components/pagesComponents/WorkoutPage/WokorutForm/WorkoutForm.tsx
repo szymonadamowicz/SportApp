@@ -3,7 +3,10 @@
 import InfoPanel from "@/components/InfoPanel/InfoPanel";
 import { useWorkoutFormVM } from "./WorkoutFormVM";
 import { WorkoutExercisesSection } from "./sections/WorkoutExercisesSection";
-import { formatTimeDiff, isSameDay } from "@/helpers/utils/calculate/workoutTime";
+import {
+  formatTimeDiff,
+  isSameDay,
+} from "@/helpers/utils/calculate/workoutTime";
 import { WorkoutFormProps } from "@/types/pages/workoutPage";
 
 export default function WorkoutForm({ workout }: WorkoutFormProps) {
@@ -22,10 +25,10 @@ export default function WorkoutForm({ workout }: WorkoutFormProps) {
           ? vm.hasChanges
             ? "Save changes"
             : "Cancel"
-          : "Edit workout",
+          : "Edit exercises",
         onClick: () => {
           if (!vm.editMode) {
-            vm.enterEdit();
+            vm.enterExercisesEdit();
             return;
           }
 
@@ -36,12 +39,20 @@ export default function WorkoutForm({ workout }: WorkoutFormProps) {
           }
         },
       }}
+      secondaryButton={{
+        label: "Edit workout",
+        onClick: vm.editWorkoutAction,
+      }}
     >
       <WorkoutExercisesSection
         workout={workout}
         editMode={vm.editMode}
         draft={vm.draft}
+        errors={vm.exerciseErrors}
         onDraftChange={vm.updateDraft}
+        onPress={vm.editWorkoutAction}
+        onAddExercise={vm.addExercise}
+        onRemoveExercise={vm.removeExercise}
       />
     </InfoPanel>
   );

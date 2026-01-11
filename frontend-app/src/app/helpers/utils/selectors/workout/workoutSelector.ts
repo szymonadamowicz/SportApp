@@ -66,3 +66,16 @@ export const getTodayMissedWorkouts = (workouts: Workout[], now: Date) => {
     );
   });
 };
+
+export const getLastCompletedWorkout = (workouts: Workout[]) => {
+  return [...workouts]
+    .filter((w) => w.completedAt)
+    .sort((a, b) => b.completedAt!.getTime() - a.completedAt!.getTime())[0];
+};
+
+export const getWorkoutById = (
+  workouts: Workout[],
+  workoutId: string
+): Workout | undefined => {
+  return workouts.find((w) => w.id == workoutId);
+};

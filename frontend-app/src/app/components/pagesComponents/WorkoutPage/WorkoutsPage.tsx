@@ -7,17 +7,15 @@ import { WorkoutHistory } from "./WokoutHistory/WorkoutHistory";
 import { useWorkoutsPageVM } from "./WorkoutsPageVM";
 
 import { CreateWorkout } from "./WorkoutCreate/CreateWorkout";
-import { useCreateWorkoutModalVM } from "@/helpers/viewModels/CreateWorkoutModalVM";
 import { CreateWorkoutModal } from "./WorkoutCreate/sections/WorkoutCreateModal";
 
 export default function WorkoutsPage() {
   const vm = useWorkoutsPageVM();
-  const createModal = useCreateWorkoutModalVM();
 
   return (
     <>
       <div className="space-y-6">
-        <CreateWorkout onCreate={createModal.openModal} />
+        <CreateWorkout onCreate={vm.openModal} />
 
         <WorkoutListSection
           title={`Trainings Left ${vm.seeAll ? "" : "This Week"}`}
@@ -37,12 +35,16 @@ export default function WorkoutsPage() {
       </div>
 
       <div className="space-y-6 mt-6">
-        <WorkoutHistory onSelect={vm.selectWorkout} selectedId={vm.selected?.id}/>
+        <WorkoutHistory
+          onSelect={vm.selectWorkout}
+          selectedId={vm.selected?.id}
+        />
       </div>
 
       <CreateWorkoutModal
-        open={createModal.open}
-        onClose={createModal.closeModal}
+        open={vm.isCreateModalOpen}
+        onClose={vm.closeModal}
+        editModalId={vm.editModalId === null ? "-1" : vm.editModalId}
       />
     </>
   );

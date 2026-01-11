@@ -15,6 +15,7 @@ export default function InfoPanel({
   desc,
   outerButton,
   showButton,
+  secondaryButton,
   progress,
   layout = "column",
   maxPerRow = 3,
@@ -29,6 +30,7 @@ export default function InfoPanel({
         desc={desc}
         outerButton={outerButton}
         showButton={showButton}
+        secondaryButton={secondaryButton}
       />
 
       {typeof progress === "number" && (

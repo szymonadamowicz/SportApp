@@ -5,7 +5,7 @@ import {
   inlineInputClass,
   exerciseNameInputClass,
 } from "@/helpers/ui/workoutCreateStyles";
-import { useLockBodyScroll } from "@/hooks/useLockBodyScroll";
+import { useLockBodyScroll } from "@/hooks/helperHooks/useLockBodyScroll";
 import { CreateModalProps } from "@/types/pages/workoutPage";
 import clsx from "clsx";
 import { Dumbbell, X, Plus } from "lucide-react";
@@ -14,9 +14,15 @@ import { Field } from "./WorkoutCreateField";
 import { IconButton } from "./WorkoutCreateIconButton";
 import { SmallLabel } from "./WorkoutCreateSmallLabel";
 
-export function CreateWorkoutModal({ open, onClose }: CreateModalProps) {
+export function CreateWorkoutModal({
+  open,
+  onClose,
+  editModalId,
+}: CreateModalProps) {
   useLockBodyScroll(open);
-  const vm = useCreateWorkoutVM();
+
+  const vm = useCreateWorkoutVM(editModalId);
+  const isEditMode = Boolean(editModalId);
 
   if (!open) return null;
 
@@ -27,7 +33,7 @@ export function CreateWorkoutModal({ open, onClose }: CreateModalProps) {
           <div className="flex items-center gap-2">
             <Dumbbell className="h-5 w-5 text-accent" />
             <h2 className="text-lg font-semibold text-textPrimary">
-              Create new training
+              {isEditMode ? "Edit training" : "Create new training"}
             </h2>
           </div>
 
@@ -39,11 +45,15 @@ export function CreateWorkoutModal({ open, onClose }: CreateModalProps) {
         <div className="px-8 py-6 space-y-8 max-h-[65vh] overflow-y-auto">
           <Field
             label="Training name"
-            hint="Give your workout a clear, recognizable name"
+            hint={
+              isEditMode
+                ? "Update the name of your training"
+                : "Give your workout a clear, recognizable name"
+            }
           >
             <input
               className={clsx(inputClass, vm.errors.title && inputErrorClass)}
-              placeholder="e.g. Push Day"
+              placeholder={isEditMode ? "Training name" : "e.g. Push Day"}
               value={vm.title}
               onChange={(e) => vm.setTitle(e.target.value)}
             />
@@ -54,7 +64,11 @@ export function CreateWorkoutModal({ open, onClose }: CreateModalProps) {
 
           <Field
             label="Muscle groups"
-            hint="Select one or more muscle groups involved"
+            hint={
+              isEditMode
+                ? "Edit muscle groups involved in this training"
+                : "Select one or more muscle groups involved"
+            }
           >
             <div ref={vm.dropdownRef} className="relative">
               {vm.selectedMuscles.length > 0 && (
@@ -150,6 +164,7 @@ export function CreateWorkoutModal({ open, onClose }: CreateModalProps) {
                     inputClass,
                     vm.errors.date && inputErrorClass
                   )}
+                  value={vm.date}
                   onChange={(e) => vm.setDate(e.target.value)}
                 />
                 {vm.errors.date && (
@@ -164,6 +179,7 @@ export function CreateWorkoutModal({ open, onClose }: CreateModalProps) {
                     inputClass,
                     vm.errors.time && inputErrorClass
                   )}
+                  value={vm.time}
                   onChange={(e) => vm.setTime(e.target.value)}
                 />
                 {vm.errors.time && (
@@ -200,9 +216,7 @@ export function CreateWorkoutModal({ open, onClose }: CreateModalProps) {
                       className={clsx(exerciseNameInputClass, "py-2 text-sm")}
                       value={ex.name}
                       onChange={(e) =>
-                        vm.updateExercise(ex.id, {
-                          name: e.target.value,
-                        })
+                        vm.updateExercise(ex.id, { name: e.target.value })
                       }
                     />
                   </div>
@@ -317,7 +331,7 @@ export function CreateWorkoutModal({ open, onClose }: CreateModalProps) {
           </button>
 
           <button
-            onClick={vm.createWorkout}
+            onClick={vm.createOrUpdateWorkout}
             className="
               rounded-full bg-accent
               px-6 py-2 text-sm font-semibold
@@ -325,7 +339,7 @@ export function CreateWorkoutModal({ open, onClose }: CreateModalProps) {
               hover:bg-accentHover
             "
           >
-            Create training
+            {isEditMode ? "Save changes" : "Create training"}
           </button>
         </div>
       </div>

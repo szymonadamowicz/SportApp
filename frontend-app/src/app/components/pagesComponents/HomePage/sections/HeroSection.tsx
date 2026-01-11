@@ -71,7 +71,7 @@ export default function Hero({
           </button>
 
           <p className="text-xs text-textPrimary/80">
-            {completedCount} done · {upcomingCount} upcoming
+            {completedCount} done · {upcomingCount} planned
           </p>
         </div>
       </div>

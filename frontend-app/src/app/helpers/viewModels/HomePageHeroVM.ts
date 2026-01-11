@@ -1,4 +1,4 @@
-import { useNow } from "@/hooks/useNow";
+import { useNow } from "@/hooks/helperHooks/useNow";
 import { Workout } from "@/types/workout/workout";
 import { getHeroState } from "../utils/components/workoutHero";
 

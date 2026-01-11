@@ -7,82 +7,98 @@ import {
   labelClass,
   rowClass,
 } from "@/helpers/ui/workoutExercisesStyles";
-import {
-  ValueWithUnitProps,
-  WorkoutExercisesSectionProps,
-} from "@/types/pages/workoutPage";
+import { WorkoutExercisesSectionProps } from "@/types/pages/workoutPage";
 import EmptyState from "@/components/EmptyState/EmptyState";
 import { numericOnly } from "@/helpers/utils/workout/workoutDraftChanged";
+import { Plus, X } from "lucide-react";
 
 export const WorkoutExercisesSection = ({
   workout,
   editMode,
   draft,
+  errors,
   onDraftChange,
+  onPress,
+  onAddExercise,
+  onRemoveExercise,
 }: WorkoutExercisesSectionProps) => {
-  const ValueWithUnit = ({ value, unit }: ValueWithUnitProps) => {
-    if (value === undefined || value === null || value === "") {
-      return <span className="text-textSecondary">—</span>;
-    }
+  const gridClass = editMode
+    ? "grid-cols-[1fr_64px_20px_64px_20px_88px_64px_40px]"
+    : "grid-cols-[1fr_64px_20px_64px_20px_88px_64px]";
 
-    return (
-      <span className="inline-flex items-baseline justify-center">
-        <span>{value}</span>
-        <span className="ml-0.5 text-xs text-textSecondary">{unit}</span>
-      </span>
-    );
-  };
+  const exercises = [
+    ...workout.exercises.map((e) => ({ id: e.id, original: e })),
+    ...Object.keys(draft)
+      .filter((id) => !workout.exercises.some((e) => e.id === id))
+      .map((id) => ({ id, original: null })),
+  ];
 
   return (
     <div className="mt-4 space-y-3">
-      {workout.exercises.length === 0 && (
+      {exercises.length === 0 && !editMode && (
         <EmptyState
           title="No Exercises Added"
           description="You can start adding exercises to this workout by pressing button below."
           actionLabel="Add Exercises"
-          onAction={() => console.log("add exercise")}
+          onAction={onPress}
         />
       )}
 
-      {workout.exercises.map((ex) => {
-        const d = draft[ex.id];
+      {exercises.map(({ id, original }) => {
+        const d = draft[id];
+        const e = errors?.[id];
 
         return (
-          <div key={ex.id} className={rowClass}>
-            <div className={clsx(cellClass, "col-span-5 flex flex-col")}>
+          <div
+            key={id}
+            className={clsx(rowClass, "grid items-start gap-x-2", gridClass)}
+          >
+            <div className={clsx(cellClass, "flex flex-col")}>
               <span className={labelClass}>Exercise</span>
               {editMode ? (
-                <input
-                  className={editInputClass}
-                  value={d?.name ?? ex.name}
-                  onChange={(e) =>
-                    onDraftChange(ex.id, { name: e.target.value })
-                  }
-                />
+                <>
+                  <input
+                    className={clsx(
+                      editInputClass,
+                      e?.name && "border-red-400"
+                    )}
+                    value={d?.name ?? original?.name ?? ""}
+                    onChange={(ev) =>
+                      onDraftChange(id, { name: ev.target.value })
+                    }
+                  />
+                  <div className="min-h-[14px] mt-1 text-xs text-red-400">
+                    {e?.name ?? ""}
+                  </div>
+                </>
               ) : (
-                <span className="font-semibold">{ex.name}</span>
+                <span className="font-semibold">{original?.name ?? "—"}</span>
               )}
             </div>
 
-            <div
-              className={clsx(
-                cellClass,
-                "col-span-1 flex flex-col items-center justify-center"
-              )}
-            >
+            <div className={clsx(cellClass, "flex flex-col items-center")}>
               <span className={labelClass}>Sets</span>
               {editMode ? (
-                <input
-                  className={clsx(editInputClass, "w-10 text-center")}
-                  value={d?.sets ?? String(ex.sets)}
-                  onChange={(e) =>
-                    onDraftChange(ex.id, {
-                      sets: numericOnly(e.target.value),
-                    })
-                  }
-                />
+                <>
+                  <input
+                    className={clsx(
+                      editInputClass,
+                      "w-14 text-center",
+                      e?.sets && "border-red-400"
+                    )}
+                    value={d?.sets ?? String(original?.sets ?? "")}
+                    onChange={(ev) =>
+                      onDraftChange(id, {
+                        sets: numericOnly(ev.target.value),
+                      })
+                    }
+                  />
+                  <div className="min-h-[14px] mt-1 text-xs text-red-400 text-center">
+                    {e?.sets ?? ""}
+                  </div>
+                </>
               ) : (
-                <span>{ex.sets}</span>
+                <span>{original?.sets ?? "—"}</span>
               )}
             </div>
 
@@ -90,25 +106,29 @@ export const WorkoutExercisesSection = ({
               ×
             </div>
 
-            <div
-              className={clsx(
-                cellClass,
-                "col-span-1 flex flex-col items-center justify-center"
-              )}
-            >
+            <div className={clsx(cellClass, "flex flex-col items-center")}>
               <span className={labelClass}>Reps</span>
               {editMode ? (
-                <input
-                  className={clsx(editInputClass, "w-10 text-center")}
-                  value={d?.reps ?? String(ex.reps)}
-                  onChange={(e) =>
-                    onDraftChange(ex.id, {
-                      reps: numericOnly(e.target.value),
-                    })
-                  }
-                />
+                <>
+                  <input
+                    className={clsx(
+                      editInputClass,
+                      "w-14 text-center",
+                      e?.reps && "border-red-400"
+                    )}
+                    value={d?.reps ?? String(original?.reps ?? "")}
+                    onChange={(ev) =>
+                      onDraftChange(id, {
+                        reps: numericOnly(ev.target.value),
+                      })
+                    }
+                  />
+                  <div className="min-h-[14px] mt-1 text-xs text-red-400 text-center">
+                    {e?.reps ?? ""}
+                  </div>
+                </>
               ) : (
-                <span>{ex.reps}</span>
+                <span>{original?.reps ?? "—"}</span>
               )}
             </div>
 
@@ -116,58 +136,66 @@ export const WorkoutExercisesSection = ({
               @
             </div>
 
-            <div
-              className={clsx(
-                cellClass,
-                "col-span-1 flex flex-col items-center justify-center"
-              )}
-            >
+            <div className={clsx(cellClass, "flex flex-col items-center")}>
               <span className={labelClass}>Weight</span>
               {editMode ? (
-                <span className="inline-flex items-baseline justify-center">
-                  <input
-                    className={clsx(editInputClass, "w-12 text-right")}
-                    value={d?.weight ?? ex.weight?.toString() ?? ""}
-                    onChange={(e) =>
-                      onDraftChange(ex.id, {
-                        weight: numericOnly(e.target.value),
-                      })
-                    }
-                  />
-                  <span className="ml-0.5 text-xs text-textSecondary">kg</span>
-                </span>
+                <input
+                  className={clsx(editInputClass, "w-20 text-right")}
+                  value={d?.weight ?? original?.weight?.toString() ?? ""}
+                  onChange={(ev) =>
+                    onDraftChange(id, {
+                      weight: numericOnly(ev.target.value),
+                    })
+                  }
+                />
               ) : (
-                <ValueWithUnit value={ex.weight} unit="kg" />
+                <span>{original?.weight ?? "—"}</span>
               )}
             </div>
 
-            <div
-              className={clsx(
-                cellClass,
-                "col-span-1 flex flex-col items-center justify-center"
-              )}
-            >
+            <div className={clsx(cellClass, "flex flex-col items-center")}>
               <span className={labelClass}>Rest</span>
               {editMode ? (
-                <span className="inline-flex items-baseline justify-center">
-                  <input
-                    className={clsx(editInputClass, "w-10 text-right")}
-                    value={d?.restTimeSec ?? ex.restTimeSec?.toString() ?? ""}
-                    onChange={(e) =>
-                      onDraftChange(ex.id, {
-                        restTimeSec: numericOnly(e.target.value),
-                      })
-                    }
-                  />
-                  <span className="ml-0.5 text-xs text-textSecondary">s</span>
-                </span>
+                <input
+                  className={clsx(editInputClass, "w-16 text-right")}
+                  value={
+                    d?.restTimeSec ?? original?.restTimeSec?.toString() ?? ""
+                  }
+                  onChange={(ev) =>
+                    onDraftChange(id, {
+                      restTimeSec: numericOnly(ev.target.value),
+                    })
+                  }
+                />
               ) : (
-                <ValueWithUnit value={ex.restTimeSec} unit="s" />
+                <span>{original?.restTimeSec ?? "—"}</span>
               )}
             </div>
+
+            {editMode && onRemoveExercise && (
+              <div className="flex items-center justify-center">
+                <button
+                  onClick={() => onRemoveExercise(id)}
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-textSecondary hover:text-red-400 hover:bg-red-400/10 transition"
+                  title="Remove exercise"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            )}
           </div>
         );
       })}
+
+      {editMode && onAddExercise && (
+        <button
+          onClick={onAddExercise}
+          className="mt-2 inline-flex items-center gap-2 rounded-full bg-accent/15 px-4 py-2 text-sm text-accent hover:bg-accent/25"
+        >
+          <Plus size={16} />
+          Add exercise
+        </button>
+      )}
     </div>
   );
 };

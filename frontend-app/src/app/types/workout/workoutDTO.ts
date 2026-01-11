@@ -1,3 +1,5 @@
+import { FeedbackValue } from "../pages/progressPage";
+
 export interface ExerciseDTO {
   id: string;
   name: string;
@@ -15,4 +17,6 @@ export interface WorkoutDTO {
   exercises: ExerciseDTO[];
   muscleGroups?: string[];
   mainFocus?: string;
+  perceivedLoad?: FeedbackValue;
+  feedbackSeenAt?: string;
 }

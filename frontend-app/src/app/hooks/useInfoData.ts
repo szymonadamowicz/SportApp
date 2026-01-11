@@ -1,11 +1,9 @@
 import {
   Tips,
-  WeeklyProgress,
   RecentHighlights,
-} from "@/mocks/WorkoutsPageMocks";
+} from "@/mocks/WorkoutsDataMocks";
 
 export const useInfoData = () => ({
   tipsForTheDay: Tips,
-  weeklyProgressData: WeeklyProgress,
   recentHighlightsData: RecentHighlights,
 });

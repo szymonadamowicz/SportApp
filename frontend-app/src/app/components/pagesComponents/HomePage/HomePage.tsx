@@ -17,9 +17,9 @@ export default function HomePage() {
     <>
       <Hero
         hero={vm.hero}
-        completedCount={vm.stats.completedCount}
-        upcomingCount={vm.stats.upcomingCount}
-        onPrimaryAction={() => vm.goTo("/workouts")}
+        completedCount={vm.statsWeekly.completedCount}
+        upcomingCount={vm.statsWeekly.PlannedCount}
+        onPrimaryAction={() => vm.goTo("/workouts?modal=open")}
       />
 
       <div className="mt-6 flex flex-col md:flex-row md:items-start md:gap-6">
@@ -60,21 +60,21 @@ export default function HomePage() {
         <div className="flex-1 flex flex-col gap-6 mt-6 md:mt-0">
           <InfoPanel
             title="Week progress"
-            desc={`sessions ${vm.stats.completedCount}/${
-              vm.stats.completedCount + vm.stats.upcomingCount
-            }`}
+            desc={`sessions ${vm.statsWeekly.completedCount}/${vm.statsWeekly.PlannedCount}`}
             progress={
-              vm.stats.completedCount /
-              (vm.stats.completedCount + vm.stats.upcomingCount || 1)
+              vm.statsWeekly.completedCount / vm.statsWeekly.PlannedCount
             }
             layout="row"
             maxPerRow={3}
           >
-            {vm.info.weeklyProgress.map((item, idx) => (
+            {vm.info.progress.map((item, idx) => (
               <WeeklyProgressItem
                 key={idx}
+                id={item.id}
                 title={item.title}
-                subtitle={item.subtitle}
+                value={item.value}
+                context={item.context}
+                subLabel={item.subLabel}
               />
             ))}
           </InfoPanel>

@@ -1,22 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { useWorkouts } from "@/hooks/useWorkouts";
-import { useNow } from "@/hooks/useNow";
+import { useWorkouts } from "@/hooks/apiHooks/workouts/useWorkouts";
+import { useNow } from "@/hooks/helperHooks/useNow";
 import { WorkoutListState } from "@/types/pages/workoutPage";
 import {
   getUpcomingWorkouts,
   sortAsc,
   getWorkoutsForWeek,
-} from "@/helpers/utils/selectors/workoutSelector";
+} from "@/helpers/utils/selectors/workout/workoutSelector";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export const useWorkoutsPageVM = () => {
-  const { all: workouts } = useWorkouts();
+  const { allWorkouts: workouts } = useWorkouts();
   const now = useNow();
 
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string>();
-
   const router = useRouter();
   const params = useSearchParams();
 
@@ -26,6 +25,11 @@ export const useWorkoutsPageVM = () => {
     const next = seeAll ? "week" : "all";
     router.replace(`?view=${next}`);
   };
+  const isCreateModalOpen = params.get("modal") === "open";
+  const editModalId = params.get("edit");
+
+  const openModal = () => router.replace("?modal=open");
+  const closeModal = () => router.replace("?modal=close");
 
   const upcoming = getUpcomingWorkouts(workouts, now);
 
@@ -46,5 +50,9 @@ export const useWorkoutsPageVM = () => {
     seeAll,
     toggleSeeAll,
     selectWorkout: setSelectedWorkoutId,
+    openModal,
+    closeModal,
+    isCreateModalOpen,
+    editModalId,
   };
 };

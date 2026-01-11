@@ -1,15 +1,16 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { mapWorkoutDTO } from "@/api/mappers/workoutMapper";
-import { fetchWorkoutsMock } from "@/api/apiMock/workoutsApi.mock";
+import { workoutsKeys } from "@/api/keys/workouts.keys";
+import { mapWorkoutDTO } from "@/api/mappers/workout/workoutMapper";
+import { fetchWorkoutsApi } from "@/api/apiMock/workouts/workouts.api";
 import { Workout } from "@/types/workout/workout";
 
 export const useWorkouts = () => {
   const query = useQuery<Workout[]>({
-    queryKey: ["workouts"],
+    queryKey: workoutsKeys.all,
     queryFn: async () => {
-      const dtos = await fetchWorkoutsMock();
+      const dtos = await fetchWorkoutsApi();
       return dtos.map(mapWorkoutDTO);
     },
     staleTime: 5 * 60 * 1000,
@@ -17,7 +18,7 @@ export const useWorkouts = () => {
   });
 
   return {
-    all: query.data ?? [],
+    allWorkouts: query.data ?? [],
     isLoading: query.isLoading,
     isError: query.isError,
   };

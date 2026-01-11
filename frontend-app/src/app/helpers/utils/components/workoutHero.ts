@@ -1,5 +1,5 @@
 import { Workout, HeroState } from "@/types/workout/workout";
-import { useNow } from "@/hooks/useNow";
+import { useNow } from "@/hooks/helperHooks/useNow";
 import { formatTimeDiff, isSameDay } from "../calculate/workoutTime";
 
 const isInMissedWindow = (missedAt: Date, nextWorkoutAt: Date, now: Date) => {

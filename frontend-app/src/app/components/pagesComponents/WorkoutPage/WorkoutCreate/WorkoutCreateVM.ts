@@ -1,9 +1,11 @@
 "use client";
 
-import { useCreateWorkout } from "@/hooks/apiHooks/useCreateWorkouts";
+import { useCreateWorkout } from "@/hooks/apiHooks/workouts/useCreateWorkout";
 import { useEffect, useRef, useState } from "react";
 import { WorkoutDTO, ExerciseDTO } from "@/types/workout/workoutDTO";
 import { WorkoutCreateErrors } from "@/types/pages/workoutPage";
+import { useWorkoutById } from "@/hooks/apiHooks/workouts/useWorkoutById";
+import { useRouter } from "next/navigation";
 
 const PRESET_MUSCLE_GROUPS = [
   "chest",
@@ -26,7 +28,14 @@ const createEmptyExercise = (): ExerciseDTO => ({
   reps: 0,
 });
 
-export const useCreateWorkoutVM = () => {
+export const useCreateWorkoutVM = (editModalId?: string) => {
+  const isEditMode = Boolean(editModalId);
+  const { workoutById: workout } = useWorkoutById(editModalId);
+
+  const router = useRouter();
+
+  const mutation = useCreateWorkout();
+
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
@@ -47,7 +56,20 @@ export const useCreateWorkoutVM = () => {
   const [errors, setErrors] = useState<WorkoutCreateErrors>({});
   const [showToast, setShowToast] = useState(false);
 
-  const mutation = useCreateWorkout();
+  useEffect(() => {
+    if (!workout || !isEditMode) return;
+
+    setTitle(workout.title);
+
+    const d = new Date(workout.scheduledAt);
+    setDate(d.toISOString().slice(0, 10));
+    setTime(d.toISOString().slice(11, 16));
+
+    setSelectedMuscles(workout.muscleGroups ?? []);
+    setExercises(
+      workout.exercises.length > 0 ? workout.exercises : [createEmptyExercise()]
+    );
+  }, [workout, isEditMode]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -131,33 +153,35 @@ export const useCreateWorkoutVM = () => {
       valid = false;
     }
 
-    if (exercises.length === 0) {
-      nextErrors.exercises = "At least one exercise is required";
-      valid = false;
-    }
-
-    const exerciseErrors: WorkoutCreateErrors["exerciseFields"] = {};
-
-    exercises.forEach((ex) => {
-      const e: { sets?: string; reps?: string } = {};
-      if (ex.sets <= 0) e.sets = "Required";
-      if (ex.reps <= 0) e.reps = "Required";
-
-      if (Object.keys(e).length > 0) {
-        exerciseErrors![ex.id] = e;
+    if (!isEditMode) {
+      if (exercises.length === 0) {
+        nextErrors.exercises = "At least one exercise is required";
         valid = false;
       }
-    });
 
-    if (Object.keys(exerciseErrors!).length > 0) {
-      nextErrors.exerciseFields = exerciseErrors;
+      const exerciseErrors: WorkoutCreateErrors["exerciseFields"] = {};
+
+      exercises.forEach((ex) => {
+        const e: { sets?: string; reps?: string } = {};
+        if (ex.sets <= 0) e.sets = "Required";
+        if (ex.reps <= 0) e.reps = "Required";
+
+        if (Object.keys(e).length > 0) {
+          exerciseErrors![ex.id] = e;
+          valid = false;
+        }
+      });
+
+      if (Object.keys(exerciseErrors!).length > 0) {
+        nextErrors.exerciseFields = exerciseErrors;
+      }
     }
 
     setErrors(nextErrors);
     return valid;
   };
 
-  const createWorkout = () => {
+  const createOrUpdateWorkout = () => {
     if (!validate()) {
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
@@ -165,19 +189,25 @@ export const useCreateWorkoutVM = () => {
     }
 
     const workoutDto: WorkoutDTO = {
-      id: crypto.randomUUID(),
+      id: isEditMode && workout ? workout.id : crypto.randomUUID(),
       title,
       muscleGroups: selectedMuscles,
       mainFocus: selectedMuscles[0],
       scheduledAt: new Date(`${date}T${time}`).toISOString(),
-      completedAt: null,
+      completedAt: workout?.completedAt
+        ? workout.completedAt.toISOString()
+        : null,
       exercises,
     };
+
+    router.replace("?modal=closed");
 
     mutation.mutate(workoutDto);
   };
 
   return {
+    isEditMode,
+
     title,
     setTitle,
     date,
@@ -204,7 +234,7 @@ export const useCreateWorkoutVM = () => {
     removeExercise,
     updateExercise,
 
-    createWorkout,
+    createOrUpdateWorkout,
     errors,
     showToast,
   };

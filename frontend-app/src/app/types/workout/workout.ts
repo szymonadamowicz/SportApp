@@ -1,3 +1,5 @@
+import { FeedbackValue } from "../pages/progressPage";
+import { ProgressAchievements } from "../progress/progress";
 import { WorkoutDTO } from "./workoutDTO";
 
 export interface Exercise {
@@ -17,19 +19,20 @@ export interface Workout {
   exercises: Exercise[];
   muscleGroups?: string[];
   mainFocus?: string;
+  perceivedLoad?: FeedbackValue;
+  feedbackSeenAt?: string;
 }
 
+export type WorkoutUpdate = Partial<
+  Pick<Workout, "perceivedLoad" | "feedbackSeenAt">
+>;
+
 export type ExerciseUpdate = Partial<
-  Pick<Exercise, "name" |"sets" | "reps" | "weight" | "restTimeSec">
+  Pick<Exercise, "name" | "sets" | "reps" | "weight" | "restTimeSec">
 >;
 
 export interface Tip {
   title: string;
-}
-
-export interface Achievement {
-  title: string;
-  subtitle?: string;
 }
 
 export interface Highlights {
@@ -38,7 +41,7 @@ export interface Highlights {
   rightPopup?: string;
 }
 
-export type InfoPanelItem = Workout | Tip | Achievement | Highlights;
+export type InfoPanelItem = Workout | Tip | ProgressAchievements | Highlights;
 
 export type HeroState =
   | {
@@ -61,7 +64,7 @@ export type HeroState =
     };
 
 export interface DraftExercise {
-  id: string;
+  id?: string;
   name: string;
   sets: string;
   reps: string;
@@ -69,11 +72,36 @@ export interface DraftExercise {
   restTimeSec: string;
 }
 
-export type UpdateWorkoutPayload = {
-  workoutId: string;
-  exerciseId: string;
-  patch: ExerciseUpdate;
-};
+export type UpdateWorkoutPayload =
+  | {
+      kind: "workout";
+      workoutId: string;
+      patch: WorkoutUpdate;
+    }
+  | {
+      kind: "exercise";
+      workoutId: string;
+      exerciseId: string;
+      patch: ExerciseUpdate;
+    }
+  | {
+      kind: "createExercise";
+      workoutId: string;
+      exercises: Exercise[];
+    };
+
 export type CreateWorkoutPayload = {
   workout: WorkoutDTO;
+};
+
+export type DraftExerciseValidationError = {
+  name?: string;
+  sets?: string;
+  reps?: string;
+};
+
+
+export type DraftExercisesValidationResult = {
+  valid: boolean;
+  errors: Record<string, DraftExerciseValidationError>;
 };

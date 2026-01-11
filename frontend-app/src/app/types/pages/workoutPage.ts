@@ -1,4 +1,8 @@
-import { Workout, DraftExercise } from "../workout/workout";
+import {
+  Workout,
+  DraftExercise,
+  DraftExerciseValidationError,
+} from "../workout/workout";
 
 export type WorkoutFormVM = {
   workout: Workout | null;
@@ -9,6 +13,11 @@ export type WorkoutFormVM = {
   cancelEdit: () => void;
   updateDraft: (exerciseId: string, patch: Partial<DraftExercise>) => void;
   saveAllChanges: () => void;
+  editWorkoutAction: () => void;
+  enterExercisesEdit: () => void;
+  removeExercise: (id: string) => void;
+  addExercise: () => void;
+  exerciseErrors: Record<string, DraftExerciseValidationError>;
 };
 
 export type WorkoutListState = "hasData" | "empty";
@@ -47,6 +56,19 @@ export interface WorkoutExercisesSectionProps {
   editMode: boolean;
   draft: Record<string, DraftExercise>;
   onDraftChange: (id: string, patch: Partial<DraftExercise>) => void;
+  onPress?: () => void;
+  onAddExercise?: () => void;
+  onRemoveExercise?: (id: string) => void;
+  errors?: Record<
+    string,
+    {
+      name?: string;
+      sets?: string;
+      reps?: string;
+      weight?: string;
+      restTimeSec?: string;
+    }
+  >;
 }
 
 export interface WorkoutListItemVM {
@@ -88,6 +110,7 @@ export type CreateWorkoutProps = {
 export type CreateModalProps = {
   open: boolean;
   onClose: () => void;
+  editModalId?: string;
 };
 
 export type WorkoutCreateErrors = {

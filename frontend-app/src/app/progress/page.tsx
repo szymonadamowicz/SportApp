@@ -1,3 +1,9 @@
+import ProgressPage from "@/components/pagesComponents/ProgressPage/ProgressPage";
+
 export default function Home() {
-  return <div className="bg-red-600">progress</div>;
+  return (
+    <>
+      <ProgressPage />
+    </>
+  );
 }

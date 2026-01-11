@@ -1,8 +1,7 @@
-// API MOCKS — symulacja backendu
 import { WorkoutDTO } from "@/types/workout/workoutDTO";
-import { Achievement, Tip, Highlights } from "@/types/workout/workout";
+import { Tip, Highlights } from "@/types/workout/workout";
 
-export const WorkoutsApiMock: WorkoutDTO[] = [
+export const workoutsSeed: WorkoutDTO[] = [
   {
     id: "w-2025-12-27-1",
     title: "Morning Strength",
@@ -11,22 +10,10 @@ export const WorkoutsApiMock: WorkoutDTO[] = [
     scheduledAt: "2025-12-27T09:00:00",
     completedAt: null,
     exercises: [
-      {
-        id: "ex-bench",
-        name: "Bench Press",
-        sets: 3,
-        reps: 10,
-        weight: 100,
-      },
-      {
-        id: "ex-dips",
-        name: "Dips",
-        sets: 4,
-        reps: 12,
-      },
+      { id: "ex-bench", name: "Bench Press", sets: 3, reps: 10, weight: 100 },
+      { id: "ex-dips", name: "Dips", sets: 4, reps: 12 },
     ],
   },
-
   {
     id: "w-2025-12-27-2",
     title: "Evening Cardio",
@@ -34,16 +21,8 @@ export const WorkoutsApiMock: WorkoutDTO[] = [
     mainFocus: "cardio",
     scheduledAt: "2025-12-27T18:30:00",
     completedAt: null,
-    exercises: [
-      {
-        id: "ex-bike",
-        name: "Stationary Bike",
-        sets: 1,
-        reps: 30,
-      },
-    ],
+    exercises: [{ id: "ex-bike", name: "Stationary Bike", sets: 1, reps: 30 }],
   },
-
   {
     id: "w-2025-12-27-3",
     title: "Quick Mobility",
@@ -52,15 +31,9 @@ export const WorkoutsApiMock: WorkoutDTO[] = [
     scheduledAt: "2025-12-27T01:23:10",
     completedAt: null,
     exercises: [
-      {
-        id: "ex-mobility",
-        name: "Hip Mobility Flow",
-        sets: 1,
-        reps: 15,
-      },
+      { id: "ex-mobility", name: "Hip Mobility Flow", sets: 1, reps: 15 },
     ],
   },
-
   {
     id: "w-2025-12-25-1",
     title: "Lower Body Power",
@@ -69,13 +42,7 @@ export const WorkoutsApiMock: WorkoutDTO[] = [
     scheduledAt: "2025-12-25T17:00:00",
     completedAt: "2025-12-25T18:20:00",
     exercises: [
-      {
-        id: "ex-squat",
-        name: "Back Squat",
-        sets: 5,
-        reps: 5,
-        weight: 140,
-      },
+      { id: "ex-squat", name: "Back Squat", sets: 5, reps: 5, weight: 140 },
       {
         id: "ex-extensions",
         name: "Leg Extensions",
@@ -85,7 +52,6 @@ export const WorkoutsApiMock: WorkoutDTO[] = [
       },
     ],
   },
-
   {
     id: "w-2025-12-29-1",
     title: "Pull Day",
@@ -94,22 +60,10 @@ export const WorkoutsApiMock: WorkoutDTO[] = [
     scheduledAt: "2025-12-29T16:00:00",
     completedAt: null,
     exercises: [
-      {
-        id: "ex-pullups",
-        name: "Pull-ups",
-        sets: 4,
-        reps: 8,
-      },
-      {
-        id: "ex-row",
-        name: "Barbell Row",
-        sets: 4,
-        reps: 10,
-        weight: 90,
-      },
+      { id: "ex-pullups", name: "Pull-ups", sets: 4, reps: 8 },
+      { id: "ex-row", name: "Barbell Row", sets: 4, reps: 10, weight: 90 },
     ],
   },
-
   {
     id: "w-2026-01-03-1",
     title: "Push Accessories",
@@ -134,7 +88,6 @@ export const WorkoutsApiMock: WorkoutDTO[] = [
       },
     ],
   },
-
   {
     id: "w-2026-01-05-1",
     title: "Rest & Recovery",
@@ -144,7 +97,6 @@ export const WorkoutsApiMock: WorkoutDTO[] = [
     completedAt: null,
     exercises: [],
   },
-
   {
     id: "w-2026-01-06-1",
     title: "Core Blast",
@@ -152,16 +104,8 @@ export const WorkoutsApiMock: WorkoutDTO[] = [
     mainFocus: "core",
     scheduledAt: "2026-01-06T12:00:00",
     completedAt: null,
-    exercises: [
-      {
-        id: "ex-plank",
-        name: "Plank Hold",
-        sets: 3,
-        reps: 60,
-      },
-    ],
+    exercises: [{ id: "ex-plank", name: "Plank Hold", sets: 3, reps: 60 }],
   },
-
   {
     id: "w-2026-06-01-1",
     title: "Hypertrophy Block Start",
@@ -170,13 +114,7 @@ export const WorkoutsApiMock: WorkoutDTO[] = [
     scheduledAt: "2026-06-01T17:00:00",
     completedAt: null,
     exercises: [
-      {
-        id: "ex-deadlift",
-        name: "Deadlift",
-        sets: 5,
-        reps: 5,
-        weight: 180,
-      },
+      { id: "ex-deadlift", name: "Deadlift", sets: 5, reps: 5, weight: 180 },
     ],
   },
 ];
@@ -186,27 +124,7 @@ export const Tips: Tip[] = [
   { title: "Warm Up Properly" },
 ];
 
-export const WeeklyProgress: Achievement[] = [
-  {
-    title: "Total Volume",
-    subtitle: "26,000kg",
-  },
-  { title: "Avg Intensity", subtitle: "RPE 7.5" },
-  {
-    title: "PRs Achieved this week",
-    subtitle: "2",
-  },
-];
-
 export const RecentHighlights: Highlights[] = [
-  {
-    title: "Deadlift PR",
-    subtitle: "200 kg × 3",
-    rightPopup: "+15 kg",
-  },
-  {
-    title: "Streak",
-    subtitle: "7 days in a row",
-    rightPopup: "Level Up",
-  },
+  { title: "Deadlift PR", subtitle: "200 kg × 3", rightPopup: "+15 kg" },
+  { title: "Streak", subtitle: "7 days in a row", rightPopup: "Level Up" },
 ];

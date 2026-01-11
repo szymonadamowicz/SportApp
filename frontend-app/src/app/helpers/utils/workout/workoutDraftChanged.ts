@@ -1,4 +1,8 @@
-import { DraftExercise, Exercise, ExerciseUpdate } from "@/types/workout/workout";
+import {
+  DraftExercise,
+  Exercise,
+  ExerciseUpdate,
+} from "@/types/workout/workout";
 
 const toNumber = (v: string): number | undefined => {
   if (v.trim() === "") return undefined;
@@ -21,32 +25,21 @@ export const getExerciseUpdate = (
 ): ExerciseUpdate | null => {
   const patch: ExerciseUpdate = {};
 
-  if (draft.name !== original.name) {
-    patch.name = draft.name;
-  }
+  if (draft.name !== original.name) patch.name = draft.name;
 
   const sets = toNumber(draft.sets);
-  if (sets !== original.sets) {
-    patch.sets = sets;
-  }
+  if (sets !== undefined && sets !== original.sets) patch.sets = sets;
 
   const reps = toNumber(draft.reps);
-  if (reps !== original.reps) {
-    patch.reps = reps;
-  }
+  if (reps !== undefined && reps !== original.reps) patch.reps = reps;
 
   const weight = toNumber(draft.weight);
-  if (weight !== original.weight) {
-    patch.weight = weight;
-  }
+  if (weight !== original.weight) patch.weight = weight;
 
   const rest = toNumber(draft.restTimeSec);
-  if (rest !== original.restTimeSec) {
-    patch.restTimeSec = rest;
-  }
+  if (rest !== original.restTimeSec) patch.restTimeSec = rest;
 
   return Object.keys(patch).length > 0 ? patch : null;
 };
 
-export const numericOnly = (v: string) =>
-  v.replace(/[^\d]/g, "");
+export const numericOnly = (v: string) => v.replace(/[^\d]/g, "");
