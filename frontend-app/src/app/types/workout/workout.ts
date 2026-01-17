@@ -1,6 +1,5 @@
 import { FeedbackValue } from "../pages/progressPage";
 import { ProgressAchievements } from "../progress/progress";
-import { WorkoutDTO } from "./workoutDTO";
 
 export interface Exercise {
   id: string;
@@ -23,8 +22,17 @@ export interface Workout {
   feedbackSeenAt?: string;
 }
 
-export type WorkoutUpdate = Partial<
-  Pick<Workout, "perceivedLoad" | "feedbackSeenAt">
+export type WorkoutMetaUpdate = Partial<
+  Pick<
+    Workout,
+    | "title"
+    | "scheduledAt"
+    | "completedAt"
+    | "muscleGroups"
+    | "mainFocus"
+    | "perceivedLoad"
+    | "feedbackSeenAt"
+  >
 >;
 
 export type ExerciseUpdate = Partial<
@@ -66,32 +74,18 @@ export type HeroState =
 export interface DraftExercise {
   id?: string;
   name: string;
-  sets: string;
-  reps: string;
-  weight: string;
-  restTimeSec: string;
+  sets: number;
+  reps: number;
+  weight?: number;
+  restTimeSec?: number;
 }
 
-export type UpdateWorkoutPayload =
-  | {
-      kind: "workout";
-      workoutId: string;
-      patch: WorkoutUpdate;
-    }
-  | {
-      kind: "exercise";
-      workoutId: string;
-      exerciseId: string;
-      patch: ExerciseUpdate;
-    }
-  | {
-      kind: "createExercise";
-      workoutId: string;
-      exercises: Exercise[];
-    };
+export type UpdateWorkoutPayload = {
+  workout: Workout;
+};
 
 export type CreateWorkoutPayload = {
-  workout: WorkoutDTO;
+  workout: Workout;
 };
 
 export type DraftExerciseValidationError = {
@@ -99,7 +93,6 @@ export type DraftExerciseValidationError = {
   sets?: string;
   reps?: string;
 };
-
 
 export type DraftExercisesValidationResult = {
   valid: boolean;

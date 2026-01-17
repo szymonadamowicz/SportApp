@@ -21,18 +21,10 @@ export const workoutsReal = {
     });
   },
 
-  updateWorkout(payload: UpdateWorkoutPayload): Promise<void> {
-    switch (payload.kind) {
-      case "workout":
-      case "exercise":
-      case "createExercise":
-        return httpClient<void>(`/workouts/${payload.workoutId}`, {
-          method: "PATCH",
-          body: payload,
-        });
-
-      default:
-        return Promise.resolve();
-    }
+  updateWorkout(payload: UpdateWorkoutPayload): Promise<WorkoutDTO> {
+    return httpClient<WorkoutDTO>("/workouts", {
+      method: "PATCH",
+      body: payload.workout,
+    });
   },
 };

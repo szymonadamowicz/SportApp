@@ -9,12 +9,18 @@ import {
 } from "@/helpers/utils/calculate/workoutTime";
 import { WorkoutFormProps } from "@/types/pages/workoutPage";
 
-export default function WorkoutForm({ workout }: WorkoutFormProps) {
-  const vm = useWorkoutFormVM(workout);
+export default function WorkoutForm({
+  workout,
+  setEditWorkoutId,
+}: WorkoutFormProps) {
+  const vm = useWorkoutFormVM(workout, setEditWorkoutId);
+
+
+  const isToday = isSameDay(workout.scheduledAt, vm.now);
 
   const desc = `${workout.mainFocus}, ${
-    isSameDay(workout.scheduledAt, new Date()) ? "today" : "in"
-  }: ${formatTimeDiff(workout.scheduledAt)}`;
+    isToday ? "today" : "in"
+  }: ${formatTimeDiff(workout.scheduledAt, vm.now)}`;
 
   return (
     <InfoPanel

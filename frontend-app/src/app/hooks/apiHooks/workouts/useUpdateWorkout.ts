@@ -1,9 +1,10 @@
 "use client";
 
+import { mapWorkoutDTO } from '@/api/mappers/workout/workoutMapper';
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { workoutsKeys } from "@/api/keys/workouts.keys";
 import { updateWorkoutApi } from "@/api/apiMock/workouts/workouts.api";
-import { Workout, UpdateWorkoutPayload } from "@/types/workout/workout";
+import { Workout } from "@/types/workout/workout";
 
 type Ctx = {
   previous?: Workout[];
@@ -12,59 +13,28 @@ type Ctx = {
 export const useUpdateWorkout = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, UpdateWorkoutPayload, Ctx>({
-    mutationFn: updateWorkoutApi,
+  return useMutation<Workout, Error, Workout, Ctx>({
+    mutationFn: async(workout) => {
+      const updated = await updateWorkoutApi({ workout })
+      return mapWorkoutDTO(updated)
+    },
 
-    onMutate: async (payload) => {
+    onMutate: async (nextWorkout) => {
       await queryClient.cancelQueries({ queryKey: workoutsKeys.all });
 
       const previous = queryClient.getQueryData<Workout[]>(workoutsKeys.all);
 
-      queryClient.setQueryData<Workout[]>(workoutsKeys.all, (old) => {
-        if (!old) return old;
-
-        switch (payload.kind) {
-          case "workout":
-            return old.map((w) =>
-              w.id === payload.workoutId ? { ...w, ...payload.patch } : w
-            );
-
-          case "exercise":
-            return old.map((w) =>
-              w.id === payload.workoutId
-                ? {
-                    ...w,
-                    exercises: w.exercises.map((ex) =>
-                      ex.id === payload.exerciseId
-                        ? { ...ex, ...payload.patch }
-                        : ex
-                    ),
-                  }
-                : w
-            );
-
-          case "createExercise":
-            return old.map((w) =>
-              w.id === payload.workoutId
-                ? {
-                    ...w,
-                    exercises: [...w.exercises, ...payload.exercises],
-                  }
-                : w
-            );
-
-          default:
-            return old;
-        }
-      });
+      queryClient.setQueryData<Workout[]>(workoutsKeys.all, (old) =>
+        old
+          ? old.map((w) => (w.id === nextWorkout.id ? nextWorkout : w))
+          : old
+      );
 
       return { previous };
     },
 
     onError: (_err, _vars, ctx) => {
-      if (ctx?.previous) {
-        queryClient.setQueryData(workoutsKeys.all, ctx.previous);
-      }
+      if (ctx?.previous) queryClient.setQueryData(workoutsKeys.all, ctx.previous);
     },
 
     onSettled: () => {

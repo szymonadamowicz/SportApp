@@ -1,10 +1,10 @@
 "use client";
 
 import { mapWorkoutToListItemVM } from "@/helpers/mappers/mapWorkoutToListItemVm";
+import { useWorkoutsPageVM } from "./WorkoutsPageVM";
 import { WorkoutListSection } from "./sections/WorkoutListSection";
 import WorkoutForm from "./WokorutForm/WorkoutForm";
 import { WorkoutHistory } from "./WokoutHistory/WorkoutHistory";
-import { useWorkoutsPageVM } from "./WorkoutsPageVM";
 
 import { CreateWorkout } from "./WorkoutCreate/CreateWorkout";
 import { CreateWorkoutModal } from "./WorkoutCreate/sections/WorkoutCreateModal";
@@ -23,28 +23,33 @@ export default function WorkoutsPage() {
             mapWorkoutToListItemVM(w, vm.now)
           )}
           listState={vm.listState}
-          selectedId={vm.selected?.id}
+          selectedId={vm.selectedWorkoutId}
           seeAllLabel={
             vm.seeAll ? "See trainings left for this week" : "See all trainings"
           }
           onToggleSeeAll={vm.toggleSeeAll}
-          onSelect={vm.selectWorkout}
+          onSelect={vm.setSelectWorkout}
         />
 
-        {vm.selected && <WorkoutForm workout={vm.selected} />}
+        {vm.selectedWorkout && (
+          <WorkoutForm
+            workout={vm.selectedWorkout}
+            setEditWorkoutId={vm.setEditWorkoutId}
+          />
+        )}
       </div>
 
       <div className="space-y-6 mt-6">
         <WorkoutHistory
-          onSelect={vm.selectWorkout}
-          selectedId={vm.selected?.id}
+          onSelect={vm.setSelectWorkout}
+          selectedId={vm.selectedWorkoutId}
         />
       </div>
 
       <CreateWorkoutModal
         open={vm.isCreateModalOpen}
         onClose={vm.closeModal}
-        editModalId={vm.editModalId === null ? "-1" : vm.editModalId}
+        editModalId={vm.selectedEditWorkoutId}
       />
     </>
   );

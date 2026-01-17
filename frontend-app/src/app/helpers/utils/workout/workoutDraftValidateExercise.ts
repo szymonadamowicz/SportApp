@@ -3,6 +3,7 @@ import {
   DraftExerciseValidationError,
   DraftExercisesValidationResult,
 } from "@/types/workout/workout";
+import { ExerciseDTO } from "@/types/workout/workoutDTO";
 
 export const validateDraftExercises = (
   draft: Record<string, DraftExercise>
@@ -32,4 +33,8 @@ export const validateDraftExercise = (
   if (!d.reps || Number(d.reps) <= 0) errors.reps = "Reps must be > 0";
 
   return Object.keys(errors).length ? errors : null;
+};
+
+export const isValidExercise = (ex: ExerciseDTO) => {
+  return ex.name.trim().length > 0 && ex.sets > 0 && ex.reps > 0;
 };

@@ -1,14 +1,12 @@
-"use client";
-
-import { mapWorkoutToListItemVM } from "@/helpers/mappers/mapWorkoutToListItemVm";
+import { useWorkouts } from "@/hooks/apiHooks/workouts/useWorkouts";
 import {
   getUpcomingWorkouts,
-  getMissedWorkouts,
   getCompletedWorkouts,
+  getMissedWorkouts,
 } from "@/helpers/utils/selectors/workout/workoutSelector";
-import { useNow } from "@/hooks/helperHooks/useNow";
-import { useWorkouts } from "@/hooks/apiHooks/workouts/useWorkouts";
 import { useState } from "react";
+import { mapWorkoutToListItemVM } from "@/helpers/mappers/mapWorkoutToListItemVm";
+import { useNow } from "@/hooks/helperHooks/useNow";
 
 export const useWorkoutsHistoryVM = () => {
   const { allWorkouts: workouts } = useWorkouts();

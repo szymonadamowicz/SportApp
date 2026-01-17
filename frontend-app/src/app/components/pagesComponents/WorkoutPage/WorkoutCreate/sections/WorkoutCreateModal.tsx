@@ -1,18 +1,22 @@
+"use client";
+
 import {
   inputClass,
   inputErrorClass,
   errorHintClass,
-  inlineInputClass,
   exerciseNameInputClass,
+  inlineInputClass,
 } from "@/helpers/ui/workoutCreateStyles";
 import { useLockBodyScroll } from "@/hooks/helperHooks/useLockBodyScroll";
 import { CreateModalProps } from "@/types/pages/workoutPage";
 import clsx from "clsx";
 import { Dumbbell, X, Plus } from "lucide-react";
-import { useCreateWorkoutVM } from "../WorkoutCreateVM";
 import { Field } from "./WorkoutCreateField";
 import { IconButton } from "./WorkoutCreateIconButton";
 import { SmallLabel } from "./WorkoutCreateSmallLabel";
+import { useWorkoutModalVM } from "../WorkoutModalVM";
+import { isValidExercise } from "@/helpers/utils/workout/workoutDraftValidateExercise";
+import { AnimatePresence, motion, Variants } from "framer-motion";
 
 export function CreateWorkoutModal({
   open,
@@ -21,328 +25,492 @@ export function CreateWorkoutModal({
 }: CreateModalProps) {
   useLockBodyScroll(open);
 
-  const vm = useCreateWorkoutVM(editModalId);
-  const isEditMode = Boolean(editModalId);
+  const vm = useWorkoutModalVM({ editModalId, onClose, open });
 
-  if (!open) return null;
+  const isEditMode = vm.mode === "edit";
+
+  const overlay: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.18,
+        ease: [0.16, 1, 0.3, 1],
+      },
+    },
+    exit: {
+      opacity: 0,
+      transition: {
+        duration: 0.16,
+        ease: [0.4, 0, 1, 1],
+      },
+    },
+  };
+
+  const modal: Variants = {
+    hidden: {
+      opacity: 0,
+      y: 14,
+      scale: 0.985,
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.22,
+        ease: [0.16, 1, 0.3, 1],
+      },
+    },
+    exit: {
+      opacity: 0,
+      y: 10,
+      scale: 0.99,
+      transition: {
+        duration: 0.18,
+        ease: [0.4, 0, 1, 1],
+      },
+    },
+  };
+
+  const toast: Variants = {
+    hidden: { opacity: 0, y: -8, scale: 0.98 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.18,
+        ease: [0.16, 1, 0.3, 1],
+      },
+    },
+    exit: {
+      opacity: 0,
+      y: -8,
+      scale: 0.98,
+      transition: {
+        duration: 0.16,
+        ease: [0.4, 0, 1, 1],
+      },
+    },
+  };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="relative w-full max-w-xl md:max-w-2xl rounded-3xl bg-bgMain border border-borderSoft shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between px-8 py-5 border-b border-borderSoft">
-          <div className="flex items-center gap-2">
-            <Dumbbell className="h-5 w-5 text-accent" />
-            <h2 className="text-lg font-semibold text-textPrimary">
-              {isEditMode ? "Edit training" : "Create new training"}
-            </h2>
-          </div>
-
-          <IconButton onClick={onClose}>
-            <X size={14} />
-          </IconButton>
-        </div>
-
-        <div className="px-8 py-6 space-y-8 max-h-[65vh] overflow-y-auto">
-          <Field
-            label="Training name"
-            hint={
-              isEditMode
-                ? "Update the name of your training"
-                : "Give your workout a clear, recognizable name"
-            }
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          key="overlay"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          variants={overlay}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
+        >
+          <motion.div
+            key="modal"
+            variants={modal}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="relative w-full max-w-xl md:max-w-2xl rounded-3xl bg-bgMain border border-borderSoft shadow-2xl overflow-hidden"
+            onMouseDown={(e) => e.stopPropagation()}
           >
-            <input
-              className={clsx(inputClass, vm.errors.title && inputErrorClass)}
-              placeholder={isEditMode ? "Training name" : "e.g. Push Day"}
-              value={vm.title}
-              onChange={(e) => vm.setTitle(e.target.value)}
-            />
-            {vm.errors.title && (
-              <p className={errorHintClass}>{vm.errors.title}</p>
-            )}
-          </Field>
+            <div className="flex items-center justify-between px-8 py-5 border-b border-borderSoft">
+              <div className="flex items-center gap-2">
+                <Dumbbell className="h-5 w-5 text-accent" />
+                <h2 className="text-lg font-semibold text-textPrimary">
+                  {isEditMode ? "Edit training" : "Create new training"}
+                </h2>
+              </div>
 
-          <Field
-            label="Muscle groups"
-            hint={
-              isEditMode
-                ? "Edit muscle groups involved in this training"
-                : "Select one or more muscle groups involved"
-            }
-          >
-            <div ref={vm.dropdownRef} className="relative">
-              {vm.selectedMuscles.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {vm.selectedMuscles.map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => vm.removeMuscle(m)}
-                      className="
-                        flex items-center gap-1
-                        rounded-full
-                        bg-accent/15 text-accent
-                        px-3 py-1 text-sm
-                        hover:bg-accent/25
-                      "
+              <IconButton onClick={onClose}>
+                <X size={14} />
+              </IconButton>
+            </div>
+
+            <div className="px-8 py-6 space-y-8 max-h-[65vh] overflow-y-auto">
+              <Field
+                label="Training name"
+                hint={
+                  isEditMode
+                    ? "Update the name of your training"
+                    : "Give your workout a clear, recognizable name"
+                }
+              >
+                <input
+                  className={clsx(
+                    inputClass,
+                    vm.errors.title && inputErrorClass,
+                  )}
+                  placeholder={isEditMode ? "Training name" : "e.g. Push Day"}
+                  value={vm.title}
+                  onChange={(e) => vm.setTitle(e.target.value)}
+                />
+                <AnimatePresence>
+                  {vm.errors.title && (
+                    <motion.p
+                      key="title-error"
+                      className={errorHintClass}
+                      initial={{ opacity: 0, y: -3 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -3 }}
+                      transition={{ duration: 0.14 }}
                     >
-                      {m}
-                      <X size={12} />
-                    </button>
-                  ))}
-                </div>
-              )}
+                      {vm.errors.title}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </Field>
 
-              <input
-                className={inputClass}
-                placeholder="Select or type muscle group"
-                value={vm.muscleInput}
-                onFocus={() => vm.setDropdownOpen(true)}
-                onChange={(e) => {
-                  vm.setMuscleInput(e.target.value);
-                  vm.setDropdownOpen(true);
-                }}
-              />
-
-              {vm.dropdownOpen && (
-                <div
-                  className="
-                    absolute left-0 top-full mt-2
-                    w-full
-                    z-50
-                    rounded-2xl
-                    border border-borderSoft
-                    bg-bgMain
-                    shadow-xl
-                  "
-                >
-                  <div className="max-h-52 overflow-y-auto py-1">
-                    {vm.filteredMuscles.map((m) => (
+              <Field label="Muscle groups">
+                <div ref={vm.dropdownRef} className="relative">
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {vm.selectedMuscles.map((m) => (
                       <button
                         key={m}
-                        onClick={() => vm.toggleTemp(m)}
-                        className={clsx(
-                          "w-full px-4 py-2 text-left text-sm",
-                          vm.tempSelected.includes(m)
-                            ? "bg-accent/15 text-accent"
-                            : "hover:bg-bgHighlight"
-                        )}
+                        type="button"
+                        onClick={() => vm.removeMuscle(m)}
+                        className="rounded-full bg-emerald-500/15 text-emerald-300 px-3 py-1 text-sm hover:bg-emerald-500/25 transition"
                       >
                         {m}
                       </button>
                     ))}
                   </div>
 
-                  <div className="flex justify-between items-center border-t border-borderSoft px-3 py-2">
-                    <span className="text-xs text-textMuted">
-                      {vm.tempSelected.length} selected
-                    </span>
-                    <button
-                      onClick={vm.confirmAddMuscles}
+                  <input
+                    className={inputClass}
+                    placeholder="Select or type muscle group"
+                    value={vm.muscleInput}
+                    onFocus={() => vm.setDropdownOpen(true)}
+                    onChange={(e) => {
+                      vm.setMuscleInput(e.target.value);
+                      vm.setDropdownOpen(true);
+                    }}
+                  />
+
+                  <AnimatePresence>
+                    {vm.dropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 6 }}
+                        className="absolute left-0 top-full mt-2 w-full rounded-2xl border border-borderSoft bg-bgMain shadow-xl z-50 overflow-hidden"
+                      >
+                        <div className="max-h-52 overflow-y-auto py-1">
+                          {vm.dropdownItems.map((m) => (
+                            <button
+                              key={m}
+                              type="button"
+                              onClick={() => vm.toggleTemp(m)}
+                              className={clsx(
+                                "w-full px-4 py-2 text-left text-sm transition",
+                                vm.tempSelected.includes(m)
+                                  ? "bg-emerald-500/15 text-emerald-300"
+                                  : "hover:bg-bgHighlight",
+                              )}
+                            >
+                              {m}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="flex justify-between items-center border-t border-borderSoft px-3 py-2">
+                          <button
+                            type="button"
+                            onClick={vm.addCustomMuscle}
+                            disabled={!vm.muscleInput.trim()}
+                            className={clsx(
+                              "text-xs px-3 py-1 rounded-full transition",
+                              vm.muscleInput.trim()
+                                ? "bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25"
+                                : "bg-bgHighlight text-textMuted cursor-not-allowed",
+                            )}
+                          >
+                            Add custom
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={vm.confirmAddMuscles}
+                            disabled={vm.tempSelected.length === 0}
+                            className={clsx(
+                              "inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-medium transition",
+                              vm.tempSelected.length
+                                ? "bg-accent text-bgMain hover:bg-accentHover"
+                                : "bg-bgHighlight text-textMuted cursor-not-allowed",
+                            )}
+                          >
+                            Add
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </Field>
+
+              <Field
+                label="Schedule"
+                hint="Choose when this training takes place"
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <input
+                      type="date"
+                      className={clsx(
+                        inputClass,
+                        vm.errors.date && inputErrorClass,
+                      )}
+                      value={vm.date}
+                      onChange={(e) => vm.setDate(e.target.value)}
+                    />
+                    <AnimatePresence>
+                      {vm.errors.date && (
+                        <motion.p
+                          key="date-error"
+                          className={errorHintClass}
+                          initial={{ opacity: 0, y: -3 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -3 }}
+                          transition={{ duration: 0.14 }}
+                        >
+                          {vm.errors.date}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <div>
+                    <input
+                      type="time"
+                      className={clsx(
+                        inputClass,
+                        vm.errors.time && inputErrorClass,
+                      )}
+                      value={vm.time}
+                      onChange={(e) => vm.setTime(e.target.value)}
+                    />
+                    <AnimatePresence>
+                      {vm.errors.time && (
+                        <motion.p
+                          key="time-error"
+                          className={errorHintClass}
+                          initial={{ opacity: 0, y: -3 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -3 }}
+                          transition={{ duration: 0.14 }}
+                        >
+                          {vm.errors.time}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              </Field>
+
+              <Field label="Exercises" hint="Add one or more exercises">
+                <div className="space-y-5">
+                  {vm.exercises.map((ex, index) => (
+                    <div
+                      key={ex.id}
                       className="
-                        inline-flex items-center gap-1
-                        rounded-full bg-accent
-                        px-4 py-1.5
-                        text-xs font-medium text-bgMain
-                        hover:bg-accentHover
+                        rounded-xl
+                        border border-borderSoft/70
+                        bg-bgHighlight/20
+                        p-4 space-y-4
                       "
                     >
-                      <Plus size={14} />
-                      Add
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </Field>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-textSecondary">
+                          Exercise {index + 1}
+                        </p>
+                        <IconButton
+                          onClick={() => vm.removeExercise(ex.id)}
+                          danger
+                        >
+                          <X size={14} />
+                        </IconButton>
+                      </div>
 
-          <Field label="Schedule" hint="Choose when this training takes place">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <input
-                  type="date"
-                  className={clsx(
-                    inputClass,
-                    vm.errors.date && inputErrorClass
-                  )}
-                  value={vm.date}
-                  onChange={(e) => vm.setDate(e.target.value)}
-                />
-                {vm.errors.date && (
-                  <p className={errorHintClass}>{vm.errors.date}</p>
-                )}
-              </div>
+                      <div className="space-y-1">
+                        <SmallLabel>Name</SmallLabel>
+                        <input
+                          className={clsx(
+                            exerciseNameInputClass,
+                            "py-2 text-sm",
+                          )}
+                          value={ex.name}
+                          onChange={(e) =>
+                            vm.updateExercise(ex.id, { name: e.target.value })
+                          }
+                        />
+                      </div>
 
-              <div>
-                <input
-                  type="time"
-                  className={clsx(
-                    inputClass,
-                    vm.errors.time && inputErrorClass
-                  )}
-                  value={vm.time}
-                  onChange={(e) => vm.setTime(e.target.value)}
-                />
-                {vm.errors.time && (
-                  <p className={errorHintClass}>{vm.errors.time}</p>
-                )}
-              </div>
-            </div>
-          </Field>
+                      <div
+                        className="
+                          grid items-center gap-3
+                          [grid-template-columns:115px_20px_115px_20px_115px_115px]
+                        "
+                      >
+                        <div className="space-y-1">
+                          <SmallLabel>Sets</SmallLabel>
+                          <input
+                            className={inlineInputClass}
+                            value={ex.sets || ""}
+                            onChange={(e) =>
+                              vm.updateExercise(ex.id, {
+                                sets:
+                                  Number(
+                                    e.target.value.replace(/[^\d]/g, ""),
+                                  ) || 0,
+                              })
+                            }
+                          />
+                        </div>
 
-          <Field label="Exercises" hint="Add one or more exercises">
-            <div className="space-y-5">
-              {vm.exercises.map((ex, index) => (
-                <div
-                  key={ex.id}
-                  className="
-                    rounded-xl
-                    border border-borderSoft/70
-                    bg-bgHighlight/20
-                    p-4 space-y-4
-                  "
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-textSecondary">
-                      Exercise {index + 1}
-                    </p>
-                    <IconButton onClick={() => vm.removeExercise(ex.id)} danger>
-                      <X size={14} />
-                    </IconButton>
-                  </div>
+                        <span className="flex items-center justify-center text-textMuted text-sm pt-[24px]">
+                          ×
+                        </span>
 
-                  <div className="space-y-1">
-                    <SmallLabel>Name</SmallLabel>
-                    <input
-                      className={clsx(exerciseNameInputClass, "py-2 text-sm")}
-                      value={ex.name}
-                      onChange={(e) =>
-                        vm.updateExercise(ex.id, { name: e.target.value })
-                      }
-                    />
-                  </div>
+                        <div className="space-y-1">
+                          <SmallLabel>Reps</SmallLabel>
+                          <input
+                            className={inlineInputClass}
+                            value={ex.reps || ""}
+                            onChange={(e) =>
+                              vm.updateExercise(ex.id, {
+                                reps:
+                                  Number(
+                                    e.target.value.replace(/[^\d]/g, ""),
+                                  ) || 0,
+                              })
+                            }
+                          />
+                        </div>
 
-                  <div
+                        <span className="flex items-center justify-center text-textMuted text-sm pt-[24px]">
+                          @
+                        </span>
+
+                        <div className="space-y-1">
+                          <SmallLabel>Weight</SmallLabel>
+                          <input
+                            className={inlineInputClass}
+                            value={ex.weight ?? ""}
+                            onChange={(e) => {
+                              const v = e.target.value.replace(/[^\d]/g, "");
+                              vm.updateExercise(ex.id, {
+                                weight: v ? Number(v) : undefined,
+                              });
+                            }}
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <SmallLabel>Rest (s)</SmallLabel>
+                          <input
+                            className={inlineInputClass}
+                            value={ex.restTimeSec ?? ""}
+                            onChange={(e) => {
+                              const v = e.target.value.replace(/[^\d]/g, "");
+                              vm.updateExercise(ex.id, {
+                                restTimeSec: v ? Number(v) : undefined,
+                              });
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const last = vm.exercises.at(-1);
+                      if (!last || !isValidExercise(last)) return;
+                      vm.addExercise();
+                    }}
                     className="
-                      grid items-center gap-3
-                      [grid-template-columns:115px_20px_115px_20px_115px_115px]
+                      inline-flex items-center gap-2
+                      rounded-full bg-accent/15
+                      px-4 py-2 text-sm text-accent
+                      hover:bg-accent/25
+                      transition
                     "
                   >
-                    <div className="space-y-1">
-                      <SmallLabel>Sets</SmallLabel>
-                      <input
-                        className={inlineInputClass}
-                        value={ex.sets || ""}
-                        onChange={(e) =>
-                          vm.updateExercise(ex.id, {
-                            sets:
-                              Number(e.target.value.replace(/[^\d]/g, "")) || 0,
-                          })
-                        }
-                      />
-                    </div>
+                    <Plus size={16} />
+                    Add exercise
+                  </button>
 
-                    <span className="flex items-center justify-center text-textMuted text-sm pt-[24px]">
-                      ×
-                    </span>
-
-                    <div className="space-y-1">
-                      <SmallLabel>Reps</SmallLabel>
-                      <input
-                        className={inlineInputClass}
-                        value={ex.reps || ""}
-                        onChange={(e) =>
-                          vm.updateExercise(ex.id, {
-                            reps:
-                              Number(e.target.value.replace(/[^\d]/g, "")) || 0,
-                          })
-                        }
-                      />
-                    </div>
-
-                    <span className="flex items-center justify-center text-textMuted text-sm pt-[24px]">
-                      @
-                    </span>
-
-                    <div className="space-y-1">
-                      <SmallLabel>Weight</SmallLabel>
-                      <input
-                        className={inlineInputClass}
-                        value={ex.weight ?? ""}
-                        onChange={(e) => {
-                          const v = e.target.value.replace(/[^\d]/g, "");
-                          vm.updateExercise(ex.id, {
-                            weight: v ? Number(v) : undefined,
-                          });
-                        }}
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <SmallLabel>Rest (s)</SmallLabel>
-                      <input
-                        className={inlineInputClass}
-                        value={ex.restTimeSec ?? ""}
-                        onChange={(e) => {
-                          const v = e.target.value.replace(/[^\d]/g, "");
-                          vm.updateExercise(ex.id, {
-                            restTimeSec: v ? Number(v) : undefined,
-                          });
-                        }}
-                      />
-                    </div>
-                  </div>
+                  <AnimatePresence>
+                    {vm.errors.exercises && (
+                      <motion.p
+                        key="exercises-error"
+                        className={errorHintClass}
+                        initial={{ opacity: 0, y: -3 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -3 }}
+                        transition={{ duration: 0.14 }}
+                      >
+                        {vm.errors.exercises}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
                 </div>
-              ))}
+              </Field>
+            </div>
 
+            <AnimatePresence>
+              {vm.showToast && (
+                <motion.div
+                  key="toast"
+                  variants={toast}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="fixed top-6 left-1/2 -translate-x-1/2 z-[10000] rounded-xl bg-bgHighlight px-5 py-2 text-sm text-textPrimary shadow-lg border border-borderSoft"
+                >
+                  Please complete all required fields
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="flex justify-end gap-4 px-8 py-5 border-t border-borderSoft">
               <button
-                onClick={vm.addExercise}
+                type="button"
+                onClick={onClose}
                 className="
-                  inline-flex items-center gap-2
-                  rounded-full bg-accent/15
-                  px-4 py-2 text-sm text-accent
-                  hover:bg-accent/25
+                  rounded-full bg-bgHighlight/60
+                  px-4 py-2 text-sm
+                  text-textSecondary
+                  hover:bg-bgHighlight
+                  hover:text-textPrimary
+                  transition
                 "
               >
-                <Plus size={16} />
-                Add exercise
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={vm.createOrUpdateWorkout}
+                className="
+                  rounded-full bg-accent
+                  px-6 py-2 text-sm font-semibold
+                  text-bgMain
+                  hover:bg-accentHover
+                  transition
+                "
+              >
+                {isEditMode ? "Save changes" : "Create training"}
               </button>
             </div>
-          </Field>
-        </div>
-
-        {vm.showToast && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-xl bg-bgHighlight px-5 py-2 text-sm text-textPrimary shadow-lg">
-            Please complete all required fields
-          </div>
-        )}
-
-        <div className="flex justify-end gap-4 px-8 py-5 border-t border-borderSoft">
-          <button
-            onClick={onClose}
-            className="
-              rounded-full bg-bgHighlight/60
-              px-4 py-2 text-sm
-              text-textSecondary
-              hover:bg-bgHighlight
-              hover:text-textPrimary
-            "
-          >
-            Cancel
-          </button>
-
-          <button
-            onClick={vm.createOrUpdateWorkout}
-            className="
-              rounded-full bg-accent
-              px-6 py-2 text-sm font-semibold
-              text-bgMain
-              hover:bg-accentHover
-            "
-          >
-            {isEditMode ? "Save changes" : "Create training"}
-          </button>
-        </div>
-      </div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

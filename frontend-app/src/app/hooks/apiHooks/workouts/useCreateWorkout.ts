@@ -8,7 +8,6 @@ import {
   rollbackWorkouts,
 } from "@/api/cache/workouts.cache";
 import { Workout } from "@/types/workout/workout";
-import { WorkoutDTO } from "@/types/workout/workoutDTO";
 import { createWorkoutApi } from "@/api/apiMock/workouts/workouts.api";
 
 export const useCreateWorkout = () => {
@@ -17,23 +16,23 @@ export const useCreateWorkout = () => {
   return useMutation<
     Workout,
     Error,
-    WorkoutDTO,
+    Workout,
     { previous?: Workout[]; optimisticId: string }
   >({
-    mutationFn: async (dto) => {
-      const created = await createWorkoutApi({ workout: dto });
+    mutationFn: async (w) => {
+      const created = await createWorkoutApi({ workout: w });
       return mapWorkoutDTO(created);
     },
 
-    onMutate: async (dto) => {
+    onMutate: async (w) => {
       await queryClient.cancelQueries({ queryKey: workoutsKeys.all });
 
       const optimisticId = `optimistic-${Date.now()}`;
 
-      const optimisticWorkout = mapWorkoutDTO({
-        ...dto,
+      const optimisticWorkout = {
+        ...w,
         id: optimisticId,
-      });
+      };
 
       const previous = optimisticAddWorkout(queryClient, optimisticWorkout);
 
@@ -42,14 +41,6 @@ export const useCreateWorkout = () => {
 
     onError: (_err, _payload, ctx) => {
       rollbackWorkouts(queryClient, ctx?.previous);
-    },
-
-    onSuccess: (created, _payload, ctx) => {
-      queryClient.setQueryData<Workout[]>(workoutsKeys.all, (old) =>
-        old
-          ? old.map((w) => (w.id === ctx.optimisticId ? created : w))
-          : [created]
-      );
     },
 
     onSettled: () => {

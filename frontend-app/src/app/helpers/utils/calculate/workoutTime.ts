@@ -1,6 +1,7 @@
 export const formatTimeDiff = (
   scheduledAt: Date,
-  now: Date = new Date()
+  now: Date,
+  displaySeconds = false,
 ): string => {
   const diffMs = scheduledAt.getTime() - now.getTime();
 
@@ -12,10 +13,10 @@ export const formatTimeDiff = (
   }
 
   const totalSeconds = Math.floor(diffMs / 1000);
-  const totalMinutes = Math.floor(totalSeconds / 60);
+  const totalMinutes = Math.floor(diffMs / 60_000);
 
-  const days = Math.floor(totalMinutes / (60 * 24));
-  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
   const minutes = totalMinutes % 60;
 
   if (days > 0) {
@@ -26,18 +27,21 @@ export const formatTimeDiff = (
     return minutes > 0 ? `in ${hours}h ${minutes}m` : `in ${hours}h`;
   }
 
-  if (minutes > 0) {
-    return `in ${minutes}m`;
+  if (displaySeconds && totalSeconds < 60) {
+    return `in ${totalSeconds}s`;
   }
 
-  return `in ${totalSeconds}s`;
+  if (totalMinutes >= 1) {
+    return `in ${totalMinutes}m`;
+  }
+
+  return "now";
 };
 
 export const isSameDay = (a: Date, b: Date) =>
-  a.getDay() === b.getDay() &&
-  a.getDate() === b.getDate() &&
+  a.getFullYear() === b.getFullYear() &&
   a.getMonth() === b.getMonth() &&
-  a.getFullYear() === b.getFullYear();
+  a.getDate() === b.getDate();
 
 export const isThisWeek = (date: Date, now = new Date()) => {
   const d = new Date(date);
@@ -55,4 +59,10 @@ export const isThisWeek = (date: Date, now = new Date()) => {
   endOfWeek.setDate(startOfWeek.getDate() + 7);
 
   return d >= startOfWeek && d < endOfWeek;
+};
+
+export const toTimeInputValue = (date: Date) => {
+  const h = date.getHours().toString().padStart(2, "0");
+  const m = date.getMinutes().toString().padStart(2, "0");
+  return `${h}:${m}`;
 };

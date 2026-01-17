@@ -1,5 +1,4 @@
 import { Workout, HeroState } from "@/types/workout/workout";
-import { useNow } from "@/hooks/helperHooks/useNow";
 import { formatTimeDiff, isSameDay } from "../calculate/workoutTime";
 
 const isInMissedWindow = (missedAt: Date, nextWorkoutAt: Date, now: Date) => {
@@ -26,7 +25,7 @@ export const getHeroState = (workouts: Workout[], now: Date): HeroState => {
       kind: "upcoming",
       title: next.title,
       subtitle: next.mainFocus,
-      timeLabel: `Starts in ${formatTimeDiff(next.scheduledAt, now)}`,
+      timeLabel: `Starts in ${formatTimeDiff(next.scheduledAt, now, true)}`,
       workout: next,
     };
   }
@@ -47,14 +46,6 @@ export const getHeroState = (workouts: Workout[], now: Date): HeroState => {
           workout: missed,
         };
       }
-
-      return {
-        kind: "upcoming",
-        title: next.title,
-        subtitle: next.mainFocus,
-        timeLabel: `Starts in ${formatTimeDiff(next.scheduledAt, now)}`,
-        workout: next,
-      };
     }
 
     return {
@@ -73,18 +64,4 @@ export const getHeroState = (workouts: Workout[], now: Date): HeroState => {
     title: "Done for today",
     subtitle: "All trainings completed",
   };
-};
-
-export const useHeroState = (workouts: Workout[]) => {
-  const baseNow = useNow(60_000);
-  const baseHero = getHeroState(workouts, baseNow);
-
-  const isLastMinute =
-    baseHero.kind === "upcoming" &&
-    baseHero.workout &&
-    baseHero.workout.scheduledAt.getTime() - baseNow.getTime() < 60_000;
-
-  const now = useNow(isLastMinute ? 1_000 : 60_000);
-
-  return getHeroState(workouts, now);
 };

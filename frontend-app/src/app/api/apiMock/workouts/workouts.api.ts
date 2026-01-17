@@ -21,4 +21,4 @@ export const createWorkoutApi = (
 
 export const updateWorkoutApi = (
   payload: UpdateWorkoutPayload
-): Promise<void> => impl.updateWorkout(payload);
+): Promise<WorkoutDTO> => impl.updateWorkout(payload);

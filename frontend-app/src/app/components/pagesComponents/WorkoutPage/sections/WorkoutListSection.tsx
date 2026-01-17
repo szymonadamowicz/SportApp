@@ -26,7 +26,7 @@ export function WorkoutListSection({
             <WorkoutListItem
               key={vm.id}
               item={vm}
-              selected={vm.id === selectedId}
+              selected={selectedId === vm.id}
               onClick={() => onSelect(vm.id)}
             />
           ))}

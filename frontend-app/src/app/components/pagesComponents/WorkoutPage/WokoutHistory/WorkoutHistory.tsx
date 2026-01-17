@@ -2,7 +2,10 @@ import { HistorySectionProps } from "@/types/pages/workoutPage";
 import { WorkoutHistorySection } from "./sections/WorkoutHistorySection";
 import { useWorkoutsHistoryVM } from "./WorkoutHistoryVM";
 
-export const WorkoutHistory = ({ onSelect, selectedId }: HistorySectionProps) => {
+export const WorkoutHistory = ({
+  onSelect,
+  selectedId,
+}: HistorySectionProps) => {
   const vm = useWorkoutsHistoryVM();
   
   return (

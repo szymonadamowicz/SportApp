@@ -3,8 +3,10 @@ import {
   DraftExercise,
   DraftExerciseValidationError,
 } from "../workout/workout";
+import { ExerciseDTO } from "../workout/workoutDTO";
 
 export type WorkoutFormVM = {
+  now: Date;
   workout: Workout | null;
   editMode: boolean;
   hasChanges: boolean;
@@ -26,6 +28,7 @@ export type WorkoutStatus = "completed" | "upcoming" | "missed" | "default";
 
 export interface WorkoutFormProps {
   workout: Workout;
+  setEditWorkoutId: (id: string) => void;
 }
 
 export type ExerciseEditProps = {
@@ -124,4 +127,50 @@ export type WorkoutCreateErrors = {
 export type HistorySectionProps = {
   onSelect: (id: string) => void;
   selectedId?: string;
+};
+
+export type WorkoutModalVM = {
+  mode: "create" | "edit";
+
+  title: string;
+  setTitle: (v: string) => void;
+
+  date: string;
+  setDate: (v: string) => void;
+
+  time: string;
+  setTime: (v: string) => void;
+
+  muscleInput: string;
+  setMuscleInput: (v: string) => void;
+
+  selectedMuscles: string[];
+  tempSelected: string[];
+
+  dropdownItems: string[];
+
+  dropdownOpen: boolean;
+  setDropdownOpen: (v: boolean) => void;
+  dropdownRef: React.RefObject<HTMLDivElement | null>;
+
+  toggleTemp: (m: string) => void;
+  addCustomMuscle: () => void;
+  confirmAddMuscles: () => void;
+  removeMuscle: (m: string) => void;
+
+  exercises: ExerciseDTO[];
+  addExercise: () => void;
+  removeExercise: (id: string) => void;
+  updateExercise: (id: string, patch: Partial<ExerciseDTO>) => void;
+
+  errors: WorkoutCreateErrors;
+  showToast: boolean;
+
+  createOrUpdateWorkout: () => void;
+};
+
+export type useWorkoutModalVMProps = {
+  editModalId?: string;
+  onClose: () => void;
+  open: boolean;
 };

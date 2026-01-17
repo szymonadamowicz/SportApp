@@ -21,3 +21,16 @@ export const mapWorkoutDTO = (dto: WorkoutDTO): Workout => ({
   mainFocus: dto.mainFocus ? dto.mainFocus : undefined,
   exercises: dto.exercises.map(mapExerciseDTO),
 });
+
+export const mapWorkoutToDTO = (dto: Workout): WorkoutDTO => ({
+  id: dto.id,
+  title: dto.title,
+  scheduledAt: (dto.scheduledAt).toISOString(),
+  completedAt: dto.completedAt ? (dto.completedAt).toISOString() : undefined,
+  perceivedLoad: dto.perceivedLoad ? dto.perceivedLoad : undefined,
+  feedbackSeenAt: dto.feedbackSeenAt ? dto.feedbackSeenAt : undefined,
+  muscleGroups: dto.muscleGroups ? dto.muscleGroups : undefined,
+  mainFocus: dto.mainFocus ? dto.mainFocus : undefined,
+  exercises: dto.exercises.map(mapExerciseDTO),
+});
+

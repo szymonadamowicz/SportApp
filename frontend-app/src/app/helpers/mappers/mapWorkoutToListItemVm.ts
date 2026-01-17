@@ -11,7 +11,7 @@ export const mapWorkoutToListItemVM = (
 
   if (workout.completedAt) {
     status = "completed";
-  } else if (workout.scheduledAt < now) {
+  } else if (workout.scheduledAt.getTime() < now.getTime()) {
     status = "missed";
   } else {
     status = "upcoming";

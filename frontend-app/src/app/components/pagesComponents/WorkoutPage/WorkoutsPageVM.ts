@@ -1,38 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useWorkouts } from "@/hooks/apiHooks/workouts/useWorkouts";
-import { useNow } from "@/hooks/helperHooks/useNow";
 import { WorkoutListState } from "@/types/pages/workoutPage";
 import {
   getUpcomingWorkouts,
   sortAsc,
   getWorkoutsForWeek,
 } from "@/helpers/utils/selectors/workout/workoutSelector";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useLocalStorageState } from "@/hooks/useLocalStorageState";
+import { useNow } from "@/hooks/helperHooks/useNow";
 
 export const useWorkoutsPageVM = () => {
   const { allWorkouts: workouts } = useWorkouts();
   const now = useNow();
 
-  const [selectedWorkoutId, setSelectedWorkoutId] = useState<string>();
-  const router = useRouter();
-  const params = useSearchParams();
+  const [selectedEditWorkoutId, setSelectedEditWorkoutId] = useState<
+    string | undefined
+  >(undefined);
 
-  const seeAll = params.get("view") === "all";
+  const [selectedWorkoutId, setSelectedWorkoutId] = useState<
+    string | undefined
+  >(undefined);
+
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const selectedWorkout = useMemo(
+    () => workouts.find((w) => w.id === selectedWorkoutId),
+    [workouts, selectedWorkoutId],
+  );
+
+  const [seeAll, setSeeAll] = useLocalStorageState<boolean>(
+    "workouts.seeAll",
+    false,
+  );
 
   const toggleSeeAll = () => {
-    const next = seeAll ? "week" : "all";
-    router.replace(`?view=${next}`);
+    setSeeAll((v) => !v);
   };
-  const isCreateModalOpen = params.get("modal") === "open";
-  const editModalId = params.get("edit");
 
-  const openModal = () => router.replace("?modal=open");
-  const closeModal = () => router.replace("?modal=close");
+  const openModal = () => setIsCreateModalOpen(true);
+  const closeModal = () => {
+    setSelectedEditWorkoutId(undefined);
+    setIsCreateModalOpen(false);
+  };
 
   const upcoming = getUpcomingWorkouts(workouts, now);
-
   const upcomingSorted = sortAsc(upcoming);
   const upcomingThisWeek = getWorkoutsForWeek(upcomingSorted, now);
   const visibleWorkouts = seeAll ? upcomingSorted : upcomingThisWeek;
@@ -40,19 +53,30 @@ export const useWorkoutsPageVM = () => {
   const listState: WorkoutListState =
     visibleWorkouts.length === 0 ? "empty" : "hasData";
 
-  const selected = workouts.find((w) => w.id === selectedWorkoutId);
+  useEffect(() => {
+    if (!selectedEditWorkoutId) return;
+    setIsCreateModalOpen(true);
+  }, [selectedEditWorkoutId]);
 
   return {
     now,
+
     visibleWorkouts,
     listState,
-    selected,
+
+    selectedWorkout,
+    selectedWorkoutId,
+
     seeAll,
     toggleSeeAll,
-    selectWorkout: setSelectedWorkoutId,
+
+    setSelectWorkout: (id: string) => setSelectedWorkoutId(id),
+
     openModal,
     closeModal,
     isCreateModalOpen,
-    editModalId,
+
+    selectedEditWorkoutId,
+    setEditWorkoutId: (id: string) => setSelectedEditWorkoutId(id),
   };
 };

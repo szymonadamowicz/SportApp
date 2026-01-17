@@ -1,28 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Workout, DraftExercise, Exercise } from "@/types/workout/workout";
+import { useEffect, useMemo, useState } from "react";
 import {
-  toDraftExercise,
-  getExerciseUpdate,
-} from "@/helpers/utils/workout/workoutDraftChanged";
-import { DraftExerciseValidationError } from "@/types/workout/workout";
+  DraftExercise,
+  DraftExerciseValidationError,
+  Exercise,
+  Workout,
+} from "@/types/workout/workout";
 import { WorkoutFormVM } from "@/types/pages/workoutPage";
 import { useUpdateWorkout } from "@/hooks/apiHooks/workouts/useUpdateWorkout";
-import { useRouter } from "next/navigation";
+import { toDraftExercise } from "@/helpers/utils/workout/workoutDraftChanged";
 import { validateDraftExercises } from "@/helpers/utils/workout/workoutDraftValidateExercise";
+import { useNow } from "@/hooks/helperHooks/useNow";
 
 const createEmptyDraftExercise = (): DraftExercise => ({
   name: "",
-  sets: "",
-  reps: "",
-  weight: "",
-  restTimeSec: "",
+  sets: 0,
+  reps: 0,
+  weight: undefined,
+  restTimeSec: undefined,
 });
 
-export const useWorkoutFormVM = (workout?: Workout | null): WorkoutFormVM => {
+const toNumberOrUndefined = (v: unknown): number | undefined => {
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isFinite(n) && n > 0 ? n : undefined;
+};
+
+export const useWorkoutFormVM = (
+  workout: Workout,
+  setEditWorkoutId: (id: string) => void,
+): WorkoutFormVM => {
   const mutation = useUpdateWorkout();
-  const router = useRouter();
 
   const [editMode, setEditMode] = useState(false);
   const [draft, setDraft] = useState<Record<string, DraftExercise>>({});
@@ -31,14 +39,11 @@ export const useWorkoutFormVM = (workout?: Workout | null): WorkoutFormVM => {
     Record<string, DraftExerciseValidationError>
   >({});
 
-  const editWorkoutAction = () => {
-    if (!workout?.id) return;
-    router.replace(`?modal=open&edit=${workout.id}`);
-  };
+  const now = useNow();
+
+  const editWorkoutAction = () => setEditWorkoutId(workout.id);
 
   useEffect(() => {
-    if (!workout) return;
-
     const initial: Record<string, DraftExercise> = {};
     workout.exercises.forEach((ex) => {
       initial[ex.id] = toDraftExercise(ex);
@@ -82,69 +87,38 @@ export const useWorkoutFormVM = (workout?: Workout | null): WorkoutFormVM => {
       delete next[id];
       return next;
     });
-
-    setExerciseErrors((prev) => {
-      const next = { ...prev };
-      delete next[id];
-      return next;
-    });
-
     setHasChanges(true);
   };
 
+  const computedExercises = useMemo<Exercise[]>(() => {
+    return Object.entries(draft).map(([id, d]) => ({
+      id,
+      name: d.name.trim(),
+      sets: Number(d.sets),
+      reps: Number(d.reps),
+      weight: toNumberOrUndefined(d.weight),
+      restTimeSec: toNumberOrUndefined(d.restTimeSec),
+    }));
+  }, [draft]);
+
   const saveAllChanges = () => {
-    if (!workout) return;
-
     const validation = validateDraftExercises(draft);
-
     if (!validation.valid) {
       setExerciseErrors(validation.errors);
       return;
     }
 
-    setExerciseErrors({});
+    const nextWorkout: Workout = {
+      ...workout,
+      exercises: computedExercises,
+    };
 
-    workout.exercises.forEach((ex) => {
-      const d = draft[ex.id];
-      if (!d) return;
-
-      const patch = getExerciseUpdate(ex, d);
-      if (patch) {
-        mutation.mutate({
-          kind: "exercise",
-          workoutId: workout.id,
-          exerciseId: ex.id,
-          patch,
-        });
-      }
-    });
-
-    const newExercises: Exercise[] = Object.entries(draft)
-      .filter(([id]) => !workout.exercises.some((e) => e.id === id))
-      .map(([, d]) => ({
-        id: crypto.randomUUID(),
-        name: d.name.trim(),
-        sets: Number(d.sets),
-        reps: Number(d.reps),
-        weight: d.weight ? Number(d.weight) : undefined,
-        restTimeSec: d.restTimeSec ? Number(d.restTimeSec) : undefined,
-      }));
-
-    if (newExercises.length > 0) {
-      mutation.mutate({
-        kind: "createExercise",
-        workoutId: workout.id,
-        exercises: newExercises,
-      });
-    }
-
+    mutation.mutate(nextWorkout);
     setEditMode(false);
     setHasChanges(false);
   };
 
   const cancelEdit = () => {
-    if (!workout) return;
-
     const reset: Record<string, DraftExercise> = {};
     workout.exercises.forEach((ex) => {
       reset[ex.id] = toDraftExercise(ex);
@@ -157,7 +131,8 @@ export const useWorkoutFormVM = (workout?: Workout | null): WorkoutFormVM => {
   };
 
   return {
-    workout: workout ?? null,
+    now,
+    workout,
     editMode,
     hasChanges,
     draft,
