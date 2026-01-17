@@ -19,7 +19,6 @@ export interface Workout {
   muscleGroups?: string[];
   mainFocus?: string;
   perceivedLoad?: FeedbackValue;
-  feedbackSeenAt?: string;
 }
 
 export type WorkoutMetaUpdate = Partial<
@@ -31,7 +30,6 @@ export type WorkoutMetaUpdate = Partial<
     | "muscleGroups"
     | "mainFocus"
     | "perceivedLoad"
-    | "feedbackSeenAt"
   >
 >;
 

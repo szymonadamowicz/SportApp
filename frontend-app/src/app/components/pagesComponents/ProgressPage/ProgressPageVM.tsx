@@ -27,6 +27,7 @@ export const useProgressPageVM = () => {
     ProgressLastSessionFeedbackKind.NONE
   );
   const feedbackKind: ProgressLastSessionFeedbackKind = useMemo(() => {
+    console.log(lastCompletedWorkout)
     if (!lastCompletedWorkout) {
       return ProgressLastSessionFeedbackKind.NONE;
     }
@@ -36,7 +37,7 @@ export const useProgressPageVM = () => {
     }
 
     if (
-      lastCompletedWorkout.feedbackSeenAt &&
+      lastCompletedWorkout.perceivedLoad &&
       prevState === ProgressLastSessionFeedbackKind.AVAILABLE
     ) {
       return ProgressLastSessionFeedbackKind.SUBMITTED;

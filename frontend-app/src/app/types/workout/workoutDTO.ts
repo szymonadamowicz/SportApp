@@ -18,5 +18,4 @@ export interface WorkoutDTO {
   muscleGroups?: string[];
   mainFocus?: string;
   perceivedLoad?: FeedbackValue;
-  feedbackSeenAt?: string;
 }
