@@ -12,6 +12,8 @@ import { useUpdateWorkout } from "@/hooks/apiHooks/workouts/useUpdateWorkout";
 import { toDraftExercise } from "@/helpers/utils/workout/workoutDraftChanged";
 import { validateDraftExercises } from "@/helpers/utils/workout/workoutDraftValidateExercise";
 import { useNow } from "@/hooks/helperHooks/useNow";
+import { openEditWorkout } from "@/helpers/utils/navigation/workoutRoutes";
+import { useRouter } from "next/navigation";
 
 const createEmptyDraftExercise = (): DraftExercise => ({
   name: "",
@@ -26,10 +28,7 @@ const toNumberOrUndefined = (v: unknown): number | undefined => {
   return Number.isFinite(n) && n > 0 ? n : undefined;
 };
 
-export const useWorkoutFormVM = (
-  workout: Workout,
-  setEditWorkoutId: (id: string) => void,
-): WorkoutFormVM => {
+export const useWorkoutFormVM = (workout: Workout): WorkoutFormVM => {
   const mutation = useUpdateWorkout();
 
   const [editMode, setEditMode] = useState(false);
@@ -40,8 +39,11 @@ export const useWorkoutFormVM = (
   >({});
 
   const now = useNow();
-
-  const editWorkoutAction = () => setEditWorkoutId(workout.id);
+  const router = useRouter();
+  
+  const handleEditWorkout = () => {
+    openEditWorkout(router, workout.id);
+  };
 
   useEffect(() => {
     const initial: Record<string, DraftExercise> = {};
@@ -137,7 +139,7 @@ export const useWorkoutFormVM = (
     hasChanges,
     draft,
     exerciseErrors,
-
+    handleEditWorkout,
     enterEdit,
     enterExercisesEdit,
 
@@ -146,6 +148,5 @@ export const useWorkoutFormVM = (
     addExercise,
     removeExercise,
     saveAllChanges,
-    editWorkoutAction,
   };
 };

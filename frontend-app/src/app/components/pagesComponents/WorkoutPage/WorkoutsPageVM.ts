@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useWorkouts } from "@/hooks/apiHooks/workouts/useWorkouts";
 import { WorkoutListState } from "@/types/pages/workoutPage";
 import {
@@ -10,21 +10,20 @@ import {
 } from "@/helpers/utils/selectors/workout/workoutSelector";
 import { useLocalStorageState } from "@/hooks/useLocalStorageState";
 import { useNow } from "@/hooks/helperHooks/useNow";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export const useWorkoutsPageVM = () => {
   const { allWorkouts: workouts } = useWorkouts();
   const now = useNow();
 
-  const [selectedEditWorkoutId, setSelectedEditWorkoutId] = useState<
-    string | undefined
-  >(undefined);
-
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<
     string | undefined
   >(undefined);
 
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
+  const isCreateModalOpen = searchParams.get("modal") === "open";
   const selectedWorkout = useMemo(
     () => workouts.find((w) => w.id === selectedWorkoutId),
     [workouts, selectedWorkoutId],
@@ -39,10 +38,12 @@ export const useWorkoutsPageVM = () => {
     setSeeAll((v) => !v);
   };
 
-  const openModal = () => setIsCreateModalOpen(true);
+  const openModal = () => {
+    router.push("/workouts?modal=open", { scroll: false });
+  };
+
   const closeModal = () => {
-    setSelectedEditWorkoutId(undefined);
-    setIsCreateModalOpen(false);
+    router.push("/workouts", { scroll: false });
   };
 
   const upcoming = getUpcomingWorkouts(workouts, now);
@@ -53,10 +54,9 @@ export const useWorkoutsPageVM = () => {
   const listState: WorkoutListState =
     visibleWorkouts.length === 0 ? "empty" : "hasData";
 
-  useEffect(() => {
-    if (!selectedEditWorkoutId) return;
-    setIsCreateModalOpen(true);
-  }, [selectedEditWorkoutId]);
+  const editWorkoutId = searchParams.get("edit");
+
+  const selectedEditWorkoutId = editWorkoutId ?? undefined;
 
   return {
     now,
@@ -77,6 +77,5 @@ export const useWorkoutsPageVM = () => {
     isCreateModalOpen,
 
     selectedEditWorkoutId,
-    setEditWorkoutId: (id: string) => setSelectedEditWorkoutId(id),
   };
 };

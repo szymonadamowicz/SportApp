@@ -34,7 +34,6 @@ export default function WorkoutsPage() {
         {vm.selectedWorkout && (
           <WorkoutForm
             workout={vm.selectedWorkout}
-            setEditWorkoutId={vm.setEditWorkoutId}
           />
         )}
       </div>

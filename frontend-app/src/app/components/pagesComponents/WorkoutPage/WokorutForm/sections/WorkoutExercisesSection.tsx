@@ -172,7 +172,9 @@ export const WorkoutExercisesSection = ({
               <div className="flex items-center justify-center">
                 <button
                   onClick={() => onRemoveExercise(id)}
-                  className="h-8 w-8 rounded-full flex items-center justify-center text-textSecondary hover:text-red-400 hover:bg-red-400/10 transition"
+                  className="h-8 w-8 rounded-full flex items-center justify-center
+                             text-textSecondary hover:text-red-400
+                             hover:bg-red-400/10 transition"
                 >
                   <X size={16} />
                 </button>
@@ -185,7 +187,9 @@ export const WorkoutExercisesSection = ({
       {editMode && onAddExercise && (
         <button
           onClick={onAddExercise}
-          className="mt-2 inline-flex items-center gap-2 rounded-full bg-accent/15 px-4 py-2 text-sm text-accent hover:bg-accent/25"
+          className="mt-2 inline-flex items-center gap-2 rounded-full
+                     bg-accent/15 px-4 py-2 text-sm text-accent
+                     hover:bg-accent/25"
         >
           <Plus size={16} />
           Add exercise

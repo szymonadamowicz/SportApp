@@ -11,7 +11,6 @@ import EmptyState from "@/components/EmptyState/EmptyState";
 
 export default function ProgressPage() {
   const vm = useProgressPageVM();
-  console.log(vm);
   return (
     <div className="space-y-6">
       <InfoPanel

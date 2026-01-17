@@ -12,10 +12,10 @@ export type WorkoutFormVM = {
   hasChanges: boolean;
   draft: Record<string, DraftExercise>;
   enterEdit: () => void;
+  handleEditWorkout: () => void;
   cancelEdit: () => void;
   updateDraft: (exerciseId: string, patch: Partial<DraftExercise>) => void;
   saveAllChanges: () => void;
-  editWorkoutAction: () => void;
   enterExercisesEdit: () => void;
   removeExercise: (id: string) => void;
   addExercise: () => void;
@@ -28,7 +28,6 @@ export type WorkoutStatus = "completed" | "upcoming" | "missed" | "default";
 
 export interface WorkoutFormProps {
   workout: Workout;
-  setEditWorkoutId: (id: string) => void;
 }
 
 export type ExerciseEditProps = {

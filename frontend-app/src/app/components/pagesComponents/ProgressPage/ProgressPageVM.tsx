@@ -49,14 +49,7 @@ export const useProgressPageVM = () => {
     (value: FeedbackValue) => {
       if (!lastCompletedWorkout) return;
       setPrevState(ProgressLastSessionFeedbackKind.AVAILABLE);
-      updateWorkout.mutate({
-        kind: "workout",
-        workoutId: lastCompletedWorkout.id,
-        patch: {
-          perceivedLoad: value,
-          feedbackSeenAt: new Date().toISOString(),
-        },
-      });
+      updateWorkout.mutate({...lastCompletedWorkout, perceivedLoad: value});
     },
     [lastCompletedWorkout, updateWorkout]
   );

@@ -9,12 +9,8 @@ import {
 } from "@/helpers/utils/calculate/workoutTime";
 import { WorkoutFormProps } from "@/types/pages/workoutPage";
 
-export default function WorkoutForm({
-  workout,
-  setEditWorkoutId,
-}: WorkoutFormProps) {
-  const vm = useWorkoutFormVM(workout, setEditWorkoutId);
-
+export default function WorkoutForm({ workout }: WorkoutFormProps) {
+  const vm = useWorkoutFormVM(workout);
 
   const isToday = isSameDay(workout.scheduledAt, vm.now);
 
@@ -47,7 +43,7 @@ export default function WorkoutForm({
       }}
       secondaryButton={{
         label: "Edit workout",
-        onClick: vm.editWorkoutAction,
+        onClick: vm.handleEditWorkout,
       }}
     >
       <WorkoutExercisesSection
@@ -56,7 +52,7 @@ export default function WorkoutForm({
         draft={vm.draft}
         errors={vm.exerciseErrors}
         onDraftChange={vm.updateDraft}
-        onPress={vm.editWorkoutAction}
+        onPress={vm.handleEditWorkout}
         onAddExercise={vm.addExercise}
         onRemoveExercise={vm.removeExercise}
       />
