@@ -187,9 +187,23 @@ export const WorkoutExercisesSection = ({
       {editMode && onAddExercise && (
         <button
           onClick={onAddExercise}
-          className="mt-2 inline-flex items-center gap-2 rounded-full
-                     bg-accent/15 px-4 py-2 text-sm text-accent
-                     hover:bg-accent/25"
+          className={clsx(
+            `
+                inline-flex items-center gap-2
+                rounded-full
+                px-4 py-2 text-sm font-medium
+          
+                border border-[rgba(34,197,94,0.35)]
+                text-accent
+                bg-[rgba(34,197,94,0.10)]
+          
+                hover:bg-[rgba(34,197,94,0.18)]
+                hover:border-[rgba(34,197,94,0.55)]
+          
+                active:scale-[0.98]
+                transition
+              `,
+          )}
         >
           <Plus size={16} />
           Add exercise

@@ -3,8 +3,8 @@ import {
   CreateWorkoutPayload,
   UpdateWorkoutPayload,
 } from "@/types/workout/workout";
-import { workoutsMock } from "./workouts.mock";
-import { workoutsReal } from "./workouts.real";
+import { workoutsMock } from "./apiMock/workouts/workouts.mock";
+import { workoutsReal } from "./apiReal/workouts.real";
 
 const mode = process.env.NEXT_PUBLIC_API_MODE;
 const impl = mode === "mock" ? workoutsMock : workoutsReal;

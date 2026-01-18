@@ -1,17 +1,25 @@
-"use client";
-import { TagProps } from "@/types/components/tag";
-import { clsx } from "clsx";
+import clsx from "clsx";
 
-export default function Tag({ label, className }: TagProps) {
+type TagProps = {
+  label: string;
+  icon?: React.ReactNode;
+  state?: "upcoming" | "missed" | "highlight";
+};
+
+export function Tag({ label, icon, state }: TagProps) {
   return (
-    <span
+    <div
       className={clsx(
-        "inline-flex items-center rounded-full px-3 py-1 text-xs font-medium leading-none whitespace-nowrap",
-        "border border-transparent",
-        className
+        "accent-chip inline-flex items-center gap-1 px-3 py-1 text-xs font-medium",
+        {
+          "state-upcoming": state === "upcoming",
+          "state-missed": state === "missed",
+          "state-highlight": state === "highlight",
+        },
       )}
     >
-      {label}
-    </span>
+      {icon && <span className="opacity-80">{icon}</span>}
+      <span>{label}</span>
+    </div>
   );
 }

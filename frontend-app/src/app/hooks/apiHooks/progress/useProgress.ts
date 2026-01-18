@@ -1,8 +1,8 @@
 "use client";
 
-import { fetchProgressApi } from "@/api/apiMock/progress/progress.api";
 import { progressKeys } from "@/api/keys/progress.keys";
 import { mapProgressDTO } from "@/api/mappers/progress/progressMapper";
+import { fetchProgressApi } from "@/api/progress.api";
 import { Progress } from "@/types/progress/progress";
 import { useQuery } from "@tanstack/react-query";
 

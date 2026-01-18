@@ -3,7 +3,7 @@
 import { mapWorkoutDTO } from '@/api/mappers/workout/workoutMapper';
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { workoutsKeys } from "@/api/keys/workouts.keys";
-import { updateWorkoutApi } from "@/api/apiMock/workouts/workouts.api";
+import { updateWorkoutApi } from "@/api/workouts.api";
 import { Workout } from "@/types/workout/workout";
 
 type Ctx = {

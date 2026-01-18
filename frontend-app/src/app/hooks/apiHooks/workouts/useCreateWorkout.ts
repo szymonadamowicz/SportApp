@@ -8,7 +8,7 @@ import {
   rollbackWorkouts,
 } from "@/api/cache/workouts.cache";
 import { Workout } from "@/types/workout/workout";
-import { createWorkoutApi } from "@/api/apiMock/workouts/workouts.api";
+import { createWorkoutApi } from "@/api/workouts.api";
 
 export const useCreateWorkout = () => {
   const queryClient = useQueryClient();

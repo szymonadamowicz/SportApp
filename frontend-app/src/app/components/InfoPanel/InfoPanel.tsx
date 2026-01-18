@@ -1,14 +1,14 @@
 "use client";
 
 import clsx from "clsx";
-import { InfoPanelHeader } from "./InfoPanelHeader";
-import { InfoPanelProgress } from "./InfoPanelProgress";
 import {
   panelClass,
   gridWrapper,
   columnWrapper,
 } from "@/helpers/ui/infoPanelStyles";
 import { InfoPanelProps } from "@/types/components/infoPanel";
+import InfoPanelProgress from "./InfoPanelProgress";
+import { InfoPanelHeader } from "./InfoPanelHeader";
 
 export default function InfoPanel({
   title,
@@ -33,9 +33,7 @@ export default function InfoPanel({
         secondaryButton={secondaryButton}
       />
 
-      {typeof progress === "number" && (
-        <InfoPanelProgress progress={progress} />
-      )}
+      {typeof progress === "number" && <InfoPanelProgress value={progress} />}
 
       <div
         className={clsx(isGrid ? gridWrapper : columnWrapper)}

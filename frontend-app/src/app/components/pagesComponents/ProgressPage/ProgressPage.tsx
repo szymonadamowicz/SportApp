@@ -12,14 +12,14 @@ import EmptyState from "@/components/EmptyState/EmptyState";
 export default function ProgressPage() {
   const vm = useProgressPageVM();
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <InfoPanel
         title="Progress"
         layout="row"
         maxPerRow={4}
         outerButton={{
           label: `See data for ${
-            vm.toggleState ? "this week trainings" : "all trainings."
+            vm.toggleState ? "this week" : "all trainings"
           }`,
           onClick: vm.settoggleState,
         }}
@@ -28,13 +28,7 @@ export default function ProgressPage() {
           <ProgressStatCard
             key={idx}
             label={stat.title}
-            value={
-              vm.toggleState
-                ? stat.valueWeek
-                  ? stat.valueWeek
-                  : "no data for week"
-                : stat.value
-            }
+            value={vm.toggleState ? (stat.valueWeek ?? "No data") : stat.value}
             subLabel={vm.toggleState ? stat.subLabelWeek : stat.subLabel}
           />
         ))}
@@ -63,17 +57,15 @@ export default function ProgressPage() {
 
         {vm.lastSessionFeedback.kind ===
           ProgressLastSessionFeedbackKind.SUBMITTED && (
-          <ProgressLastSessionFeedback
-            submitted={vm.lastSessionFeedback.selected}
-          />
+          <ProgressLastSessionFeedback submitted />
         )}
 
         {vm.lastSessionFeedback.kind ===
           ProgressLastSessionFeedbackKind.SEEN && (
           <ProgressLastSessionFeedback
-            label="Thanks for letting us know how was your last training :)."
+            label="Thanks for letting us know how your last workout felt."
             streak={vm.streak}
-            disableButtons={true}
+            disableButtons
           />
         )}
 
@@ -81,8 +73,8 @@ export default function ProgressPage() {
           ProgressLastSessionFeedbackKind.NONE && (
           <EmptyState
             icon="🏋️"
-            title="You dont have any completed trainngs yet."
-            description="Complete one and come back here to let us know how it went :)"
+            title="No completed workouts yet"
+            description="Finish your first training and come back here to track your progress."
           />
         )}
       </div>

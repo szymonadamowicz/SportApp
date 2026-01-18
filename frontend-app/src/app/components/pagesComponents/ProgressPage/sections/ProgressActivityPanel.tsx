@@ -1,38 +1,60 @@
-"use client";
+import { Flame } from "lucide-react";
 
-import { ProgressActivityPanelProps } from "@/types/pages/progressPage";
-
-const consistencyLabel = {
-  low: "Low consistency",
-  medium: "Balanced",
-  high: "Very consistent",
+type Props = {
+  streak: number;
 };
 
-export function ActivityPanel({
-  streak,
-  consistency,
-}: ProgressActivityPanelProps) {
+export function ProgressActivityPanel({ streak }: Props) {
+  const days = streak ?? 0;
+
+  const accent = days > 0 ? "rgba(34,197,94,0.35)" : "rgba(156,163,175,0.22)";
+  const glow = days > 0 ? "rgba(34,197,94,0.18)" : "rgba(0,0,0,0.0)";
+
   return (
     <div
-      className="
-        rounded-2xl
-        bg-infoBlue/20
-        border border-infoBlue/40
-        p-6
-        flex flex-col gap-4
-      "
+      className="glass-panel fade-in rounded-2xl px-5 py-4"
+      style={{
+        borderColor: accent,
+        boxShadow: `0 0 0 1px ${glow}, 0 18px 55px rgba(0,0,0,0.55)`,
+      }}
     >
-      <div>
-        <p className="text-sm text-textSecondary">Activity</p>
-        <p className="text-lg font-semibold text-textPrimary">
-          {consistencyLabel[consistency]}
-        </p>
-      </div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <div
+            className="grid place-items-center h-9 w-9 rounded-xl"
+            style={{
+              background:
+                days > 0 ? "rgba(34,197,94,0.12)" : "rgba(255,255,255,0.04)",
+              border: `1px solid ${accent}`,
+            }}
+          >
+            <Flame
+              size={18}
+              style={{
+                color: days > 0 ? "var(--accent)" : "var(--text-secondary)",
+              }}
+            />
+          </div>
+          <div>
+            <p className="text-[11px] uppercase tracking-widest text-[var(--text-secondary)]">
+              Streak
+            </p>
+            <p className="text-base font-semibold text-[var(--text-primary)]">
+              {days} day{days === 1 ? "" : "s"}
+            </p>
+          </div>
+        </div>
 
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-textSecondary">Streak</span>
-        <span className="text-lg font-semibold text-textPrimary">
-          🔥 {streak} days
+        <span
+          className="rounded-full px-3 py-1 text-xs font-semibold"
+          style={{
+            background:
+              days > 0 ? "var(--accent-soft)" : "rgba(255,255,255,0.04)",
+            border: `1px solid ${accent}`,
+            color: days > 0 ? "var(--accent)" : "var(--text-secondary)",
+          }}
+        >
+          {days > 0 ? "Keep it going" : "Start today"}
         </span>
       </div>
     </div>

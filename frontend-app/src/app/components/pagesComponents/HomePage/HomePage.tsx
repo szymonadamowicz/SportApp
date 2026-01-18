@@ -14,7 +14,7 @@ export default function HomePage() {
   const vm = useHomePageVM();
 
   return (
-    <>
+    <div className="relative">
       <Hero
         hero={vm.hero}
         completedCount={vm.statsWeekly.completedCount}
@@ -92,6 +92,6 @@ export default function HomePage() {
           </InfoPanel>
         </div>
       </div>
-    </>
+    </div>
   );
 }

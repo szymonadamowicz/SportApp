@@ -1,5 +1,3 @@
-"use client";
-
 import { ProgressStatCardProps } from "@/types/pages/progressPage";
 
 export function ProgressStatCard({
@@ -8,18 +6,21 @@ export function ProgressStatCard({
   subLabel,
 }: ProgressStatCardProps) {
   return (
-    <div
-      className="
-        rounded-2xl
-        bg-infoBlue/20
-        border border-infoBlue/40
-        px-5 py-4
-        flex flex-col gap-1
-      "
-    >
-      <span className="text-xs text-textSecondary">{label}</span>
-      <span className="text-xl font-semibold text-textPrimary">{value}</span>
-      {subLabel && <span className="text-xs text-infoBlue">{subLabel}</span>}
+    <div className="glass-panel card-hover fade-in rounded-2xl px-5 py-4">
+      <p className="text-[11px] uppercase tracking-wide text-[var(--text-secondary)]">
+        {label}
+      </p>
+
+      <div className="mt-2 flex items-end justify-between gap-3">
+        <p className="text-2xl md:text-3xl font-semibold text-[var(--text-primary)]">
+          {value}
+        </p>
+        {subLabel && (
+          <p className="text-xs text-right text-[var(--text-secondary)]">
+            {subLabel}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

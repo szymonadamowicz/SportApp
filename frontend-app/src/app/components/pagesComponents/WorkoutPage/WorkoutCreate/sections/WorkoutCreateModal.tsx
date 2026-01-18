@@ -15,8 +15,8 @@ import { Field } from "./WorkoutCreateField";
 import { IconButton } from "./WorkoutCreateIconButton";
 import { SmallLabel } from "./WorkoutCreateSmallLabel";
 import { useWorkoutModalVM } from "../WorkoutModalVM";
-import { isValidExercise } from "@/helpers/utils/workout/workoutDraftValidateExercise";
 import { AnimatePresence, motion, Variants } from "framer-motion";
+import { isValidExercise } from "@/helpers/utils/workout/workoutDraftValidateExercise";
 
 export function CreateWorkoutModal({
   open,
@@ -94,6 +94,8 @@ export function CreateWorkoutModal({
       },
     },
   };
+  const lastExercise = vm.exercises.at(-1);
+  const canAddExercise = lastExercise ? isValidExercise(lastExercise) : false;
 
   return (
     <AnimatePresence>
@@ -115,7 +117,12 @@ export function CreateWorkoutModal({
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="relative w-full max-w-xl md:max-w-2xl rounded-3xl bg-bgMain border border-borderSoft shadow-2xl overflow-hidden"
+            className="
+  relative w-full max-w-xl md:max-w-2xl rounded-3xl
+  border border-borderSoft
+  shadow-2xl overflow-hidden
+  bg-[linear-gradient(180deg,#13171b,#0c0f12)]
+"
             onMouseDown={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-8 py-5 border-b border-borderSoft">
@@ -173,7 +180,13 @@ export function CreateWorkoutModal({
                         key={m}
                         type="button"
                         onClick={() => vm.removeMuscle(m)}
-                        className="rounded-full bg-emerald-500/15 text-emerald-300 px-3 py-1 text-sm hover:bg-emerald-500/25 transition"
+                        className="
+  rounded-full px-3 py-1 text-sm transition
+  bg-[rgba(34,197,94,0.10)]
+  text-[rgba(167,243,208,0.95)]
+  border border-[rgba(34,197,94,0.22)]
+  hover:bg-[rgba(34,197,94,0.16)]
+"
                       >
                         {m}
                       </button>
@@ -197,7 +210,17 @@ export function CreateWorkoutModal({
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 6 }}
-                        className="absolute left-0 top-full mt-2 w-full rounded-2xl border border-borderSoft bg-bgMain shadow-xl z-50 overflow-hidden"
+                        className="
+    absolute left-0 top-full mt-2 w-full z-50 overflow-hidden
+    rounded-2xl
+    border border-borderSoft
+    shadow-[0_30px_90px_rgba(0,0,0,0.75)]
+    backdrop-blur-md
+  "
+                        style={{
+                          background:
+                            "linear-gradient(180deg, rgba(20,24,28,0.98), rgba(12,15,18,0.98))",
+                        }}
                       >
                         <div className="max-h-52 overflow-y-auto py-1">
                           {vm.dropdownItems.map((m) => (
@@ -428,18 +451,27 @@ export function CreateWorkoutModal({
 
                   <button
                     type="button"
-                    onClick={() => {
-                      const last = vm.exercises.at(-1);
-                      if (!last || !isValidExercise(last)) return;
-                      vm.addExercise();
-                    }}
-                    className="
-                      inline-flex items-center gap-2
-                      rounded-full bg-accent/15
-                      px-4 py-2 text-sm text-accent
-                      hover:bg-accent/25
-                      transition
-                    "
+                    disabled={!canAddExercise}
+                    onClick={vm.addExercise}
+                    className={clsx(
+                      `
+      inline-flex items-center gap-2
+      rounded-full
+      px-4 py-2 text-sm font-medium
+
+      border border-[rgba(34,197,94,0.35)]
+      text-accent
+      bg-[rgba(34,197,94,0.10)]
+
+      hover:bg-[rgba(34,197,94,0.18)]
+      hover:border-[rgba(34,197,94,0.55)]
+
+      active:scale-[0.98]
+      transition
+    `,
+                      !canAddExercise &&
+                        "opacity-40 cursor-not-allowed hover:bg-transparent",
+                    )}
                   >
                     <Plus size={16} />
                     Add exercise
@@ -478,18 +510,25 @@ export function CreateWorkoutModal({
               )}
             </AnimatePresence>
 
-            <div className="flex justify-end gap-4 px-8 py-5 border-t border-borderSoft">
+            <div
+              className="
+    flex justify-end gap-4 px-8 py-5 border-t border-borderSoft
+    bg-[linear-gradient(180deg,rgba(19,23,27,0.35),rgba(19,23,27,0.75))]
+  "
+            >
               <button
                 type="button"
                 onClick={onClose}
                 className="
-                  rounded-full bg-bgHighlight/60
-                  px-4 py-2 text-sm
-                  text-textSecondary
-                  hover:bg-bgHighlight
-                  hover:text-textPrimary
-                  transition
-                "
+  rounded-full px-5 py-2 text-sm font-semibold
+  border border-borderSoft
+  bg-bgCard/80
+  text-textSecondary
+  hover:text-textPrimary
+  hover:bg-bgCard-elevated
+  hover:border-border-strong
+  transition
+"
               >
                 Cancel
               </button>
@@ -498,12 +537,15 @@ export function CreateWorkoutModal({
                 type="button"
                 onClick={vm.createOrUpdateWorkout}
                 className="
-                  rounded-full bg-accent
-                  px-6 py-2 text-sm font-semibold
-                  text-bgMain
-                  hover:bg-accentHover
-                  transition
-                "
+  rounded-full px-6 py-2 text-sm font-semibold
+  text-bgMain
+  bg-[linear-gradient(180deg,#22c55e,#16a34a)]
+  shadow-[0_10px_30px_rgba(34,197,94,0.22)]
+  hover:shadow-[0_14px_45px_rgba(34,197,94,0.32)]
+  hover:brightness-95
+  active:scale-[0.99]
+  transition
+"
               >
                 {isEditMode ? "Save changes" : "Create training"}
               </button>

@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { workoutsKeys } from "@/api/keys/workouts.keys";
 import { mapWorkoutDTO } from "@/api/mappers/workout/workoutMapper";
-import { fetchWorkoutsApi } from "@/api/apiMock/workouts/workouts.api";
+import { fetchWorkoutsApi } from "@/api/workouts.api";
 import { Workout } from "@/types/workout/workout";
 
 export const useWorkouts = () => {

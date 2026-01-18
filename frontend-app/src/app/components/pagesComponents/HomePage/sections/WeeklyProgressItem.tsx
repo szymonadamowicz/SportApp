@@ -7,7 +7,7 @@ export default function WeeklyProgressItem({
   value,
 }: ProgressAchievements) {
   return (
-    <div className="rounded-2xl border border-borderSoft bg-bgHighlight/70 px-5 py-4 flex flex-col justify-between">
+    <div className="card-elevated card-hover rounded-2xl px-5 py-4 flex flex-col justify-between">
       <p className="text-xs uppercase tracking-wide text-textSecondary">
         {title}
       </p>

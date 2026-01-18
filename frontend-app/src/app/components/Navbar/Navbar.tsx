@@ -27,7 +27,7 @@ export default function Navbar() {
     >
       <nav className="h-full max-w-6xl mx-auto px-8 flex items-center justify-between">
         <Link
-          href="/"
+          href="/dashboard"
           className="text-2xl font-semibold text-textPrimary tracking-tight hover:text-accent transition"
         >
           RepForge

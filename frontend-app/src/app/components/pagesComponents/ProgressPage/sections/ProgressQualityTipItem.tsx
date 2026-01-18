@@ -1,32 +1,33 @@
-"use client";
-
-import { toneStyles } from "@/helpers/ui/ProgressQualityTipItemStyles";
+import { getToneStyles } from "@/helpers/ui/ProgressQualityTipItemStyles";
 import { ProgressQualityTipItemProps } from "@/types/pages/progressPage";
-import clsx from "clsx";
 
 export function ProgressQualityTipItem({
   label,
   value,
   tone,
-  hint,
 }: ProgressQualityTipItemProps) {
   return (
-    <div
-      className="
-        rounded-xl
-        border border-borderSoft
-        bg-bgHighlight/60
-        px-4 py-3
-        flex flex-col gap-1
-      "
-    >
-      <span className="text-xs text-textSecondary">{label}</span>
+    <div className={getToneStyles(tone)}>
+      <div className="flex items-start gap-3 p-4">
+        <span
+          className="mt-2 h-2.5 w-2.5 rounded-full"
+          style={{
+            background:
+              tone === "positive"
+                ? "var(--accent)"
+                : tone === "warning"
+                  ? "var(--warning)"
+                  : "rgba(56,189,248,1)",
+          }}
+        />
 
-      <span className={clsx("text-sm font-semibold", toneStyles[tone])}>
-        {value}
-      </span>
-
-      {hint && <span className="text-xs text-textSecondary">{hint}</span>}
+        <div>
+          <p className="text-sm font-semibold text-[var(--text-primary)]">
+            {label}
+          </p>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">{value}</p>
+        </div>
+      </div>
     </div>
   );
 }
