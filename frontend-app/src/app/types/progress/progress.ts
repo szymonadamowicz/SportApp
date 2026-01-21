@@ -20,6 +20,10 @@ export interface ProgressStreak {
 
 export type Progress = {
   achievements: ProgressAchievements[];
-  weeklyCompletion: ProgressWeeklyCompletion;
   streak: ProgressStreak;
+};
+
+export type WeeklyStats = {
+  completed: number;
+  planned: number;
 };

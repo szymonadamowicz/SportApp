@@ -3,6 +3,5 @@ import { Progress } from "@/types/progress/progress";
 
 export const mapProgressDTO = (dto: ProgressDTO): Progress => ({
   streak: dto.streak,
-  weeklyCompletion: dto.weeklyCompletion,
-  achievements: dto.achievements,
+  achievements: dto.achievements
 });

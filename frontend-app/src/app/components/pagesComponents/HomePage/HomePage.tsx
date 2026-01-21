@@ -18,7 +18,7 @@ export default function HomePage() {
       <Hero
         hero={vm.hero}
         completedCount={vm.statsWeekly.completedCount}
-        upcomingCount={vm.statsWeekly.PlannedCount}
+        upcomingCount={vm.statsWeekly.plannedCount}
         onPrimaryAction={() => vm.goTo("/workouts?modal=open")}
       />
 
@@ -60,9 +60,9 @@ export default function HomePage() {
         <div className="flex-1 flex flex-col gap-6 mt-6 md:mt-0">
           <InfoPanel
             title="Week progress"
-            desc={`sessions ${vm.statsWeekly.completedCount}/${vm.statsWeekly.PlannedCount}`}
+            desc={`sessions ${vm.statsWeekly.completedCount}/${vm.statsWeekly.plannedCount}`}
             progress={
-              vm.statsWeekly.completedCount / vm.statsWeekly.PlannedCount
+              vm.statsWeekly.completedCount / vm.statsWeekly.plannedCount
             }
             layout="row"
             maxPerRow={3}

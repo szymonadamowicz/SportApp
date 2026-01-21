@@ -14,6 +14,20 @@ export default function Hero({
   const heroClass = getHeroClassName(hero);
   const primaryLabel = getHeroPrimaryLabel(hero);
 
+  const kicker =
+    hero.kind === "upcoming"
+      ? "NEXT TRAINING"
+      : hero.kind === "missed"
+        ? "MISSED TODAY"
+        : "REST DAY";
+
+  const hint =
+    hero.kind === "upcoming"
+      ? "Stay consistent. Small wins compound."
+      : hero.kind === "missed"
+        ? "Let’s get back on track."
+        : "Recovery is part of progress.";
+
   return (
     <section className={`${heroClass} fade-in relative`}>
       <div
@@ -30,18 +44,42 @@ export default function Hero({
 
       <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div className="space-y-3">
-          <p className="text-xs uppercase tracking-[0.16em] text-textSecondary">
-            Today&apos;s workout
-          </p>
-
-          <h1 className="text-2xl md:text-3xl font-semibold text-textPrimary flex items-center gap-2">
-            {hero.title}
+          <div className="flex items-center gap-2">
+            <p className="text-xs uppercase tracking-[0.16em] text-textSecondary">
+              {kicker}
+            </p>
             {hero.kind === "missed" && <Tag label="Missed" />}
+          </div>
+
+          <h1 className="text-2xl md:text-3xl font-semibold text-textPrimary">
+            {hero.title}
           </h1>
 
           <p className="text-sm md:text-base text-textSecondary capitalize">
             {hero.subtitle}
           </p>
+
+          {hero.kind === "upcoming" && hero.timeLabel && (
+            <div
+              className="inline-flex items-center gap-2 w-fit rounded-full px-3 py-1 text-xs text-textPrimary tabular-nums"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(26,31,36,0.9), rgba(19,23,27,0.85))",
+                border: "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              <span
+                className="h-2 w-2 rounded-full"
+                style={{
+                  background: "linear-gradient(135deg, #22c55e, #4ade80)",
+                  boxShadow: "0 0 0 3px rgba(34,197,94,0.12)",
+                }}
+              />
+              <span>{hero.timeLabel}</span>
+            </div>
+          )}
+
+          <p className="text-xs text-textSecondary">{hint}</p>
 
           {hero.kind === "upcoming" && hero.workout && (
             <div className="flex gap-3 overflow-x-auto pb-1 mt-4">

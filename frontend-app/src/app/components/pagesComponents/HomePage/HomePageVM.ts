@@ -8,37 +8,31 @@ import { useRouter } from "next/navigation";
 import { useHeroVM } from "@/helpers/viewModels/HomePageHeroVM";
 import { useProgressAchievements } from "@/hooks/apiHooks/progress/useProgressAchievements";
 import { getSelectedAchievementsProgress } from "@/helpers/utils/selectors/progress/progressSelector";
-import { useProgressWeeklyCompletion } from "@/hooks/apiHooks/progress/useProgressWeeklyCompletion";
 import { Tips, RecentHighlights } from "@/api/apiMock/workouts/workouts.seed";
+import { useWeeklyStats } from "@/hooks/apiHooks/progress/useProgressWeeklyStats";
 
 export const useHomePageVM = () => {
   const router = useRouter();
   const now = useNow();
   const { allWorkouts: workouts } = useWorkouts();
+
   const { achievements: progressAchievements } = useProgressAchievements();
-  const { weeklyCompletion: progressWeeklyCompletion } =
-    useProgressWeeklyCompletion();
+  const { completed, planned } = useWeeklyStats();
 
   const todayItems = getTodayUpcomingWorkouts(workouts, now);
   const missedToday = getTodayMissedWorkouts(workouts, now);
-
   const hero = useHeroVM(workouts);
 
   const selectedProgress =
     getSelectedAchievementsProgress(progressAchievements);
-  const completed = progressWeeklyCompletion?.completed
-    ? progressWeeklyCompletion?.completed
-    : 0;
-  const planned = progressWeeklyCompletion?.planned
-    ? progressWeeklyCompletion?.completed
-    : 1;
 
   return {
     hero,
     now,
+
     statsWeekly: {
       completedCount: completed,
-      PlannedCount: planned,
+      plannedCount: planned,
     },
 
     today: {

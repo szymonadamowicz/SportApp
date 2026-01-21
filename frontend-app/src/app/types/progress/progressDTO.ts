@@ -9,17 +9,11 @@ export interface ProgressAchievementsDTO {
   subLabelWeek?: string;
 }
 
-export interface ProgressWeeklyCompletionDTO {
-  planned: number;
-  completed: number;
-}
-
 export interface ProgressStreakDTO {
   days: number;
 }
 
 export type ProgressDTO = {
   achievements: ProgressAchievementsDTO[];
-  weeklyCompletion: ProgressWeeklyCompletionDTO;
   streak: ProgressStreakDTO;
 };
