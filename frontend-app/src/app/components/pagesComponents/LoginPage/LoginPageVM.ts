@@ -1,35 +1,86 @@
-import { useState } from "react"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/auth/useAuth";
 
-export type AuthMode = "login" | "register"
+export type AuthMode = "login" | "register";
 
 export const useLoginPageVM = () => {
-  const [mode, setMode] = useState<AuthMode>("login")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
+  const router = useRouter();
+  const auth = useAuth();
 
-  const isLogin = mode === "login"
-  const isRegister = mode === "register"
+  const [mode, setMode] = useState<AuthMode>("login");
+  const [login, setLogin] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const switchToLogin = () => setMode("login")
-  const switchToRegister = () => setMode("register")
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const submit = () => {
-    return
-  }
+  const isLogin = mode === "login";
+  const isRegister = mode === "register";
+
+  const switchToLogin = () => {
+    setMode("login");
+    setError(null);
+  };
+
+  const switchToRegister = () => {
+    setMode("register");
+    setError(null);
+  };
+
+  const submit = async () => {
+    setError(null);
+
+    if (!login || !password) {
+      setError("Please fill in all required fields.");
+      return;
+    }
+
+    if (isRegister && password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      if (isLogin) {
+        await auth.login({ login, password });
+      } else {
+        await auth.register({
+          login,
+          password,
+          repeatPassword: confirmPassword,
+        });
+      }
+
+      router.replace("/dashboard");
+    } catch {
+      setError(isLogin ? "Invalid login or password." : "Register failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return {
     mode,
     isLogin,
     isRegister,
-    email,
+
+    login,
     password,
     confirmPassword,
-    setEmail,
+
+    setLogin,
     setPassword,
     setConfirmPassword,
+
     switchToLogin,
     switchToRegister,
+
     submit,
-  }
-}
+    loading,
+    error,
+  };
+};

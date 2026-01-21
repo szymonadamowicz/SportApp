@@ -98,10 +98,10 @@ export default function LoginPage() {
           }}
         >
           <FitnessInput
-            label="Email"
-            type="email"
-            value={vm.email}
-            onChange={(e) => vm.setEmail(e.target.value)}
+            label="Name"
+            type="text"
+            value={vm.login}
+            onChange={(e) => vm.setLogin(e.target.value)}
           />
 
           <FitnessInput
