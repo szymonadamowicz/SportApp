@@ -41,3 +41,16 @@ export interface InfoPanelProps {
     onClick: () => void;
   };
 }
+
+export type InfoPanelItemCardProps = {
+  dimmed?: boolean;
+  clickable?: boolean;
+  onClick?: () => void;
+  children: React.ReactNode;
+};
+
+export type TipItemTone = "positive" | "neutral" | "warning";
+
+export interface InfoPanelProgressProps {
+  value: number;
+}

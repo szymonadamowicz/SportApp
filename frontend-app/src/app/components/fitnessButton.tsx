@@ -1,7 +1,8 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
-import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/helpers/utils/cn";
+import { FitnessButtonProps } from "@/types/components/fitnessButton";
+import { cva } from "class-variance-authority";
 
 const fitnessButtonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
@@ -33,13 +34,6 @@ const fitnessButtonVariants = cva(
     },
   },
 );
-
-export interface FitnessButtonProps
-  extends
-    React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof fitnessButtonVariants> {
-  asChild?: boolean;
-}
 
 const FitnessButton = React.forwardRef<HTMLButtonElement, FitnessButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {

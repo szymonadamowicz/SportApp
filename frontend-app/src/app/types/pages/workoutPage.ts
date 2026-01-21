@@ -1,3 +1,10 @@
+
+export type WorkoutTagVM = {
+  id: string;
+  label: string;
+  icon?: React.ReactNode;
+  state?: "upcoming" | "missed" | "highlight";
+};
 import {
   Workout,
   DraftExercise,
@@ -172,4 +179,9 @@ export type useWorkoutModalVMProps = {
   editModalId?: string;
   onClose: () => void;
   open: boolean;
+};
+
+export type WorkoutListItemVMProps = {
+  item: WorkoutListItemVM;
+  onClick: () => void;
 };

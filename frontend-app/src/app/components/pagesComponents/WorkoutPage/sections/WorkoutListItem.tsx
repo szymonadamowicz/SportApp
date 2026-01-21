@@ -2,14 +2,9 @@
 
 import { Tag } from "@/components/Tag/Tag";
 import { getWorkoutTags } from "@/helpers/ui/workoutTagStyles";
-import { WorkoutListItemVM } from "@/types/pages/workoutPage";
+import { WorkoutListItemVMProps } from "@/types/pages/workoutPage";
 
-type Props = {
-  item: WorkoutListItemVM;
-  onClick: () => void;
-};
-
-export function WorkoutListItem({ item, onClick }: Props) {
+export function WorkoutListItem({ item, onClick }: WorkoutListItemVMProps) {
   const stateClass =
     item.status === "missed"
       ? "state-missed"

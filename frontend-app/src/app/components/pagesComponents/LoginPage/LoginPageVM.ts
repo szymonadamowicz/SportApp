@@ -3,14 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/auth/useAuth";
-
-type Mode = "login" | "register";
+import { LoginMode } from "@/types/login/login";
 
 export const useLoginPageVM = () => {
   const auth = useAuth();
   const router = useRouter();
 
-  const [mode, setMode] = useState<Mode>("login");
+  const [mode, setMode] = useState<LoginMode>("login");
 
   const isLogin = mode === "login";
   const isRegister = mode === "register";
@@ -73,7 +72,7 @@ export const useLoginPageVM = () => {
       if (isLogin) {
         setError("Invalid login or password.");
       } else {
-        setError("Account could not be created. Login may already exist." + e,);
+        setError("Account could not be created. Login may already exist." + e);
       }
     } finally {
       setIsSubmitting(false);

@@ -1,13 +1,9 @@
 "use client";
 
 import { Tag } from "@/components/Tag/Tag";
-import { Highlights } from "@/types/workout/workout";
+import { HighlightsItemsProps } from "@/types/pages/homePage";
 
-type Props = {
-  highlight: Highlights;
-};
-
-export default function HighlightItem({ highlight }: Props) {
+export default function HighlightItem({ highlight }: HighlightsItemsProps) {
   const highlightClass = highlight.rightPopup ? "state-highlight" : "";
 
   return (

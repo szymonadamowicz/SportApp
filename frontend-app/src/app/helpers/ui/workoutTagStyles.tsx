@@ -1,12 +1,5 @@
 import { Clock, Calendar, AlertTriangle } from "lucide-react";
-import { WorkoutListItemVM } from "@/types/pages/workoutPage";
-
-export type WorkoutTagVM = {
-  id: string;
-  label: string;
-  icon?: React.ReactNode;
-  state?: "upcoming" | "missed" | "highlight";
-};
+import { WorkoutListItemVM, WorkoutTagVM } from "@/types/pages/workoutPage";
 
 export const getWorkoutTags = (workout: WorkoutListItemVM): WorkoutTagVM[] => {
   const tags: WorkoutTagVM[] = [];

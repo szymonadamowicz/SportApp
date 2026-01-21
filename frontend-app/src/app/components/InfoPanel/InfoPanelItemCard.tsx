@@ -1,19 +1,13 @@
 import { clickable, itemCardBase } from "@/helpers/ui/infoPanelStyles";
+import { InfoPanelItemCardProps } from "@/types/components/infoPanel";
 import clsx from "clsx";
-
-type Props = {
-  dimmed?: boolean;
-  clickable?: boolean;
-  onClick?: () => void;
-  children: React.ReactNode;
-};
 
 export function InfoPanelItemCard({
   dimmed,
   clickable: isClickable,
   onClick,
   children,
-}: Props) {
+}: InfoPanelItemCardProps) {
   return (
     <div
       onClick={onClick}

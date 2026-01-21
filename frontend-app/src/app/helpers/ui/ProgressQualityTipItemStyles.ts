@@ -1,8 +1,7 @@
+import { TipItemTone } from "@/types/components/infoPanel";
 import clsx from "clsx";
 
-type Tone = "positive" | "neutral" | "warning";
-
-export const getToneStyles = (tone: Tone) =>
+export const getToneStyles = (tone: TipItemTone) =>
   clsx(
     "rounded-2xl border",
     "bg-[linear-gradient(180deg,rgba(19,23,27,0.85),rgba(12,15,18,0.85))]",
@@ -19,7 +18,7 @@ export const getToneStyles = (tone: Tone) =>
     },
   );
 
-export const getToneAccent = (tone: Tone) =>
+export const getToneAccent = (tone: TipItemTone) =>
   clsx({
     "text-[var(--accent)]": tone === "positive",
     "text-[rgba(250,204,21,0.95)]": tone === "warning",

@@ -1,10 +1,5 @@
+import { TagProps } from "@/types/components/tag";
 import clsx from "clsx";
-
-type TagProps = {
-  label: string;
-  icon?: React.ReactNode;
-  state?: "upcoming" | "missed" | "highlight";
-};
 
 export function Tag({ label, icon, state }: TagProps) {
   return (

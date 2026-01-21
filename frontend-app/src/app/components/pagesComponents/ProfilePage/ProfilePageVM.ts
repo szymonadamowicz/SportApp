@@ -8,10 +8,7 @@ import {
   getProfileApi,
   updateProfileApi,
 } from "@/api/profile.api";
-
-type SaveState = "idle" | "saving" | "success" | "error";
-type VerifyState = "idle" | "verifying" | "verified" | "error";
-type PasswordState = "idle" | "saving" | "success" | "error";
+import { PasswordState, SaveState, VerifyState } from "@/types/profile/profile";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

@@ -1,11 +1,10 @@
 import { LoginDTO, RegisterDTO } from "@/types/login/loginDTO";
 import { loginUserSeed } from "./login.seed";
+import { UsersDb } from "@/types/login/login";
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const USERS_KEY = "rf_mock_users_v1";
-
-type UsersDb = Record<string, { password: string }>;
 
 const safeRead = <T>(key: string, fallback: T): T => {
   if (typeof window === "undefined") return fallback;

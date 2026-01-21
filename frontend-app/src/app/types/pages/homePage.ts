@@ -1,4 +1,4 @@
-import { HeroState } from "../workout/workout";
+import { HeroState, Highlights } from "../workout/workout";
 
 export interface HeroProps {
   hero: HeroState;
@@ -21,3 +21,11 @@ export interface HomePageVM {
   };
   goTo: (path: string) => void;
 }
+
+export type HighlightsItemsProps = {
+  highlight: Highlights;
+};
+
+export type StreakProps = {
+  streak: number;
+};

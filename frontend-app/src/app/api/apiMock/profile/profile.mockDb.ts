@@ -6,14 +6,13 @@ import {
 } from "@/types/profile/profileDTO";
 import { loginUserSeed } from "../login/login.seed";
 import { UserProfile } from "@/types/pages/profilePage";
+import { UsersDb } from "@/types/login/login";
+import { ProfilesDb } from "@/types/profile/profile";
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const USERS_KEY = "rf_mock_users_v1";
 const PROFILES_KEY = "rf_mock_profiles_v1";
-
-type UsersDb = Record<string, { password: string }>;
-type ProfilesDb = Record<string, UserProfile>;
 
 const safeRead = <T>(key: string, fallback: T): T => {
   if (typeof window === "undefined") return fallback;

@@ -1,10 +1,6 @@
 import { cn } from "@/helpers/utils/cn";
+import { FitnessInputProps } from "@/types/components/fitnessInput";
 import * as React from "react";
-
-export interface FitnessInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
-  error?: string;
-}
 
 const FitnessInput = React.forwardRef<HTMLInputElement, FitnessInputProps>(
   ({ className, type, label, error, ...props }, ref) => {

@@ -1,4 +1,5 @@
-export interface TagProps {
+export type TagProps = {
   label: string;
-  className?: string;
-}
+  icon?: React.ReactNode;
+  state?: "upcoming" | "missed" | "highlight";
+};

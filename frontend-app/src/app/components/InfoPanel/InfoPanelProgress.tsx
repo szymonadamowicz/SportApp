@@ -1,6 +1,4 @@
-interface InfoPanelProgressProps {
-  value: number;
-}
+import { InfoPanelProgressProps } from "@/types/components/infoPanel";
 
 export default function InfoPanelProgress({ value }: InfoPanelProgressProps) {
   return (

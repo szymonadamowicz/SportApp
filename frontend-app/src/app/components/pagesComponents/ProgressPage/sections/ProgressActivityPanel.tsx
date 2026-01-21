@@ -1,10 +1,7 @@
+import { StreakProps } from "@/types/pages/homePage";
 import { Flame } from "lucide-react";
 
-type Props = {
-  streak: number;
-};
-
-export function ProgressActivityPanel({ streak }: Props) {
+export function ProgressActivityPanel({ streak }: StreakProps) {
   const days = streak ?? 0;
 
   const accent = days > 0 ? "rgba(34,197,94,0.35)" : "rgba(156,163,175,0.22)";
