@@ -6,8 +6,7 @@ export const getSelectedAchievementsProgress = (
   const selected: ProgressAchievements[] = [];
 
   for (let i = 0; i < (progress.length < 3 ? progress.length : 3); i++) {
-    const randomIndex = Math.floor(Math.random() * progress.length);
-    selected.push(progress[randomIndex]);
+    selected.push(progress[i]);
   }
 
   return selected;

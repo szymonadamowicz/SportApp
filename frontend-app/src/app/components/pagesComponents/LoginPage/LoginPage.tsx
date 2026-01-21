@@ -134,6 +134,7 @@ export default function LoginPage() {
           >
             {vm.isLogin ? "Log in" : "Create account"}
           </FitnessButton>
+          {vm.error && <p className="text-sm mt-2 text-red-400">{vm.error}</p>}
         </form>
       </div>
     </div>
