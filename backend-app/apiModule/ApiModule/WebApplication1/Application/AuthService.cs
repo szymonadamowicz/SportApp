@@ -1,39 +1,41 @@
 ﻿using ApiModule.Domain;
-using ApiModule.Infrastructure;
+using Microsoft.AspNetCore.Identity;
 
-namespace ApiModule.Application
+namespace ApiModule.Application;
+
+public sealed class AuthService(IUserRepository users, IPasswordHasher<AppUser> hasher)
 {
-    public sealed class AuthService
+    private readonly IUserRepository _users = users;
+    private readonly IPasswordHasher<AppUser> _hasher = hasher;
+
+    public async Task<bool> LoginAsync(string login, string password, CancellationToken ct)
     {
-        private readonly IUserRepository _user;
+        var user = await _users.GetByLoginAsync(login, ct);
+        if (user == null) return false;
 
-        public AuthService(IUserRepository user)
+        var result = _hasher.VerifyHashedPassword(user, user.PasswordHash, password);
+        return result == PasswordVerificationResult.Success;
+    }
+
+    public async Task<bool> RegisterAsync(string login, string password, CancellationToken ct)
+    {
+        var normalized = (login ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(normalized)) return false;
+
+        if (string.IsNullOrWhiteSpace(password)) return false;
+
+        var existing = await _users.GetByLoginAsync(normalized, ct);
+        if (existing is not null) return false;
+
+        var user = new AppUser
         {
-            _user = user;
-        }
+            Id = Guid.NewGuid(),
+            Login = normalized,
+        };
 
-        public async Task<bool> LoginAsync(string login, string passwrod, CancellationToken ct)
-        {
-            var user = await _user.GetByLoginAsync(login, ct);
-            if (user == null) return false;
+        user.PasswordHash = _hasher.HashPassword(user, password);
 
-            return user.PasswordHash == passwrod;
-        }
-
-        public async Task<bool> RegisterAsync(string login, string password, CancellationToken ct)
-        {
-            var exisiting = await _user.GetByLoginAsync(login, ct);
-            if (exisiting is not null) return false;
-
-            var user = new AppUser
-            {
-                Id = Guid.NewGuid(),    
-                Login = login.Trim(),
-                PasswordHash = password
-            };
-
-            await _user.CreateAsync(user, ct);
-            return true;
-        }
+        await _users.CreateAsync(user, ct);
+        return true;
     }
 }

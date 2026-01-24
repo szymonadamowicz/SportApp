@@ -1,17 +1,11 @@
 ﻿using ApiModule.Domain;
-using ApiModule.Infrastructure;
 using System.Globalization;
 
 namespace ApiModule.Application;
 
-public sealed class WorkoutService
+public sealed class WorkoutService(IWorkoutRepository repo)
 {
-    private readonly IWorkoutRepository _repo;
-
-    public WorkoutService(IWorkoutRepository repo)
-    {
-        _repo = repo;
-    }
+    private readonly IWorkoutRepository _repo = repo;
 
     public Task<List<Workout>> GetAllAsync(CancellationToken ct)
         => _repo.GetAllAsync(ct);
@@ -28,49 +22,34 @@ public sealed class WorkoutService
     public async Task<Workout> CreateAsync(Workout workout, CancellationToken ct)
     {
         workout.Title = (workout.Title ?? "").Trim();
-
-        if (string.IsNullOrEmpty(workout.Title))
-        {
+        if (string.IsNullOrWhiteSpace(workout.Title))
             workout.Title = "Untitled workout";
-        }
+
+        workout.ScheduledAt = NormalizeUtc(workout.ScheduledAt);
+        if (workout.CompletedAt != null)
+            workout.CompletedAt = NormalizeUtc(workout.CompletedAt.Value);
+
         await _repo.AddAsync(workout, ct);
         return workout;
     }
 
-    public async Task<Workout> UpdateAsync(Workout workout, CancellationToken ct)
-    {
-        var existing = await _repo.GetByIdAsync(workout.Id, ct);
-        if (existing is null)
-        {
-            throw new InvalidOperationException("Workout not found");
-        }
-        await _repo.UpdateAsync(workout, ct);
-        return workout;
-    }
     public async Task<bool> DeleteAsync(Guid id, CancellationToken ct)
     {
         var existing = await _repo.GetByIdAsync(id, ct);
-        if (existing is null)
-            return false;
+        if (existing is null) return false;
 
         await _repo.DeleteAsync(id, ct);
         return true;
     }
 
-    public async Task<Workout> UpdatePartialAsync(
-     Guid id,
-     UpdateWorkoutCommand cmd,
-     CancellationToken ct)
+    public async Task<Workout> UpdatePartialAsync(Guid id, UpdateWorkoutCommand cmd, CancellationToken ct)
     {
-        var workout = await _repo.GetByIdAsync(id, ct);
-        if (workout == null)
-            throw new InvalidOperationException("Workout not found");
-
+        var workout = await _repo.GetByIdAsync(id, ct) ?? throw new InvalidOperationException("Workout not found");
         if (cmd.ScheduledAt != null)
-            workout.ScheduledAt = ParseIso(cmd.ScheduledAt);
+            workout.ScheduledAt = ParseIsoUtc(cmd.ScheduledAt);
 
         if (cmd.CompletedAt != null)
-            workout.CompletedAt = ParseIso(cmd.CompletedAt);
+            workout.CompletedAt = ParseIsoUtc(cmd.CompletedAt);
 
         if (cmd.PerceivedLoad != null)
             workout.PerceivedLoad = cmd.PerceivedLoad;
@@ -79,27 +58,64 @@ public sealed class WorkoutService
         return workout;
     }
 
-    public async Task<Workout> UpdateStructureAsync(
-           Guid id,
-           UpdateWorkoutStructureCommand cmd,
-           CancellationToken ct)
+    public async Task<Workout> UpdateStructureAsync(Guid id, UpdateWorkoutStructureCommand cmd, CancellationToken ct)
     {
-        var workout = await _repo.GetByIdAsync(id, ct);
-        if (workout == null)
-            throw new InvalidOperationException("Workout not found");
-
-        workout.Title = cmd.Title.Trim();
-        workout.Exercises = cmd.Exercises;
+        var workout = await _repo.GetByIdAsync(id, ct) ?? throw new InvalidOperationException("Workout not found");
+        workout.Title = (cmd.Title ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(workout.Title))
+            workout.Title = "Untitled workout";
+        ApplyExerciseUpdate(workout, cmd.Exercises);
 
         await _repo.UpdateAsync(workout, ct);
         return workout;
     }
 
+    private static void ApplyExerciseUpdate(Workout workout, List<Exercise> incoming)
+    {
+        incoming ??= [];
 
-    private static DateTime ParseIso(string value)
-        => DateTime.Parse(
-            value,
-            CultureInfo.InvariantCulture,
-            DateTimeStyles.RoundtripKind
-        );
+        var existingById = workout.Exercises.ToDictionary(e => e.Id, e => e);
+
+        var newList = new List<Exercise>();
+
+        foreach (var ex in incoming)
+        {
+            if (ex.Id == Guid.Empty)
+                ex.Id = Guid.NewGuid();
+
+            if (existingById.TryGetValue(ex.Id, out var existing))
+            {
+                existing.Name = ex.Name;
+                existing.Sets = ex.Sets;
+                existing.Reps = ex.Reps;
+                existing.Weight = ex.Weight;
+                existing.RestTimeSec = ex.RestTimeSec;
+
+                newList.Add(existing);
+            }
+            else
+            {
+                newList.Add(ex);
+            }
+        }
+
+        workout.Exercises = newList;
+    }
+
+    private static DateTime ParseIsoUtc(string value)
+    {
+        var dt = DateTime.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+        return NormalizeUtc(dt);
+    }
+
+    private static DateTime NormalizeUtc(DateTime dt)
+    {
+        return dt.Kind switch
+        {
+            DateTimeKind.Utc => dt,
+            DateTimeKind.Local => dt.ToUniversalTime(),
+            DateTimeKind.Unspecified => DateTime.SpecifyKind(dt, DateTimeKind.Utc),
+            _ => DateTime.SpecifyKind(dt, DateTimeKind.Utc)
+        };
+    }
 }

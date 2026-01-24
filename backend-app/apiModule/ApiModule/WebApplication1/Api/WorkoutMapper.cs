@@ -64,5 +64,20 @@ public static class WorkoutMapper
         => Guid.TryParse(s, out var g) ? g : null;
 
     private static DateTime ParseIso(string s)
-        => DateTime.Parse(s, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+    {
+        var dt = DateTime.Parse(
+            s,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind
+        );
+
+        return dt.Kind switch
+        {
+            DateTimeKind.Utc => dt,
+            DateTimeKind.Local => dt.ToUniversalTime(),
+            DateTimeKind.Unspecified => DateTime.SpecifyKind(dt, DateTimeKind.Utc),
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+
 }

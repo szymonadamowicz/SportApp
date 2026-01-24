@@ -1,6 +1,4 @@
-﻿using ApiModule.Domain;
-
-namespace ApiModule.Infrastructure;
+﻿namespace ApiModule.Domain;
 
 public interface IWorkoutRepository
 {
@@ -10,4 +8,3 @@ public interface IWorkoutRepository
     Task UpdateAsync(Workout workout, CancellationToken ct);
     Task DeleteAsync(Guid id, CancellationToken ct);
 }
-
