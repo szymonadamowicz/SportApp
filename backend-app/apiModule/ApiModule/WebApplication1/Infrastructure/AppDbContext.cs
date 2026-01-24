@@ -30,7 +30,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.Property(w => w.OwnerUserId)
-                .IsRequired(false);
+                .IsRequired(true);
         });
 
         modelBuilder.Entity<Exercise>(entity =>

@@ -1,20 +1,29 @@
 ﻿using ApiModule.Domain;
+using ApiModule.Infrastructure.Auth;
 using Microsoft.AspNetCore.Identity;
 
 namespace ApiModule.Application;
 
-public sealed class AuthService(IUserRepository users, IPasswordHasher<AppUser> hasher)
+public sealed class AuthService(
+   IUserRepository users,
+   IPasswordHasher<AppUser> hasher,
+   IJwtService jwt)
 {
     private readonly IUserRepository _users = users;
     private readonly IPasswordHasher<AppUser> _hasher = hasher;
+    private readonly IJwtService _jwt = jwt;
 
-    public async Task<bool> LoginAsync(string login, string password, CancellationToken ct)
+    public async Task<string?> LoginAsync(string login, string password, CancellationToken ct)
     {
         var user = await _users.GetByLoginAsync(login, ct);
-        if (user == null) return false;
+        if (user is null)
+            return null;
 
         var result = _hasher.VerifyHashedPassword(user, user.PasswordHash, password);
-        return result == PasswordVerificationResult.Success;
+        if (result == PasswordVerificationResult.Failed)
+            return null;
+
+        return _jwt.CreateToken(user);
     }
 
     public async Task<bool> RegisterAsync(string login, string password, CancellationToken ct)

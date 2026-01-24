@@ -1,7 +1,7 @@
 ﻿using ApiModule.Domain;
 using Microsoft.EntityFrameworkCore;
 
-namespace ApiModule.Infrastructure;
+namespace ApiModule.Infrastructure.auth;
 
 public sealed class EfUserRepository(AppDbContext db) : IUserRepository
 {

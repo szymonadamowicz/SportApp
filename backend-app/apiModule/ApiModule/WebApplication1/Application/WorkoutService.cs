@@ -3,12 +3,18 @@ using System.Globalization;
 
 namespace ApiModule.Application;
 
-public sealed class WorkoutService(IWorkoutRepository repo)
+public sealed class WorkoutService(IWorkoutRepository repo, ICurrentUser currentUser)
 {
     private readonly IWorkoutRepository _repo = repo;
+    private readonly ICurrentUser _currentUser = currentUser;
 
-    public Task<List<Workout>> GetAllAsync(CancellationToken ct)
-        => _repo.GetAllAsync(ct);
+    public async Task<List<Workout>> GetAllAsync(CancellationToken ct)
+    {
+        var UserId = _currentUser.UserId;
+        Console.WriteLine(UserId);
+        var all = await _repo.GetAllAsync(ct);
+        return [.. all.Where(w => w.OwnerUserId == UserId)];
+    }
 
     public async Task<Workout?> GetLastCompletedAsync(CancellationToken ct)
     {
@@ -21,6 +27,8 @@ public sealed class WorkoutService(IWorkoutRepository repo)
 
     public async Task<Workout> CreateAsync(Workout workout, CancellationToken ct)
     {
+        workout.SetOwner(_currentUser.UserId);
+
         workout.Title = (workout.Title ?? "").Trim();
         if (string.IsNullOrWhiteSpace(workout.Title))
             workout.Title = "Untitled workout";

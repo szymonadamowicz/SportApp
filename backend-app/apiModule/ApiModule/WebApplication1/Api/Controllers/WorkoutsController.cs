@@ -1,19 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using ApiModule.Api.Contracts;
+﻿using ApiModule.Api.Contracts;
 using ApiModule.Application;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ApiModule.Api.Controllers;
 
 [ApiController]
 [Route("api/workouts")]
-public sealed class WorkoutsController : ControllerBase
+[Authorize]
+public sealed class WorkoutsController(WorkoutService service) : ControllerBase
 {
-    private readonly WorkoutService _service;
-
-    public WorkoutsController(WorkoutService service)
-    {
-        _service = service;
-    }
+    private readonly WorkoutService _service = service;
 
     [HttpGet]
     [ProducesResponseType(typeof(List<WorkoutDto>), StatusCodes.Status200OK)]
@@ -75,9 +72,7 @@ public sealed class WorkoutsController : ControllerBase
         var cmd = new UpdateWorkoutStructureCommand
         {
             Title = dto.Title,
-            Exercises = dto.Exercises
-                .Select(e => WorkoutMapper.ToDomain(e))
-                .ToList()
+            Exercises = [.. dto.Exercises.Select(e => WorkoutMapper.ToDomain(e))]
         };
 
         var updated = await _service.UpdateStructureAsync(id, cmd, ct);
