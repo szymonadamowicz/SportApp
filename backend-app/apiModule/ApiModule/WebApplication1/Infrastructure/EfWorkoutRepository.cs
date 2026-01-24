@@ -7,18 +7,29 @@ public sealed class EfWorkoutRepository(AppDbContext db) : IWorkoutRepository
 {
     private readonly AppDbContext _db = db;
 
-    public async Task<List<Workout>> GetAllAsync(CancellationToken ct)
+    public Task<List<Workout>> GetAllByOwnerAsync(Guid ownerUserId, CancellationToken ct)
     {
-        return await _db.Workouts
+        return _db.Workouts
+            .Where(w => w.OwnerUserId == ownerUserId)
             .Include(w => w.Exercises)
             .ToListAsync(ct);
     }
 
-    public async Task<Workout?> GetByIdAsync(Guid id, CancellationToken ct)
+    public Task<Workout?> GetByIdForOwnerAsync(Guid id, Guid ownerUserId, CancellationToken ct)
     {
-        return await _db.Workouts
+        return _db.Workouts
+            .Where(w => w.OwnerUserId == ownerUserId && w.Id == id)
             .Include(w => w.Exercises)
-            .FirstOrDefaultAsync(w => w.Id == id, ct);
+            .FirstOrDefaultAsync(ct);
+    }
+
+    public Task<Workout?> GetLastCompletedForOwnerAsync(Guid ownerUserId, CancellationToken ct)
+    {
+        return _db.Workouts
+            .Where(w => w.OwnerUserId == ownerUserId && w.CompletedAt != null)
+            .OrderByDescending(w => w.CompletedAt)
+            .Include(w => w.Exercises)
+            .FirstOrDefaultAsync(ct);
     }
 
     public async Task AddAsync(Workout workout, CancellationToken ct)
@@ -27,16 +38,13 @@ public sealed class EfWorkoutRepository(AppDbContext db) : IWorkoutRepository
         await _db.SaveChangesAsync(ct);
     }
 
-    public async Task UpdateAsync(Workout workout, CancellationToken ct)
+    public Task UpdateAsync(Workout workout, CancellationToken ct)
     {
-        await _db.SaveChangesAsync(ct);
+        return _db.SaveChangesAsync(ct);
     }
 
-    public async Task DeleteAsync(Guid id, CancellationToken ct)
+    public async Task DeleteAsync(Workout workout, CancellationToken ct)
     {
-        var workout = await _db.Workouts.FindAsync([id], ct);
-        if (workout == null) return;
-
         _db.Workouts.Remove(workout);
         await _db.SaveChangesAsync(ct);
     }

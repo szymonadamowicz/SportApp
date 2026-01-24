@@ -8,21 +8,14 @@ public sealed class WorkoutService(IWorkoutRepository repo, ICurrentUser current
     private readonly IWorkoutRepository _repo = repo;
     private readonly ICurrentUser _currentUser = currentUser;
 
-    public async Task<List<Workout>> GetAllAsync(CancellationToken ct)
+    public Task<List<Workout>> GetAllAsync(CancellationToken ct)
     {
-        var UserId = _currentUser.UserId;
-        Console.WriteLine(UserId);
-        var all = await _repo.GetAllAsync(ct);
-        return [.. all.Where(w => w.OwnerUserId == UserId)];
+        return _repo.GetAllByOwnerAsync(_currentUser.UserId, ct);
     }
 
-    public async Task<Workout?> GetLastCompletedAsync(CancellationToken ct)
+    public Task<Workout?> GetLastCompletedAsync(CancellationToken ct)
     {
-        var all = await _repo.GetAllAsync(ct);
-        return all
-            .Where(w => w.CompletedAt != null)
-            .OrderByDescending(w => w.CompletedAt)
-            .FirstOrDefault();
+        return _repo.GetLastCompletedForOwnerAsync(_currentUser.UserId, ct);
     }
 
     public async Task<Workout> CreateAsync(Workout workout, CancellationToken ct)
@@ -43,16 +36,18 @@ public sealed class WorkoutService(IWorkoutRepository repo, ICurrentUser current
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken ct)
     {
-        var existing = await _repo.GetByIdAsync(id, ct);
-        if (existing is null) return false;
+        var workout = await _repo.GetByIdForOwnerAsync(id, _currentUser.UserId, ct);
+        if (workout is null) return false;
 
-        await _repo.DeleteAsync(id, ct);
+        await _repo.DeleteAsync(workout, ct);
         return true;
     }
 
-    public async Task<Workout> UpdatePartialAsync(Guid id, UpdateWorkoutCommand cmd, CancellationToken ct)
+    public async Task<Workout?> UpdatePartialAsync(Guid id, UpdateWorkoutCommand cmd, CancellationToken ct)
     {
-        var workout = await _repo.GetByIdAsync(id, ct) ?? throw new InvalidOperationException("Workout not found");
+        var workout = await _repo.GetByIdForOwnerAsync(id, _currentUser.UserId, ct);
+        if (workout is null) return null;
+
         if (cmd.ScheduledAt != null)
             workout.ScheduledAt = ParseIsoUtc(cmd.ScheduledAt);
 
@@ -66,12 +61,15 @@ public sealed class WorkoutService(IWorkoutRepository repo, ICurrentUser current
         return workout;
     }
 
-    public async Task<Workout> UpdateStructureAsync(Guid id, UpdateWorkoutStructureCommand cmd, CancellationToken ct)
+    public async Task<Workout?> UpdateStructureAsync(Guid id, UpdateWorkoutStructureCommand cmd, CancellationToken ct)
     {
-        var workout = await _repo.GetByIdAsync(id, ct) ?? throw new InvalidOperationException("Workout not found");
+        var workout = await _repo.GetByIdForOwnerAsync(id, _currentUser.UserId, ct);
+        if (workout is null) return null;
+
         workout.Title = (cmd.Title ?? "").Trim();
         if (string.IsNullOrWhiteSpace(workout.Title))
             workout.Title = "Untitled workout";
+
         ApplyExerciseUpdate(workout, cmd.Exercises);
 
         await _repo.UpdateAsync(workout, ct);

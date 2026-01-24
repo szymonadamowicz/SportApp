@@ -1,7 +1,6 @@
 ﻿using ApiModule.Application;
 using ApiModule.Domain;
 using ApiModule.Infrastructure;
-using ApiModule.Infrastructure.auth;
 using ApiModule.Infrastructure.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;

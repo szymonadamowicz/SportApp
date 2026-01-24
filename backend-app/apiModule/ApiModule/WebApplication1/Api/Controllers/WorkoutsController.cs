@@ -35,14 +35,16 @@ public sealed class WorkoutsController(WorkoutService service) : ControllerBase
     {
         var domain = WorkoutMapper.ToDomain(dto);
         var created = await _service.CreateAsync(domain, ct);
-        return Ok(WorkoutMapper.ToDto(created)); 
+        return Ok(WorkoutMapper.ToDto(created));
     }
 
     [HttpPatch("{id:guid}")]
+    [ProducesResponseType(typeof(WorkoutDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<WorkoutDto>> Patch(
-      [FromRoute] Guid id,
-      [FromBody] UpdateWorkoutDto dto,
-      CancellationToken ct)
+        [FromRoute] Guid id,
+        [FromBody] UpdateWorkoutDto dto,
+        CancellationToken ct)
     {
         var cmd = new UpdateWorkoutCommand
         {
@@ -52,6 +54,28 @@ public sealed class WorkoutsController(WorkoutService service) : ControllerBase
         };
 
         var updated = await _service.UpdatePartialAsync(id, cmd, ct);
+        if (updated is null) return NotFound();
+
+        return Ok(WorkoutMapper.ToDto(updated));
+    }
+
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(WorkoutDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<WorkoutDto>> Put(
+        Guid id,
+        [FromBody] UpdateWorkoutStructureDto dto,
+        CancellationToken ct)
+    {
+        var cmd = new UpdateWorkoutStructureCommand
+        {
+            Title = dto.Title,
+            Exercises = [.. dto.Exercises.Select(e => WorkoutMapper.ToDomain(e))]
+        };
+
+        var updated = await _service.UpdateStructureAsync(id, cmd, ct);
+        if (updated is null) return NotFound();
+
         return Ok(WorkoutMapper.ToDto(updated));
     }
 
@@ -62,21 +86,4 @@ public sealed class WorkoutsController(WorkoutService service) : ControllerBase
         var ok = await _service.DeleteAsync(id, ct);
         return Ok(ok);
     }
-
-    [HttpPut("{id:guid}")]
-    public async Task<ActionResult<WorkoutDto>> Put(
-  Guid id,
-  [FromBody] UpdateWorkoutStructureDto dto,
-  CancellationToken ct)
-    {
-        var cmd = new UpdateWorkoutStructureCommand
-        {
-            Title = dto.Title,
-            Exercises = [.. dto.Exercises.Select(e => WorkoutMapper.ToDomain(e))]
-        };
-
-        var updated = await _service.UpdateStructureAsync(id, cmd, ct);
-        return Ok(WorkoutMapper.ToDto(updated));
-    }
-
 }

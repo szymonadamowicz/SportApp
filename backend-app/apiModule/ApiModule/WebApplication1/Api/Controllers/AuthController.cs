@@ -13,12 +13,12 @@ public sealed class AuthController(AuthService auth) : ControllerBase
     [HttpPost("login")]
     [ProducesResponseType(typeof(AuthTokenDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<bool>> Login([FromBody] LoginDto dto, CancellationToken ct)
+    public async Task<ActionResult<AuthTokenDto>> Login([FromBody] LoginDto dto, CancellationToken ct)
     {
         var token = await _auth.LoginAsync(dto.Login, dto.Password, ct);
         if (token is null)
             return Unauthorized();
-        
+
         return Ok(new AuthTokenDto { Token = token });
     }
 

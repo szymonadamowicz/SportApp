@@ -27,10 +27,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.HasMany(w => w.Exercises)
                 .WithOne()
                 .HasForeignKey("WorkoutId")
+                .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.Property(w => w.OwnerUserId)
-                .IsRequired(true);
+                .IsRequired();
         });
 
         modelBuilder.Entity<Exercise>(entity =>

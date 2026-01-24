@@ -1,7 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using ApiModule.Domain;
-using Microsoft.AspNetCore.Http;
 
 namespace ApiModule.Infrastructure.Auth;
 
