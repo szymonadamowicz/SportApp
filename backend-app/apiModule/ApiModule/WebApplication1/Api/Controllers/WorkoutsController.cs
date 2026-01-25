@@ -1,4 +1,4 @@
-﻿using ApiModule.Api.Contracts;
+﻿using ApiModule.Api.Contracts.Workout;
 using ApiModule.Application;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,16 +25,20 @@ public sealed class WorkoutsController(WorkoutService service) : ControllerBase
     public async Task<ActionResult<WorkoutDto?>> GetLastCompleted(CancellationToken ct)
     {
         var item = await _service.GetLastCompletedAsync(ct);
-        if (item == null) return Ok(null);
+        if (item is null) return Ok(null);
+
         return Ok(WorkoutMapper.ToDto(item));
     }
 
     [HttpPost]
     [ProducesResponseType(typeof(WorkoutDto), StatusCodes.Status200OK)]
-    public async Task<ActionResult<WorkoutDto>> Create([FromBody] WorkoutDto dto, CancellationToken ct)
+    public async Task<ActionResult<WorkoutDto>> Create(
+        [FromBody] CreateWorkoutDto dto,
+        CancellationToken ct)
     {
         var domain = WorkoutMapper.ToDomain(dto);
         var created = await _service.CreateAsync(domain, ct);
+
         return Ok(WorkoutMapper.ToDto(created));
     }
 
@@ -46,15 +50,15 @@ public sealed class WorkoutsController(WorkoutService service) : ControllerBase
         [FromBody] UpdateWorkoutDto dto,
         CancellationToken ct)
     {
-        var cmd = new UpdateWorkoutCommand
-        {
-            ScheduledAt = dto.ScheduledAt,
-            CompletedAt = dto.CompletedAt,
-            PerceivedLoad = dto.PerceivedLoad
-        };
+        var updated = await _service.UpdatePartialAsync(
+            id,
+            dto.ScheduledAt is null ? null : DateTime.Parse(dto.ScheduledAt),
+            dto.CompletedAt is null ? null : DateTime.Parse(dto.CompletedAt),
+            dto.PerceivedLoad,
+            ct);
 
-        var updated = await _service.UpdatePartialAsync(id, cmd, ct);
-        if (updated is null) return NotFound();
+        if (updated is null)
+            return NotFound();
 
         return Ok(WorkoutMapper.ToDto(updated));
     }
@@ -63,25 +67,31 @@ public sealed class WorkoutsController(WorkoutService service) : ControllerBase
     [ProducesResponseType(typeof(WorkoutDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<WorkoutDto>> Put(
-        Guid id,
+        [FromRoute] Guid id,
         [FromBody] UpdateWorkoutStructureDto dto,
         CancellationToken ct)
     {
-        var cmd = new UpdateWorkoutStructureCommand
-        {
-            Title = dto.Title,
-            Exercises = [.. dto.Exercises.Select(e => WorkoutMapper.ToDomain(e))]
-        };
+        var exercises = dto.Exercises
+            .Select(WorkoutMapper.ToDomain)
+            .ToList();
 
-        var updated = await _service.UpdateStructureAsync(id, cmd, ct);
-        if (updated is null) return NotFound();
+        var updated = await _service.UpdateStructureAsync(
+            id,
+            exercises,
+            dto.Title,
+            ct);
+
+        if (updated is null)
+            return NotFound();
 
         return Ok(WorkoutMapper.ToDto(updated));
     }
 
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-    public async Task<ActionResult<bool>> Delete([FromRoute] Guid id, CancellationToken ct)
+    public async Task<ActionResult<bool>> Delete(
+        [FromRoute] Guid id,
+        CancellationToken ct)
     {
         var ok = await _service.DeleteAsync(id, ct);
         return Ok(ok);

@@ -20,108 +20,111 @@ public sealed class WorkoutService(IWorkoutRepository repo, ICurrentUser current
 
     public async Task<Workout> CreateAsync(Workout workout, CancellationToken ct)
     {
+        if (workout.Exercises.Count == 0)
+            throw new ArgumentException("Workout must contain at least one exercise");
+
+        NormalizeTitle(workout);
+        NormalizeDates(workout);
+        ValidateExercises(workout.Exercises);
+
         workout.SetOwner(_currentUser.UserId);
 
-        workout.Title = (workout.Title ?? "").Trim();
-        if (string.IsNullOrWhiteSpace(workout.Title))
-            workout.Title = "Untitled workout";
-
-        workout.ScheduledAt = NormalizeUtc(workout.ScheduledAt);
-        if (workout.CompletedAt != null)
-            workout.CompletedAt = NormalizeUtc(workout.CompletedAt.Value);
-
         await _repo.AddAsync(workout, ct);
+        return workout;
+    }
+
+    public async Task<Workout?> UpdateStructureAsync(
+        Guid id,
+        List<Exercise> exercises,
+        string title,
+        CancellationToken ct)
+    {
+        var workout = await _repo.GetByIdForOwnerAsync(id, _currentUser.UserId, ct);
+        if (workout is null)
+            return null;
+
+        if (exercises.Count == 0)
+            throw new ArgumentException("Workout must contain at least one exercise");
+
+        workout.Title = title;
+        NormalizeTitle(workout);
+        ValidateExercises(exercises);
+
+        workout.Exercises = exercises;
+
+        await _repo.UpdateAsync(workout, ct);
+        return workout;
+    }
+
+    public async Task<Workout?> UpdatePartialAsync(
+        Guid id,
+        DateTime? scheduledAt,
+        DateTime? completedAt,
+        string? perceivedLoad,
+        CancellationToken ct)
+    {
+        var workout = await _repo.GetByIdForOwnerAsync(id, _currentUser.UserId, ct);
+        if (workout is null)
+            return null;
+
+        if (scheduledAt.HasValue)
+            workout.ScheduledAt = NormalizeUtc(scheduledAt.Value);
+
+        if (completedAt.HasValue)
+            workout.CompletedAt = NormalizeUtc(completedAt.Value);
+
+        if (perceivedLoad != null)
+            workout.PerceivedLoad = perceivedLoad.Trim();
+
+        await _repo.UpdateAsync(workout, ct);
         return workout;
     }
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken ct)
     {
         var workout = await _repo.GetByIdForOwnerAsync(id, _currentUser.UserId, ct);
-        if (workout is null) return false;
+        if (workout is null)
+            return false;
 
         await _repo.DeleteAsync(workout, ct);
         return true;
     }
 
-    public async Task<Workout?> UpdatePartialAsync(Guid id, UpdateWorkoutCommand cmd, CancellationToken ct)
+    private static void NormalizeTitle(Workout workout)
     {
-        var workout = await _repo.GetByIdForOwnerAsync(id, _currentUser.UserId, ct);
-        if (workout is null) return null;
-
-        if (cmd.ScheduledAt != null)
-            workout.ScheduledAt = ParseIsoUtc(cmd.ScheduledAt);
-
-        if (cmd.CompletedAt != null)
-            workout.CompletedAt = ParseIsoUtc(cmd.CompletedAt);
-
-        if (cmd.PerceivedLoad != null)
-            workout.PerceivedLoad = cmd.PerceivedLoad;
-
-        await _repo.UpdateAsync(workout, ct);
-        return workout;
-    }
-
-    public async Task<Workout?> UpdateStructureAsync(Guid id, UpdateWorkoutStructureCommand cmd, CancellationToken ct)
-    {
-        var workout = await _repo.GetByIdForOwnerAsync(id, _currentUser.UserId, ct);
-        if (workout is null) return null;
-
-        workout.Title = (cmd.Title ?? "").Trim();
+        workout.Title = workout.Title.Trim();
         if (string.IsNullOrWhiteSpace(workout.Title))
             workout.Title = "Untitled workout";
-
-        ApplyExerciseUpdate(workout, cmd.Exercises);
-
-        await _repo.UpdateAsync(workout, ct);
-        return workout;
     }
 
-    private static void ApplyExerciseUpdate(Workout workout, List<Exercise> incoming)
+    private static void NormalizeDates(Workout workout)
     {
-        incoming ??= [];
+        workout.ScheduledAt = NormalizeUtc(workout.ScheduledAt);
 
-        var existingById = workout.Exercises.ToDictionary(e => e.Id, e => e);
+        if (workout.CompletedAt.HasValue)
+            workout.CompletedAt = NormalizeUtc(workout.CompletedAt.Value);
+    }
 
-        var newList = new List<Exercise>();
-
-        foreach (var ex in incoming)
+    private static void ValidateExercises(List<Exercise> exercises)
+    {
+        if (exercises.Any(e =>
+            string.IsNullOrWhiteSpace(e.Name) ||
+            e.Sets <= 0 ||
+            e.Reps <= 0 ||
+            e.RestTimeSec < 0))
         {
-            if (ex.Id == Guid.Empty)
-                ex.Id = Guid.NewGuid();
-
-            if (existingById.TryGetValue(ex.Id, out var existing))
-            {
-                existing.Name = ex.Name;
-                existing.Sets = ex.Sets;
-                existing.Reps = ex.Reps;
-                existing.Weight = ex.Weight;
-                existing.RestTimeSec = ex.RestTimeSec;
-
-                newList.Add(existing);
-            }
-            else
-            {
-                newList.Add(ex);
-            }
+            throw new ArgumentException("One or more exercises are invalid");
         }
-
-        workout.Exercises = newList;
-    }
-
-    private static DateTime ParseIsoUtc(string value)
-    {
-        var dt = DateTime.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
-        return NormalizeUtc(dt);
     }
 
     private static DateTime NormalizeUtc(DateTime dt)
     {
-        return dt.Kind switch
-        {
-            DateTimeKind.Utc => dt,
-            DateTimeKind.Local => dt.ToUniversalTime(),
-            DateTimeKind.Unspecified => DateTime.SpecifyKind(dt, DateTimeKind.Utc),
-            _ => DateTime.SpecifyKind(dt, DateTimeKind.Utc)
-        };
+        if (dt.Kind == DateTimeKind.Utc)
+            return dt;
+
+        if (dt.Kind == DateTimeKind.Local)
+            return dt.ToUniversalTime();
+
+        return DateTime.SpecifyKind(dt, DateTimeKind.Utc);
     }
 }

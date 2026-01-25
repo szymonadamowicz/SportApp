@@ -1,4 +1,5 @@
-﻿using ApiModule.Application;
+﻿using ApiModule.Api.Contracts.Progress;
+using ApiModule.Application;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,8 +13,10 @@ public sealed class ProgressController(ProgressService progress) : ControllerBas
     private readonly ProgressService _progress = progress;
 
     [HttpGet]
-    public ActionResult<object> Get()
+    public async Task<ActionResult<ProgressDto>> Get(CancellationToken ct)
     {
-        return Ok(_progress.GetProgress());
+        var progress = await _progress.GetProgressAsync(ct);
+        return Ok(progress);
     }
+
 }

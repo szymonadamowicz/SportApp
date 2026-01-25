@@ -8,7 +8,6 @@ public sealed class Workout
     public DateTime ScheduledAt { get; set; }
     public DateTime? CompletedAt { get; set; }
     public List<string> MuscleGroups { get; set; } = [];
-    public string? MainFocus { get; set; }
     public string? PerceivedLoad { get; set; }
     public List<Exercise> Exercises { get; set; } = [];
 

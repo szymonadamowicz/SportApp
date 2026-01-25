@@ -1,57 +1,56 @@
-﻿using System.Globalization;
-using ApiModule.Api.Contracts;
+﻿using ApiModule.Api.Contracts.Workout;
 using ApiModule.Domain;
 
 namespace ApiModule.Api;
 
 public static class WorkoutMapper
 {
-    public static WorkoutDto ToDto(Workout w) => new()
+    public static WorkoutDto ToDto(Workout workout)
     {
-        Id = w.Id.ToString(),
-        Title = w.Title,
-        ScheduledAt = w.ScheduledAt.ToString("O"),
-        CompletedAt = w.CompletedAt?.ToString("O"),
-        MuscleGroups = w.MuscleGroups.ToArray(),
-        MainFocus = w.MainFocus,
-        PerceivedLoad = w.PerceivedLoad,
-        Exercises = w.Exercises.Select(ToDto).ToList()
-    };
-
-    public static Workout ToDomain(WorkoutDto dto)
-    {
-        var id = TryGuid(dto.Id) ?? Guid.NewGuid();
-
-        return new Workout
+        return new WorkoutDto
         {
-            Id = id,
-            Title = dto.Title,
-            ScheduledAt = ParseIso(dto.ScheduledAt),
-            CompletedAt = string.IsNullOrWhiteSpace(dto.CompletedAt) ? null : ParseIso(dto.CompletedAt!),
-            MuscleGroups = dto.MuscleGroups?.ToList() ?? new List<string>(),
-            MainFocus = dto.MainFocus,
-            PerceivedLoad = dto.PerceivedLoad,
-            Exercises = dto.Exercises.Select(ToDomain).ToList()
+            Id = workout.Id,
+            Title = workout.Title,
+            ScheduledAt = workout.ScheduledAt,
+            CompletedAt = workout.CompletedAt,
+            PerceivedLoad = workout.PerceivedLoad,
+            MuscleGroups = workout.MuscleGroups.ToArray() ?? [],
+            Exercises = [.. workout.Exercises.Select(ToDto)]
         };
     }
 
-    public static ExerciseDto ToDto(Exercise e) => new()
+    private static ExerciseDto ToDto(Exercise exercise)
     {
-        Id = e.Id.ToString(),
-        Name = e.Name,
-        Sets = e.Sets,
-        Reps = e.Reps,
-        Weight = e.Weight,
-        RestTimeSec = e.RestTimeSec
-    };
+        return new ExerciseDto
+        {
+            Id = exercise.Id,
+            Name = exercise.Name,
+            Sets = exercise.Sets,
+            Reps = exercise.Reps,
+            Weight = exercise.Weight,
+            RestTimeSec = exercise.RestTimeSec
+        };
+    }
 
-    public static Exercise ToDomain(ExerciseDto dto)
+    public static Workout ToDomain(CreateWorkoutDto dto)
     {
-        var id = TryGuid(dto.Id) ?? Guid.NewGuid();
+        var workout = new Workout
+        {
+            Id = Guid.NewGuid(),
+            Title = dto.Title ?? string.Empty,
+            ScheduledAt = dto.ScheduledAt,
+            MuscleGroups = dto.MuscleGroups.ToList() ?? [],
+            Exercises = [.. dto.Exercises.Select(ToDomain)]
+        };
 
+        return workout;
+    }
+
+    private static Exercise ToDomain(CreateExerciseDto dto)
+    {
         return new Exercise
         {
-            Id = id,
+            Id = Guid.NewGuid(),
             Name = dto.Name,
             Sets = dto.Sets,
             Reps = dto.Reps,
@@ -60,24 +59,16 @@ public static class WorkoutMapper
         };
     }
 
-    private static Guid? TryGuid(string? s)
-        => Guid.TryParse(s, out var g) ? g : null;
-
-    private static DateTime ParseIso(string s)
+    public static Exercise ToDomain(ExerciseDto dto)
     {
-        var dt = DateTime.Parse(
-            s,
-            CultureInfo.InvariantCulture,
-            DateTimeStyles.RoundtripKind
-        );
-
-        return dt.Kind switch
+        return new Exercise
         {
-            DateTimeKind.Utc => dt,
-            DateTimeKind.Local => dt.ToUniversalTime(),
-            DateTimeKind.Unspecified => DateTime.SpecifyKind(dt, DateTimeKind.Utc),
-            _ => throw new ArgumentOutOfRangeException()
+            Id = dto.Id,
+            Name = dto.Name,
+            Sets = dto.Sets,
+            Reps = dto.Reps,
+            Weight = dto.Weight,
+            RestTimeSec = dto.RestTimeSec
         };
     }
-
 }
