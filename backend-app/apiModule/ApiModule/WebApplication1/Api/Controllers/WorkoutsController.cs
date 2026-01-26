@@ -57,6 +57,14 @@ public sealed class WorkoutsController : ControllerBase
         return Ok(WorkoutMapper.ToDto(updated));
     }
 
+    [HttpPatch("{id:guid}")]
+    public async Task<ActionResult<WorkoutDto>> Patch(Guid id, [FromBody] UpdateWorkoutDto dto, CancellationToken ct)
+    {
+        var updated = await _service.UpdatePartialAsync(id, dto.ScheduledAt, dto.CompletedAt, dto.PerceivedLoad, ct);
+        if (updated is null) return NotFound();
+        return Ok(WorkoutMapper.ToDto(updated));
+    }
+
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<bool>> Delete(Guid id, CancellationToken ct)
     {
