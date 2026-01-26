@@ -1,12 +1,9 @@
-import { EmptyStateVariant } from "@/types/components/emptyState";
 import clsx from "clsx";
 
-export const getWrapperClass = (variant: EmptyStateVariant) =>
+export const getWrapperClass = () =>
   clsx(
-    "rounded-2xl border px-6 py-6 md:px-7 md:py-7 text-center",
-    "bg-bgCard shadow-sm",
-    variant === "default" && "border-borderSoft",
-    variant === "soft" && "border-borderSoft bg-bgHighlight/40",
-    variant === "highlight" &&
-      "border-accent/40 bg-gradient-to-br from-accent/10 to-bgMain"
+    "rounded-2xl px-6 py-6 md:px-7 md:py-7 text-center",
+    "flex flex-col items-center justify-center gap-3",
+    "bg-bgCard border border-borderSoft shadow-sm",
+    "text-textSecondary"
   );

@@ -1,4 +1,3 @@
-
 export type WorkoutTagVM = {
   id: string;
   label: string;
@@ -184,4 +183,5 @@ export type useWorkoutModalVMProps = {
 export type WorkoutListItemVMProps = {
   item: WorkoutListItemVM;
   onClick: () => void;
+  selected?: boolean;
 };

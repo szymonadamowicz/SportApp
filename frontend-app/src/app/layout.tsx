@@ -1,5 +1,6 @@
 "use client";
 
+import Providers from "./provider";
 import { AuthProvider } from "./contexts/auth/authContext";
 import "./styles/globals.css";
 
@@ -11,7 +12,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <Providers>
+          <AuthProvider>{children}</AuthProvider>
+        </Providers>
       </body>
     </html>
   );

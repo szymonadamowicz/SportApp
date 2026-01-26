@@ -1,6 +1,6 @@
 import { Workout } from "../workout/workout";
 
-export type EmptyStateVariant = "default" | "soft" | "highlight";
+export type EmptyStateVariant = "default" | "full" | "minimal" | "compact";
 
 export type EmptyStateProps = {
   title: string;

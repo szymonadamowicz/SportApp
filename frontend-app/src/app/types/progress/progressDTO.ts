@@ -1,19 +1,19 @@
-export interface ProgressAchievementsDTO {
-  id: string;
-  title: string;
-  value: string;
-  valueWeek?: string;
-  valueDiff?: string;
-  context: "info" | "pr";
-  subLabel?: string;
-  subLabelWeek?: string;
-}
+export type ProgressScope = "all" | "week";
 
-export interface ProgressStreakDTO {
-  days: number;
+export interface ProgressDto {
+  streak: {
+    current: number;
+    longest: number;
+    lastWorkoutDate: string | null;
+  };
+  stats: {
+    totalWorkouts: number;
+    totalReps: number;
+    totalVolume: number;
+    maxWeight: number;
+  };
+  prs: {
+    exerciseName: string;
+    maxWeight: number;
+  }[];
 }
-
-export type ProgressDTO = {
-  achievements: ProgressAchievementsDTO[];
-  streak: ProgressStreakDTO;
-};

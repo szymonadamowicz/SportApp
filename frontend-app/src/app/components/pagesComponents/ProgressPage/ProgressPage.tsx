@@ -11,6 +11,7 @@ import EmptyState from "@/components/EmptyState/EmptyState";
 
 export default function ProgressPage() {
   const vm = useProgressPageVM();
+
   return (
     <div className="space-y-8">
       <InfoPanel
@@ -18,32 +19,51 @@ export default function ProgressPage() {
         layout="row"
         maxPerRow={4}
         outerButton={{
-          label: `See data for ${
-            vm.toggleState ? "this week" : "all trainings"
-          }`,
+          label: `See data for ${vm.toggleState ? "all trainings" : "this week"}`,
           onClick: vm.settoggleState,
         }}
       >
-        {vm.stats.map((stat, idx) => (
-          <ProgressStatCard
-            key={idx}
-            label={stat.title}
-            value={vm.toggleState ? (stat.valueWeek ?? "No data") : stat.value}
-            subLabel={vm.toggleState ? stat.subLabelWeek : stat.subLabel}
+        {vm.stats.length === 0 ? (
+          <EmptyState
+            icon="📈"
+            title="No progress data yet"
+            description="Complete your first workout to start tracking stats and PRs."
           />
-        ))}
+        ) : (
+          vm.stats.map((stat) => (
+            <ProgressStatCard
+              key={stat.id}
+              label={stat.title}
+              value={vm.toggleState ? (stat.valueWeek ?? "—") : stat.value}
+              subLabel={vm.toggleState ? stat.subLabelWeek : stat.subLabel}
+            />
+          ))
+        )}
       </InfoPanel>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         <InfoPanel title="PRs & Benchmarks">
-          {vm.prs.map((pr) => (
-            <PRListItem
-              key={pr.id}
-              name={pr.title}
-              value={pr.value}
-              diff={pr.valueDiff}
+          {vm.prs.length === 0 ||
+          (vm.prs.length === 1 && vm.prs[0].id === "no-prs") ? (
+            <EmptyState
+              icon="🏆"
+              title="No PRs yet"
+              description="Once you complete workouts, your best sets will show up here."
             />
-          ))}
+          ) : (
+            vm.prs.map((pr) => (
+              <PRListItem
+                key={pr.id}
+                name={pr.title}
+                value={pr.value}
+                diff={
+                  vm.toggleState
+                    ? (pr.valueWeek ?? pr.valueDiff ?? "—")
+                    : (pr.valueDiff ?? "—")
+                }
+              />
+            ))
+          )}
         </InfoPanel>
 
         {vm.lastSessionFeedback.kind ===
@@ -80,9 +100,9 @@ export default function ProgressPage() {
       </div>
 
       <InfoPanel title="Training quality">
-        {vm.qualityTips.map((tip, index) => (
+        {vm.qualityTips.map((tip) => (
           <ProgressQualityTipItem
-            key={index}
+            key={tip.label}
             label={tip.label}
             value={tip.value}
             tone={tip.tone}

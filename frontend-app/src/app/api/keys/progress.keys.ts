@@ -1,3 +1,5 @@
+import { ProgressScope } from "@/types/progress/progressDTO";
+
 export const progressKeys = {
-  all: ["progress"] as const,
+  all: (scope: ProgressScope) => ["progress", scope] as const,
 };

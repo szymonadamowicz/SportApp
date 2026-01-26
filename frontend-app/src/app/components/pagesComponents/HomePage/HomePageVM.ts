@@ -8,8 +8,33 @@ import { useRouter } from "next/navigation";
 import { useHeroVM } from "@/helpers/viewModels/HomePageHeroVM";
 import { useProgressAchievements } from "@/hooks/apiHooks/progress/useProgressAchievements";
 import { getSelectedAchievementsProgress } from "@/helpers/utils/selectors/progress/progressSelector";
-import { Tips, RecentHighlights } from "@/api/apiMock/workouts/workouts.seed";
+import { Tips } from "@/api/apiMock/workouts/workouts.seed";
 import { useWeeklyStats } from "@/hooks/apiHooks/progress/useProgressWeeklyStats";
+import { useProgress } from "@/hooks/apiHooks/progress/useProgress";
+import { Highlights } from "@/types/workout/workout";
+
+const buildHighlights = (
+  streakDays: number,
+  topPr?: { exerciseName: string; maxWeight: number },
+): Highlights[] => {
+  const items: Highlights[] = [];
+
+  if (topPr) {
+    items.push({
+      title: `${topPr.exerciseName} PR`,
+      subtitle: `${Math.round(topPr.maxWeight * 10) / 10} kg`,
+      rightPopup: "New",
+    });
+  }
+
+  items.push({
+    title: "Streak",
+    subtitle: `${streakDays} day${streakDays === 1 ? "" : "s"} in a row`,
+    rightPopup: streakDays > 0 ? "Level Up" : undefined,
+  });
+
+  return items;
+};
 
 export const useHomePageVM = () => {
   const router = useRouter();
@@ -17,6 +42,7 @@ export const useHomePageVM = () => {
   const { allWorkouts: workouts } = useWorkouts();
 
   const { achievements: progressAchievements } = useProgressAchievements();
+  const { progress: allProgress } = useProgress("all");
   const { completed, planned } = useWeeklyStats();
 
   const todayItems = getTodayUpcomingWorkouts(workouts, now);
@@ -25,6 +51,10 @@ export const useHomePageVM = () => {
 
   const selectedProgress =
     getSelectedAchievementsProgress(progressAchievements);
+
+  const streakDays = allProgress?.streak.current ?? 0;
+  const topPr = allProgress?.prs?.[0];
+  const highlights = buildHighlights(streakDays, topPr);
 
   return {
     hero,
@@ -44,7 +74,7 @@ export const useHomePageVM = () => {
     info: {
       tips: Tips,
       progress: selectedProgress,
-      highlights: RecentHighlights,
+      highlights,
     },
 
     goTo: (path: string) => router.push(path),

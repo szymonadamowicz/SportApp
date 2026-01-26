@@ -14,7 +14,7 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const useProfilePageVM = () => {
   const auth = useAuth();
-  const login = auth.session?.user.login ?? "";
+  const login = auth.session?.user?.login ?? "";
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -59,7 +59,7 @@ export const useProfilePageVM = () => {
     const load = async () => {
       try {
         setIsLoading(true);
-        const p = await getProfileApi({ login });
+        const p = await getProfileApi();
         if (!mounted) return;
 
         setName(p.name ?? "");
@@ -84,8 +84,12 @@ export const useProfilePageVM = () => {
 
     setVerifyState("verifying");
     try {
-      const ok = await loginApi({ login, password: verifyPassword });
-      if (!ok) {
+      const token = await loginApi({
+        login,
+        password: verifyPassword,
+      });
+
+      if (!token) {
         setVerifyState("error");
         return;
       }
@@ -105,7 +109,6 @@ export const useProfilePageVM = () => {
 
     try {
       await updateProfileApi({
-        login,
         name,
         email,
         birthDate,
@@ -121,38 +124,15 @@ export const useProfilePageVM = () => {
   const changePassword = async () => {
     setPasswordError(null);
 
-    if (verifyState !== "verified") {
-      setPasswordState("error");
-      setPasswordError("Verify your current password first.");
-      return;
-    }
-
-    if (newPassword !== repeatNewPassword) {
-      setPasswordState("error");
-      setPasswordError("Passwords do not match.");
-      return;
-    }
-
-    if (newPassword.length < 4) {
-      setPasswordState("error");
-      setPasswordError("Password must be at least 4 characters.");
-      return;
-    }
+    if (!canChangePassword) return;
 
     setPasswordState("saving");
 
     try {
-      const ok = await changePasswordApi({
-        login,
+      await changePasswordApi({
         currentPassword,
         newPassword,
       });
-
-      if (!ok) {
-        setPasswordState("error");
-        setPasswordError("Current password is invalid.");
-        return;
-      }
 
       setPasswordState("success");
       setNewPassword("");
@@ -160,7 +140,7 @@ export const useProfilePageVM = () => {
       setTimeout(() => setPasswordState("idle"), 1000);
     } catch {
       setPasswordState("error");
-      setPasswordError("Could not change password.");
+      setPasswordError("Current password is invalid.");
     }
   };
 

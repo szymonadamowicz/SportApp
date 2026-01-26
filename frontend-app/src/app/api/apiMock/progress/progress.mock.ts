@@ -1,8 +1,8 @@
-import { ProgressDTO } from "@/types/progress/progressDTO";
+import { ProgressDto, ProgressScope } from "@/types/progress/progressDTO";
 import { progressMockDb } from "./progress.mockDb";
 
 export const progressMock = {
-  fetchProgress(): Promise<ProgressDTO> {
-    return progressMockDb.fetchAll();
+  fetchProgress(scope: ProgressScope = "all"): Promise<ProgressDto> {
+    return progressMockDb.fetch(scope);
   },
 };

@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useCallback, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { loginApi, registerApi } from "@/api/login.api";
 import {
@@ -9,30 +15,28 @@ import {
   AuthLoginPayload,
   AuthRegisterPayload,
 } from "@/types/auth/auth";
+import { authStorage } from "./authStorage";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
-const STORAGE_KEY = "rf_auth_session_v1";
 const PUBLIC_ROUTES = ["/", "/login"];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const queryClient = useQueryClient();
 
   const [session, setSession] = useState<AuthSession | null>(null);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        setSession(JSON.parse(raw));
-      }
-    } catch {}
+    const stored = authStorage.read();
+    if (stored) setSession(stored);
     setIsReady(true);
   }, []);
 
-  const isAuthenticated = !!session;
+  const isAuthenticated = !!session?.accessToken;
 
   useEffect(() => {
     if (!isReady) return;
@@ -50,47 +54,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [isReady, isAuthenticated, pathname, router]);
 
   const login = useCallback(async (payload: AuthLoginPayload) => {
-    const ok = await loginApi(payload);
-    if (!ok) throw new Error("Invalid credentials");
+    const token = await loginApi(payload);
+
+    if (!token) throw new Error("Invalid credentials");
 
     const nextSession: AuthSession = {
       user: { login: payload.login },
+      accessToken: token,
     };
 
     setSession(nextSession);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(nextSession));
+    authStorage.write(nextSession);
   }, []);
 
   const register = useCallback(async (payload: AuthRegisterPayload) => {
-    const ok = await registerApi(payload);
-    if (!ok) throw new Error("Register failed");
+    const token = await registerApi(payload);
+
+    if (!token) throw new Error("Register failed");
 
     const nextSession: AuthSession = {
       user: { login: payload.login },
+      accessToken: token,
     };
 
     setSession(nextSession);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(nextSession));
+    authStorage.write(nextSession);
   }, []);
 
   const logout = useCallback(async () => {
     setSession(null);
-    localStorage.removeItem(STORAGE_KEY);
+    authStorage.write(null);
+    queryClient.clear();
     router.replace("/login");
-  }, [router]);
+  }, [router, queryClient]);
 
-  const value: AuthContextValue = {
-    isReady,
-    isAuthenticated,
-    session,
-    login,
-    register,
-    logout,
-  };
+  const value: AuthContextValue = useMemo(
+    () => ({
+      isReady,
+      isAuthenticated,
+      session,
+      login,
+      register,
+      logout,
+    }),
+    [isReady, isAuthenticated, session, login, register, logout],
+  );
 
-  if (!isReady) {
-    return null;
-  }
+  if (!isReady) return null;
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

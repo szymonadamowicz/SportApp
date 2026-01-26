@@ -10,29 +10,32 @@ public sealed class ProgressService(IWorkoutRepository repo, ICurrentUser curren
     private readonly ICurrentUser _currentUser = currentUser;
 
     public async Task<ProgressDto> GetProgressAsync(
-     PrScope scope,
-     CancellationToken ct)
+  PrScope scope,
+  CancellationToken ct)
     {
         var workouts = await _repo.GetAllByOwnerAsync(_currentUser.UserId, ct);
 
-        var completed = workouts
+        var allCompleted = workouts
             .Where(w => w.CompletedAt.HasValue)
             .ToList();
+
+        var streak = CalculateStreak(allCompleted);
+
+        var scopedCompleted = allCompleted;
 
         if (scope == PrScope.Week)
         {
             var startOfWeek = GetStartOfWeekUtc(DateTime.UtcNow);
-            completed = [.. completed.Where(w => w.CompletedAt >= startOfWeek)];
+            scopedCompleted = [.. allCompleted.Where(w => w.CompletedAt >= startOfWeek)];
         }
 
         return new ProgressDto
         {
-            Streak = CalculateStreak(completed),
-            Stats = CalculateStats(completed),
-            Prs = CalculatePrs(completed)
+            Streak = streak,
+            Stats = CalculateStats(scopedCompleted),
+            Prs = CalculatePrs(scopedCompleted)
         };
     }
-
 
     private static StreakDto CalculateStreak(List<Workout> workouts)
     {

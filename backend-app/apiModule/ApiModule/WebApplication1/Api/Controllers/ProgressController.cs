@@ -1,5 +1,6 @@
 ﻿using ApiModule.Api.Contracts.Progress;
 using ApiModule.Application;
+using ApiModule.Application.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,9 +14,15 @@ public sealed class ProgressController(ProgressService progress) : ControllerBas
     private readonly ProgressService _progress = progress;
 
     [HttpGet]
-    public async Task<ActionResult<ProgressDto>> Get(CancellationToken ct)
+    public async Task<ActionResult<ProgressDto>> Get(
+    [FromQuery] string? prScope,
+    CancellationToken ct)
     {
-        var progress = await _progress.GetProgressAsync(ct);
+        var scope = prScope?.ToLower() == "week"
+            ? PrScope.Week
+            : PrScope.All;
+
+        var progress = await _progress.GetProgressAsync(scope, ct);
         return Ok(progress);
     }
 

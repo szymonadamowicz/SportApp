@@ -5,8 +5,8 @@ import { loginReal } from "./apiReal/login.real";
 const mode = process.env.NEXT_PUBLIC_API_MODE;
 const impl = mode === "mock" ? loginMock : loginReal;
 
-export const loginApi = (payload: LoginDTO): Promise<boolean> =>
+export const loginApi = (payload: LoginDTO): Promise<string> =>
   impl.login(payload);
 
-export const registerApi = (payload: RegisterDTO): Promise<boolean> =>
+export const registerApi = (payload: RegisterDTO): Promise<string> =>
   impl.register(payload);

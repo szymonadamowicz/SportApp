@@ -1,8 +1,9 @@
 import { httpClient } from "@/api/httpClient";
-import { ProgressDTO } from "@/types/progress/progressDTO";
+import { ProgressDto, ProgressScope } from "@/types/progress/progressDTO";
 
 export const progressReal = {
-  fetchProgress(): Promise<ProgressDTO> {
-    return httpClient<ProgressDTO>("/progress");
+  fetchProgress(scope: ProgressScope = "all"): Promise<ProgressDto> {
+    const qs = scope === "week" ? "?prScope=week" : "";
+    return httpClient<ProgressDto>(`/progress${qs}`);
   },
 };

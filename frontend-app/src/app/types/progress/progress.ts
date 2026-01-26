@@ -1,3 +1,27 @@
+export type ProgressPr = {
+  exerciseName: string;
+  maxWeight: number;
+};
+
+export type ProgressStats = {
+  totalWorkouts: number;
+  totalReps: number;
+  totalVolume: number;
+  maxWeight: number;
+};
+
+export type ProgressStreak = {
+  current: number;
+  longest: number;
+  lastWorkoutDate: string | null;
+};
+
+export type Progress = {
+  streak: ProgressStreak;
+  stats: ProgressStats;
+  prs: ProgressPr[];
+};
+
 export type ProgressAchievements = {
   id: string;
   title: string;
@@ -7,20 +31,6 @@ export type ProgressAchievements = {
   context: "info" | "pr";
   subLabel?: string;
   subLabelWeek?: string;
-};
-
-export type ProgressWeeklyCompletion = {
-  completed: number;
-  planned: number;
-};
-
-export interface ProgressStreak {
-  days: number;
-}
-
-export type Progress = {
-  achievements: ProgressAchievements[];
-  streak: ProgressStreak;
 };
 
 export type WeeklyStats = {

@@ -8,6 +8,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<Workout> Workouts => Set<Workout>();
     public DbSet<Exercise> Exercises => Set<Exercise>();
     public DbSet<AppUser> Users => Set<AppUser>();
+    public DbSet<Profile> Profiles => Set<Profile>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -58,5 +59,18 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.HasIndex(u => u.Login)
                 .IsUnique();
         });
+
+        modelBuilder.Entity<Profile>(b =>
+        {
+            b.HasKey(x => x.OwnerId);
+
+            b.Property(x => x.Name).IsRequired(false);
+            b.Property(x => x.Email).IsRequired(false);
+
+            b.Property(x => x.BirthDate)
+             .HasColumnType("date")
+             .IsRequired(false);
+        });
+
     }
 }

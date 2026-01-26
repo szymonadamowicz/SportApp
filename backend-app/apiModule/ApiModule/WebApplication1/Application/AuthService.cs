@@ -30,7 +30,6 @@ public sealed class AuthService(
     {
         var normalized = (login ?? "").Trim();
         if (string.IsNullOrWhiteSpace(normalized)) return false;
-
         if (string.IsNullOrWhiteSpace(password)) return false;
 
         var existing = await _users.GetByLoginAsync(normalized, ct);
@@ -42,7 +41,7 @@ public sealed class AuthService(
             Login = normalized,
         };
 
-        user.PasswordHash = _hasher.HashPassword(user, password);
+        user.SetPasswordHash(_hasher.HashPassword(user, password));
 
         await _users.CreateAsync(user, ct);
         return true;

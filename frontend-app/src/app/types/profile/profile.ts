@@ -1,7 +1,11 @@
-import { UserProfile } from "../pages/profilePage";
+export type Profile = {
+  name?: string;
+  email?: string;
+  birthDate?: string;
+};
 
 export type UsersDb = Record<string, { password: string }>;
-export type ProfilesDb = Record<string, UserProfile>;
+export type ProfilesDb = Record<string, Profile>;
 
 export type SaveState = "idle" | "saving" | "success" | "error";
 export type VerifyState = "idle" | "verifying" | "verified" | "error";

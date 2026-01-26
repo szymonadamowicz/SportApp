@@ -1,13 +1,12 @@
 import { LoginDTO } from "@/types/login/loginDTO";
 import {
   ChangePasswordDTO,
-  GetProfileDTO,
+  ProfileDTO,
   UpdateProfileDTO,
 } from "@/types/profile/profileDTO";
 import { loginUserSeed } from "../login/login.seed";
-import { UserProfile } from "@/types/pages/profilePage";
 import { UsersDb } from "@/types/login/login";
-import { ProfilesDb } from "@/types/profile/profile";
+import { getMockLoginFromToken } from "@/contexts/auth/authMock";
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -48,65 +47,64 @@ const readUsers = (): UsersDb => {
 };
 
 const writeUsers = (db: UsersDb) => safeWrite(USERS_KEY, db);
+const readProfiles = (): Record<string, ProfileDTO> =>
+  safeRead(PROFILES_KEY, {});
 
-const readProfiles = (): ProfilesDb => safeRead<ProfilesDb>(PROFILES_KEY, {});
-const writeProfiles = (db: ProfilesDb) => safeWrite(PROFILES_KEY, db);
+const writeProfiles = (db: Record<string, ProfileDTO>) =>
+  safeWrite(PROFILES_KEY, db);
 
 export const profileMockDb = {
-  async getProfile(payload: GetProfileDTO): Promise<UserProfile> {
+  async getProfile(): Promise<ProfileDTO> {
     await delay(120);
 
-    const login = payload?.login?.trim();
-    if (!login) {
-      return { login: "" };
-    }
-
+    const login = getMockLoginFromToken();
     const profiles = readProfiles();
-    const existing = profiles[login];
-    return existing ?? { login };
+
+    return (
+      profiles[login] ?? {
+        name: "",
+        email: "",
+        birthDate: undefined,
+      }
+    );
   },
 
-  async updateProfile(payload: UpdateProfileDTO): Promise<UserProfile> {
+  async updateProfile(payload: UpdateProfileDTO): Promise<ProfileDTO> {
     await delay(160);
 
-    const login = payload?.login?.trim();
-    if (!login) {
-      return { login: "" };
-    }
-
+    const login = getMockLoginFromToken();
     const profiles = readProfiles();
-    const prev = profiles[login] ?? { login };
 
-    const next: UserProfile = {
-      login,
-      name: payload.name?.trim() || undefined,
-      email: payload.email?.trim() || undefined,
-      birthDate: payload.birthDate?.trim() || undefined,
+    const prev = profiles[login] ?? {
+      name: "",
+      email: "",
+      birthDate: undefined,
     };
 
-    profiles[login] = { ...prev, ...next };
+    const next: ProfileDTO = {
+      ...prev,
+      ...payload,
+    };
+
+    profiles[login] = next;
     writeProfiles(profiles);
 
-    return profiles[login];
+    return next;
   },
 
-  async changePassword(payload: ChangePasswordDTO): Promise<boolean> {
+  async changePassword(payload: ChangePasswordDTO): Promise<void> {
     await delay(180);
 
-    const login = payload?.login?.trim();
-    const currentPassword = payload?.currentPassword ?? "";
-    const newPassword = payload?.newPassword ?? "";
-
-    if (!login || !currentPassword || !newPassword) return false;
-    if (newPassword.length < 4) return false;
-
+    const login = getMockLoginFromToken();
     const users = readUsers();
-    const user = users[login];
-    if (!user) return false;
-    if (user.password !== currentPassword) return false;
 
-    users[login] = { password: newPassword };
+    const user = users[login];
+    if (!user) throw new Error("User not found");
+    if (user.password !== payload.currentPassword) {
+      throw new Error("Invalid current password");
+    }
+
+    users[login] = { password: payload.newPassword };
     writeUsers(users);
-    return true;
   },
 };

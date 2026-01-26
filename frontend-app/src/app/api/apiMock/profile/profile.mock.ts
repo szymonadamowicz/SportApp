@@ -1,17 +1,20 @@
-import { UserProfile } from "@/types/pages/profilePage";
-import { GetProfileDTO, UpdateProfileDTO, ChangePasswordDTO } from "@/types/profile/profileDTO";
+import {
+  ChangePasswordDTO,
+  ProfileDTO,
+  UpdateProfileDTO,
+} from "@/types/profile/profileDTO";
 import { profileMockDb } from "./profile.mockDb";
 
 export const profileMock = {
-  getProfile(payload: GetProfileDTO): Promise<UserProfile> {
-    return profileMockDb.getProfile(payload);
+  getProfile(): Promise<ProfileDTO> {
+    return profileMockDb.getProfile();
   },
 
-  updateProfile(payload: UpdateProfileDTO): Promise<UserProfile> {
+  updateProfile(payload: UpdateProfileDTO): Promise<ProfileDTO> {
     return profileMockDb.updateProfile(payload);
   },
 
-  changePassword(payload: ChangePasswordDTO): Promise<boolean> {
+  changePassword(payload: ChangePasswordDTO): Promise<void> {
     return profileMockDb.changePassword(payload);
   },
 };

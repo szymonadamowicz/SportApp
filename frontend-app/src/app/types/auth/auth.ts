@@ -3,8 +3,8 @@ export type AuthUser = {
 };
 
 export type AuthSession = {
-  user: AuthUser;
-  accessToken?: string;
+  user?: AuthUser;
+  accessToken: string;
 };
 
 export type AuthLoginPayload = {

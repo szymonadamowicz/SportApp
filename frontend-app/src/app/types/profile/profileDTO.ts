@@ -1,16 +1,15 @@
-export type GetProfileDTO = {
-  login: string;
-};
-
-export type UpdateProfileDTO = {
-  login: string;
+export type ProfileDTO = {
   name?: string;
   email?: string;
   birthDate?: string;
 };
 
+export type UpdateProfileDTO = Partial<
+  Pick<ProfileDTO, "name" | "email" | "birthDate">
+>;
+
+
 export type ChangePasswordDTO = {
-  login: string;
   currentPassword: string;
   newPassword: string;
 };

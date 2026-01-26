@@ -1,7 +1,4 @@
-import {
-  Tips,
-  RecentHighlights,
-} from "@/mocks/WorkoutsDataMocks";
+import { Tips, RecentHighlights } from "@/api/apiMock/workouts/workouts.seed";
 
 export const useInfoData = () => ({
   tipsForTheDay: Tips,

@@ -3,8 +3,13 @@
 import { Tag } from "@/components/Tag/Tag";
 import { getWorkoutTags } from "@/helpers/ui/workoutTagStyles";
 import { WorkoutListItemVMProps } from "@/types/pages/workoutPage";
+import clsx from "clsx";
 
-export function WorkoutListItem({ item, onClick }: WorkoutListItemVMProps) {
+export function WorkoutListItem({
+  item,
+  onClick,
+  selected,
+}: WorkoutListItemVMProps) {
   const stateClass =
     item.status === "missed"
       ? "state-missed"
@@ -17,7 +22,11 @@ export function WorkoutListItem({ item, onClick }: WorkoutListItemVMProps) {
   return (
     <div
       onClick={onClick}
-      className={`glass-panel card-hover px-5 py-4 cursor-pointer fade-in ${stateClass}`}
+      className={clsx(
+        "rounded-xl px-4 py-3 cursor-pointer transition",
+        stateClass,
+        selected ? "bg-white/10 ring-1 ring-white/20" : "hover:bg-white/5",
+      )}
     >
       <div className="flex items-center justify-between gap-4">
         <div>

@@ -1,20 +1,26 @@
-import { UserProfile } from "@/types/pages/profilePage";
+import { httpClient } from "../httpClient";
 import {
-  GetProfileDTO,
-  UpdateProfileDTO,
   ChangePasswordDTO,
+  ProfileDTO,
+  UpdateProfileDTO,
 } from "@/types/profile/profileDTO";
 
 export const profileReal = {
-  async getProfile(payload: GetProfileDTO): Promise<UserProfile> {
-    throw new Error("profileReal.getProfile not implemented");
+  async getProfile(): Promise<ProfileDTO> {
+    return httpClient<ProfileDTO>("/profile");
   },
 
-  async updateProfile(payload: UpdateProfileDTO): Promise<UserProfile> {
-    throw new Error("profileReal.updateProfile not implemented");
+  async updateProfile(payload: UpdateProfileDTO): Promise<ProfileDTO> {
+    return httpClient<ProfileDTO>("/profile/update-profile", {
+      method: "PATCH",
+      body: payload,
+    });
   },
 
-  async changePassword(payload: ChangePasswordDTO): Promise<boolean> {
-    throw new Error("profileReal.changePassword not implemented");
+  async changePassword(payload: ChangePasswordDTO): Promise<void> {
+    return httpClient<void>("/profile/change-password", {
+      method: "POST",
+      body: payload,
+    });
   },
 };

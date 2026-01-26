@@ -2,16 +2,19 @@ import { httpClient } from "@/api/httpClient";
 import { LoginDTO, RegisterDTO } from "@/types/login/loginDTO";
 
 export const loginReal = {
-  login(payload: LoginDTO): Promise<boolean> {
-    return httpClient<boolean>("/login", {
+  async login(payload: LoginDTO): Promise<string> {
+    const res = await httpClient<{ token: string }>("/auth/login", {
       method: "POST",
       body: payload,
     });
+
+    return res.token;
   },
-  register(payload: RegisterDTO): Promise<boolean> {
-    return httpClient<boolean>("/register", {
+  async register(payload: RegisterDTO): Promise<string> {
+    const res = await httpClient<{ token: string }>("/auth/register", {
       method: "POST",
       body: payload,
     });
+    return res.token;
   },
 };

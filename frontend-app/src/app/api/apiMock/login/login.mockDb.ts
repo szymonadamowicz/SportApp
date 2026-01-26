@@ -42,29 +42,29 @@ const readUsers = (): UsersDb => {
 const writeUsers = (db: UsersDb) => safeWrite(USERS_KEY, db);
 
 export const loginMockDb = {
-  async login(payload: LoginDTO): Promise<boolean> {
+  async login(payload: LoginDTO): Promise<string> {
     await delay(150);
-    if (!payload?.login || !payload?.password) return false;
+    if (!payload?.login || !payload?.password) return "";
 
     const users = readUsers();
     const u = users[payload.login];
-    return !!u && u.password === payload.password;
+    return u && u.password === payload.password ? "mock-token" : "";
   },
 
-  async register(payload: RegisterDTO): Promise<boolean> {
+  async register(payload: RegisterDTO): Promise<string> {
     await delay(150);
     if (!payload?.login || !payload?.password || !payload?.repeatPassword) {
-      return false;
+      return "";
     }
 
-    if (payload.password !== payload.repeatPassword) return false;
+    if (payload.password !== payload.repeatPassword) return "";
 
     const users = readUsers();
     const exists = !!users[payload.login];
-    if (exists) return false;
+    if (exists) return "";
 
     users[payload.login] = { password: payload.password };
     writeUsers(users);
-    return true;
+    return "mock-token";
   },
 };

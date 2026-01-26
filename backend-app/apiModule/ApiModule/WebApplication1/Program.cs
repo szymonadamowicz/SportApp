@@ -65,13 +65,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         builder.Configuration.GetConnectionString("Default"));
 });
 
-
 builder.Services.AddScoped<IWorkoutRepository, EfWorkoutRepository>();
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
+builder.Services.AddScoped<IProfileRepository, EfProfileRepository>();
 
 builder.Services.AddScoped<WorkoutService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProgressService>();
+builder.Services.AddScoped<ProfileService>();
 
 builder.Services.AddScoped<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
 

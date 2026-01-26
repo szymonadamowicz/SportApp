@@ -22,15 +22,14 @@ export const useProgressPageVM = () => {
 
   const updateWorkout = useUpdateWorkout();
 
-  const [toggleState, setToggleState] = useState(false)
-  const [prevState, setPrevState] = useState<ProgressLastSessionFeedbackKind>(
-    ProgressLastSessionFeedbackKind.NONE
-  );
+  const [showWeek, setShowWeek] = useState(false);
+  const [prevFeedbackState, setPrevFeedbackState] =
+    useState<ProgressLastSessionFeedbackKind>(
+      ProgressLastSessionFeedbackKind.NONE,
+    );
+
   const feedbackKind: ProgressLastSessionFeedbackKind = useMemo(() => {
-    console.log(lastCompletedWorkout)
-    if (!lastCompletedWorkout) {
-      return ProgressLastSessionFeedbackKind.NONE;
-    }
+    if (!lastCompletedWorkout) return ProgressLastSessionFeedbackKind.NONE;
 
     if (!lastCompletedWorkout.perceivedLoad) {
       return ProgressLastSessionFeedbackKind.AVAILABLE;
@@ -38,27 +37,25 @@ export const useProgressPageVM = () => {
 
     if (
       lastCompletedWorkout.perceivedLoad &&
-      prevState === ProgressLastSessionFeedbackKind.AVAILABLE
+      prevFeedbackState === ProgressLastSessionFeedbackKind.AVAILABLE
     ) {
       return ProgressLastSessionFeedbackKind.SUBMITTED;
     }
 
     return ProgressLastSessionFeedbackKind.SEEN;
-  }, [lastCompletedWorkout, prevState]);
+  }, [lastCompletedWorkout, prevFeedbackState]);
 
   const submitFeedback = useCallback(
     (value: FeedbackValue) => {
       if (!lastCompletedWorkout) return;
-      setPrevState(ProgressLastSessionFeedbackKind.AVAILABLE);
-      updateWorkout.mutate({...lastCompletedWorkout, perceivedLoad: value});
+      setPrevFeedbackState(ProgressLastSessionFeedbackKind.AVAILABLE);
+      updateWorkout.mutate({ ...lastCompletedWorkout, perceivedLoad: value });
     },
-    [lastCompletedWorkout, updateWorkout]
+    [lastCompletedWorkout, updateWorkout],
   );
 
   const lastSessionFeedback: ProgressLastSessionFeedback = useMemo(() => {
-    if (!lastCompletedWorkout) {
-      return { kind: ProgressLastSessionFeedbackKind.NONE };
-    }
+    if (!lastCompletedWorkout) return { kind: ProgressLastSessionFeedbackKind.NONE };
 
     switch (feedbackKind) {
       case ProgressLastSessionFeedbackKind.AVAILABLE:
@@ -69,15 +66,10 @@ export const useProgressPageVM = () => {
         };
 
       case ProgressLastSessionFeedbackKind.SUBMITTED:
-        return {
-          kind: ProgressLastSessionFeedbackKind.SUBMITTED,
-          selected: true,
-        };
+        return { kind: ProgressLastSessionFeedbackKind.SUBMITTED, selected: true };
 
       case ProgressLastSessionFeedbackKind.SEEN:
-        return {
-          kind: ProgressLastSessionFeedbackKind.SEEN,
-        };
+        return { kind: ProgressLastSessionFeedbackKind.SEEN };
 
       default:
         return { kind: ProgressLastSessionFeedbackKind.NONE };
@@ -108,10 +100,11 @@ export const useProgressPageVM = () => {
   return {
     stats,
     prs,
-    toggleState,
-    settoggleState: () => setToggleState(prev => !prev),
+    toggleState: showWeek,
+    settoggleState: () => setShowWeek((prev) => !prev),
     lastSessionFeedback,
-    streak: streak?.days ?? 0,
+    hasAnyProgress: Boolean(stats.find((s) => s.id === "total-workouts" && s.value !== "0")),
+    streak: streak?.current ?? 0,
     qualityTips,
   };
 };

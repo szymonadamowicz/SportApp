@@ -24,12 +24,20 @@ public sealed class AuthController(AuthService auth) : ControllerBase
 
     [HttpPost("register")]
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-    public async Task<ActionResult<bool>> Register([FromBody] RegisterDto dto, CancellationToken ct)
+    public async Task<ActionResult<AuthTokenDto>> Register([FromBody] RegisterDto dto, CancellationToken ct)
     {
         if (dto.Password != dto.RepeatPassword)
             return Ok(false);
 
         var ok = await _auth.RegisterAsync(dto.Login, dto.Password, ct);
-        return Ok(ok);
+
+        if (!ok) return Unauthorized();
+
+        var token = await _auth.LoginAsync(dto.Login, dto.Password, ct);
+
+        if (token is null)
+            return Unauthorized();
+
+        return Ok(new AuthTokenDto { Token = token});
     }
 }
