@@ -3,8 +3,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiModule.Infrastructure;
 
-public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public sealed class AppDbContext : DbContext
 {
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
     public DbSet<Workout> Workouts => Set<Workout>();
     public DbSet<Exercise> Exercises => Set<Exercise>();
     public DbSet<AppUser> Users => Set<AppUser>();
@@ -25,14 +27,13 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(w => w.MuscleGroups)
                 .HasColumnType("text[]");
 
-            entity.HasMany(w => w.Exercises)
-                .WithOne()
-                .HasForeignKey("WorkoutId")
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade);
-
             entity.Property(w => w.OwnerUserId)
                 .IsRequired();
+
+            entity.HasMany(w => w.Exercises)
+                .WithOne(e => e.Workout)
+                .HasForeignKey(e => e.WorkoutId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Exercise>(entity =>
@@ -42,6 +43,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(200);
+
+            entity.Property(e => e.WorkoutId)
+                .IsRequired();
         });
 
         modelBuilder.Entity<AppUser>(entity =>
@@ -66,11 +70,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
             b.Property(x => x.Name).IsRequired(false);
             b.Property(x => x.Email).IsRequired(false);
-
-            b.Property(x => x.BirthDate)
-             .HasColumnType("date")
-             .IsRequired(false);
+            b.Property(x => x.BirthDate).HasColumnType("date").IsRequired(false);
         });
-
     }
 }

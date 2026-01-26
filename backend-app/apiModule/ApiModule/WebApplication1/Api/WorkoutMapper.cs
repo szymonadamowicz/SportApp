@@ -6,69 +6,57 @@ namespace ApiModule.Api;
 public static class WorkoutMapper
 {
     public static WorkoutDto ToDto(Workout workout)
-    {
-        return new WorkoutDto
-        {
-            Id = workout.Id,
-            Title = workout.Title,
-            ScheduledAt = workout.ScheduledAt,
-            CompletedAt = workout.CompletedAt,
-            PerceivedLoad = workout.PerceivedLoad,
-            MuscleGroups = workout.MuscleGroups.ToArray() ?? [],
-            Exercises = [.. workout.Exercises.Select(ToDto)]
-        };
-    }
+        => new(
+            workout.Id,
+            workout.Title,
+            workout.ScheduledAt,
+            workout.CompletedAt,
+            workout.PerceivedLoad,
+            workout.MuscleGroups?.ToArray() ?? [],
+            workout.Exercises.Select(ToDto).ToList()
+        );
 
-    private static ExerciseDto ToDto(Exercise exercise)
-    {
-        return new ExerciseDto
-        {
-            Id = exercise.Id,
-            Name = exercise.Name,
-            Sets = exercise.Sets,
-            Reps = exercise.Reps,
-            Weight = exercise.Weight,
-            RestTimeSec = exercise.RestTimeSec
-        };
-    }
+    public static ExerciseDto ToDto(Exercise e)
+        => new(
+            e.Id,
+            e.Name,
+            e.Sets,
+            e.Reps,
+            e.RestTimeSec,
+            e.Weight
+        );
 
     public static Workout ToDomain(CreateWorkoutDto dto)
-    {
-        var workout = new Workout
+        => new()
         {
             Id = Guid.NewGuid(),
             Title = dto.Title ?? string.Empty,
             ScheduledAt = dto.ScheduledAt,
-            MuscleGroups = dto.MuscleGroups.ToList() ?? [],
-            Exercises = [.. dto.Exercises.Select(ToDomain)]
+            CompletedAt = null,
+            PerceivedLoad = null,
+            MuscleGroups = dto.MuscleGroups?.ToList() ?? [],
+            Exercises = dto.Exercises.Select(ToDomain).ToList()
         };
 
-        return workout;
-    }
-
-    private static Exercise ToDomain(CreateExerciseDto dto)
-    {
-        return new Exercise
+    public static Exercise ToDomain(CreateExerciseDto dto)
+        => new()
         {
             Id = Guid.NewGuid(),
-            Name = dto.Name,
-            Sets = dto.Sets,
-            Reps = dto.Reps,
-            Weight = dto.Weight,
-            RestTimeSec = dto.RestTimeSec
+            Name = dto.Name ?? string.Empty,
+            Sets = dto.Sets ?? 0,
+            Reps = dto.Reps ?? 0,
+            RestTimeSec = dto.RestTimeSec ?? 0,
+            Weight = dto.Weight ?? 0m
         };
-    }
 
     public static Exercise ToDomain(ExerciseDto dto)
-    {
-        return new Exercise
+        => new()
         {
             Id = dto.Id,
-            Name = dto.Name,
-            Sets = dto.Sets,
-            Reps = dto.Reps,
-            Weight = dto.Weight,
-            RestTimeSec = dto.RestTimeSec
+            Name = dto.Name ?? string.Empty,
+            Sets = dto.Sets ?? 0,
+            Reps = dto.Reps ?? 0,
+            RestTimeSec = dto.RestTimeSec ?? 0,
+            Weight = dto.Weight ?? 0m
         };
-    }
 }

@@ -3,22 +3,21 @@
 import { mapWorkoutDTO } from "@/api/mappers/workout/workoutMapper";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { workoutsKeys } from "@/api/keys/workouts.keys";
-import { updateWorkoutApi } from "@/api/workouts.api";
+import { putWorkoutStructureApi } from "@/api/workouts.api";
 import { Workout } from "@/types/workout/workout";
 import { Ctx } from "@/types/components/cts";
 
-export const useUpdateWorkout = () => {
+export const usePutWorkoutStructure = () => {
   const queryClient = useQueryClient();
 
   return useMutation<Workout, Error, Workout, Ctx>({
     mutationFn: async (workout) => {
-      const updated = await updateWorkoutApi({ workout });
+      const updated = await putWorkoutStructureApi(workout);
       return mapWorkoutDTO(updated);
     },
 
     onMutate: async (nextWorkout) => {
       await queryClient.cancelQueries({ queryKey: workoutsKeys.all });
-
       const previous = queryClient.getQueryData<Workout[]>(workoutsKeys.all);
 
       queryClient.setQueryData<Workout[]>(workoutsKeys.all, (old) =>

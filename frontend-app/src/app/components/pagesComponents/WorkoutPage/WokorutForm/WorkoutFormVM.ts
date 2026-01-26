@@ -8,12 +8,14 @@ import {
   Workout,
 } from "@/types/workout/workout";
 import { WorkoutFormVM } from "@/types/pages/workoutPage";
-import { useUpdateWorkout } from "@/hooks/apiHooks/workouts/useUpdateWorkout";
 import { toDraftExercise } from "@/helpers/utils/workout/workoutDraftChanged";
 import { validateDraftExercises } from "@/helpers/utils/workout/workoutDraftValidateExercise";
 import { useNow } from "@/hooks/helperHooks/useNow";
 import { openEditWorkout } from "@/helpers/utils/navigation/workoutRoutes";
 import { useRouter } from "next/navigation";
+import { usePutWorkoutStructure } from "@/hooks/apiHooks/workouts/usePutWorkoutStructure";
+
+const EMPTY_GUID = "00000000-0000-0000-0000-000000000000";
 
 const createEmptyDraftExercise = (): DraftExercise => ({
   name: "",
@@ -29,7 +31,7 @@ const toNumberOrUndefined = (v: unknown): number | undefined => {
 };
 
 export const useWorkoutFormVM = (workout: Workout): WorkoutFormVM => {
-  const mutation = useUpdateWorkout();
+  const mutation = usePutWorkoutStructure();
 
   const [editMode, setEditMode] = useState(false);
   const [draft, setDraft] = useState<Record<string, DraftExercise>>({});
@@ -40,7 +42,7 @@ export const useWorkoutFormVM = (workout: Workout): WorkoutFormVM => {
 
   const now = useNow();
   const router = useRouter();
-  
+
   const handleEditWorkout = () => {
     openEditWorkout(router, workout.id);
   };
@@ -76,10 +78,9 @@ export const useWorkoutFormVM = (workout: Workout): WorkoutFormVM => {
     setHasChanges(true);
   };
 
-
   const addExercise = () => {
-    const id = crypto.randomUUID();
-    setDraft((prev) => ({ ...prev, [id]: createEmptyDraftExercise() }));
+    const clientId = crypto.randomUUID();
+    setDraft((prev) => ({ ...prev, [clientId]: createEmptyDraftExercise() }));
     setHasChanges(true);
   };
 
@@ -92,16 +93,24 @@ export const useWorkoutFormVM = (workout: Workout): WorkoutFormVM => {
     setHasChanges(true);
   };
 
+  const existingIds = useMemo(() => {
+    return new Set(workout.exercises.map((e) => e.id));
+  }, [workout.exercises]);
+
   const computedExercises = useMemo<Exercise[]>(() => {
-    return Object.entries(draft).map(([id, d]) => ({
-      id,
-      name: d.name.trim(),
-      sets: Number(d.sets),
-      reps: Number(d.reps),
-      weight: toNumberOrUndefined(d.weight),
-      restTimeSec: toNumberOrUndefined(d.restTimeSec),
-    }));
-  }, [draft]);
+    return Object.entries(draft).map(([key, d]) => {
+      const idToSend = existingIds.has(key) ? key : EMPTY_GUID;
+
+      return {
+        id: idToSend,
+        name: d.name.trim(),
+        sets: Number(d.sets),
+        reps: Number(d.reps),
+        weight: toNumberOrUndefined(d.weight),
+        restTimeSec: toNumberOrUndefined(d.restTimeSec),
+      };
+    });
+  }, [draft, existingIds]);
 
   const saveAllChanges = () => {
     const validation = validateDraftExercises(draft);

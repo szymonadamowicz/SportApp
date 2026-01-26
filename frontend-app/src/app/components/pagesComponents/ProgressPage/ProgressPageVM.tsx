@@ -5,7 +5,7 @@ import {
 import { useProgressAchievements } from "@/hooks/apiHooks/progress/useProgressAchievements";
 import { useProgressStreak } from "@/hooks/apiHooks/progress/useProgressStreak";
 import { useLastCompletedWorkout } from "@/hooks/apiHooks/workouts/useLastCompletedWorkout";
-import { useUpdateWorkout } from "@/hooks/apiHooks/workouts/useUpdateWorkout";
+import { usePatchWorkoutMeta } from "@/hooks/apiHooks/workouts/usePatchWorkoutMeta";
 import {
   ProgressQualityTipItemProps,
   ProgressLastSessionFeedbackKind,
@@ -20,7 +20,7 @@ export const useProgressPageVM = () => {
   const { streak } = useProgressStreak();
   const { lastCompletedWorkout } = useLastCompletedWorkout();
 
-  const updateWorkout = useUpdateWorkout();
+  const updateWorkout = usePatchWorkoutMeta();
 
   const [showWeek, setShowWeek] = useState(false);
   const [prevFeedbackState, setPrevFeedbackState] =
@@ -55,7 +55,8 @@ export const useProgressPageVM = () => {
   );
 
   const lastSessionFeedback: ProgressLastSessionFeedback = useMemo(() => {
-    if (!lastCompletedWorkout) return { kind: ProgressLastSessionFeedbackKind.NONE };
+    if (!lastCompletedWorkout)
+      return { kind: ProgressLastSessionFeedbackKind.NONE };
 
     switch (feedbackKind) {
       case ProgressLastSessionFeedbackKind.AVAILABLE:
@@ -66,7 +67,10 @@ export const useProgressPageVM = () => {
         };
 
       case ProgressLastSessionFeedbackKind.SUBMITTED:
-        return { kind: ProgressLastSessionFeedbackKind.SUBMITTED, selected: true };
+        return {
+          kind: ProgressLastSessionFeedbackKind.SUBMITTED,
+          selected: true,
+        };
 
       case ProgressLastSessionFeedbackKind.SEEN:
         return { kind: ProgressLastSessionFeedbackKind.SEEN };
@@ -103,7 +107,9 @@ export const useProgressPageVM = () => {
     toggleState: showWeek,
     settoggleState: () => setShowWeek((prev) => !prev),
     lastSessionFeedback,
-    hasAnyProgress: Boolean(stats.find((s) => s.id === "total-workouts" && s.value !== "0")),
+    hasAnyProgress: Boolean(
+      stats.find((s) => s.id === "total-workouts" && s.value !== "0"),
+    ),
     streak: streak?.current ?? 0,
     qualityTips,
   };

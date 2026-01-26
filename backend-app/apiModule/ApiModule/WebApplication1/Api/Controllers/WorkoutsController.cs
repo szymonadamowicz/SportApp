@@ -8,12 +8,16 @@ namespace ApiModule.Api.Controllers;
 [ApiController]
 [Route("api/workouts")]
 [Authorize]
-public sealed class WorkoutsController(WorkoutService service) : ControllerBase
+public sealed class WorkoutsController : ControllerBase
 {
-    private readonly WorkoutService _service = service;
+    private readonly WorkoutService _service;
+
+    public WorkoutsController(WorkoutService service)
+    {
+        _service = service;
+    }
 
     [HttpGet]
-    [ProducesResponseType(typeof(List<WorkoutDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<WorkoutDto>>> GetAll(CancellationToken ct)
     {
         var items = await _service.GetAllAsync(ct);
@@ -21,55 +25,23 @@ public sealed class WorkoutsController(WorkoutService service) : ControllerBase
     }
 
     [HttpGet("lastCompleted")]
-    [ProducesResponseType(typeof(WorkoutDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<WorkoutDto?>> GetLastCompleted(CancellationToken ct)
     {
         var item = await _service.GetLastCompletedAsync(ct);
         if (item is null) return Ok(null);
-
         return Ok(WorkoutMapper.ToDto(item));
     }
 
     [HttpPost]
-    [ProducesResponseType(typeof(WorkoutDto), StatusCodes.Status200OK)]
-    public async Task<ActionResult<WorkoutDto>> Create(
-        [FromBody] CreateWorkoutDto dto,
-        CancellationToken ct)
+    public async Task<ActionResult<WorkoutDto>> Create(CreateWorkoutDto dto, CancellationToken ct)
     {
-        var domain = WorkoutMapper.ToDomain(dto);
-        var created = await _service.CreateAsync(domain, ct);
-
+        var workout = WorkoutMapper.ToDomain(dto);
+        var created = await _service.CreateAsync(workout, ct);
         return Ok(WorkoutMapper.ToDto(created));
     }
 
-    [HttpPatch("{id:guid}")]
-    [ProducesResponseType(typeof(WorkoutDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<WorkoutDto>> Patch(
-        [FromRoute] Guid id,
-        [FromBody] UpdateWorkoutDto dto,
-        CancellationToken ct)
-    {
-        var updated = await _service.UpdatePartialAsync(
-            id,
-            dto.ScheduledAt is null ? null : DateTime.Parse(dto.ScheduledAt),
-            dto.CompletedAt is null ? null : DateTime.Parse(dto.CompletedAt),
-            dto.PerceivedLoad,
-            ct);
-
-        if (updated is null)
-            return NotFound();
-
-        return Ok(WorkoutMapper.ToDto(updated));
-    }
-
     [HttpPut("{id:guid}")]
-    [ProducesResponseType(typeof(WorkoutDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<WorkoutDto>> Put(
-        [FromRoute] Guid id,
-        [FromBody] UpdateWorkoutStructureDto dto,
-        CancellationToken ct)
+    public async Task<ActionResult<WorkoutDto>> Put(Guid id, UpdateWorkoutStructureDto dto, CancellationToken ct)
     {
         var exercises = dto.Exercises
             .Select(WorkoutMapper.ToDomain)
@@ -77,21 +49,16 @@ public sealed class WorkoutsController(WorkoutService service) : ControllerBase
 
         var updated = await _service.UpdateStructureAsync(
             id,
+            dto.Title ?? string.Empty,
             exercises,
-            dto.Title,
             ct);
 
-        if (updated is null)
-            return NotFound();
-
+        if (updated is null) return NotFound();
         return Ok(WorkoutMapper.ToDto(updated));
     }
 
     [HttpDelete("{id:guid}")]
-    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-    public async Task<ActionResult<bool>> Delete(
-        [FromRoute] Guid id,
-        CancellationToken ct)
+    public async Task<ActionResult<bool>> Delete(Guid id, CancellationToken ct)
     {
         var ok = await _service.DeleteAsync(id, ct);
         return Ok(ok);

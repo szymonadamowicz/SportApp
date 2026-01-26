@@ -1,9 +1,17 @@
 import { httpClient } from "@/api/httpClient";
 import { WorkoutDTO } from "@/types/workout/workoutDTO";
-import {
-  CreateWorkoutPayload,
-  UpdateWorkoutPayload,
-} from "@/types/workout/workout";
+import { CreateWorkoutPayload } from "@/types/workout/workout";
+
+type UpdateWorkoutMetaDto = {
+  scheduledAt?: string | null;
+  completedAt?: string | null;
+  perceivedLoad?: string | null;
+};
+
+type UpdateWorkoutStructureDto = {
+  title: string;
+  exercises: WorkoutDTO["exercises"];
+};
 
 export const workoutsReal = {
   fetchWorkouts(): Promise<WorkoutDTO[]> {
@@ -21,10 +29,24 @@ export const workoutsReal = {
     });
   },
 
-  updateWorkout(payload: UpdateWorkoutPayload): Promise<WorkoutDTO> {
-    return httpClient<WorkoutDTO>("/workouts", {
+  patchWorkoutMeta(id: string, dto: UpdateWorkoutMetaDto): Promise<WorkoutDTO> {
+    return httpClient<WorkoutDTO>(`/workouts/${id}`, {
       method: "PATCH",
-      body: payload.workout,
+      body: {
+        scheduledAt: dto.scheduledAt ?? null,
+        completedAt: dto.completedAt ?? null,
+        perceivedLoad: dto.perceivedLoad ?? null,
+      },
+    });
+  },
+
+  putWorkoutStructure(
+    id: string,
+    dto: UpdateWorkoutStructureDto,
+  ): Promise<WorkoutDTO> {
+    return httpClient<WorkoutDTO>(`/workouts/${id}`, {
+      method: "PUT",
+      body: dto,
     });
   },
 };

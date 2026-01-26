@@ -2,54 +2,61 @@
 
 namespace ApiModule.Application;
 
-public sealed class WorkoutService(IWorkoutRepository repo, ICurrentUser currentUser)
+public sealed class WorkoutService
 {
-    private readonly IWorkoutRepository _repo = repo;
-    private readonly ICurrentUser _currentUser = currentUser;
+    private readonly IWorkoutRepository _repo;
+    private readonly ICurrentUser _currentUser;
+
+    public WorkoutService(IWorkoutRepository repo, ICurrentUser currentUser)
+    {
+        _repo = repo;
+        _currentUser = currentUser;
+    }
 
     public Task<List<Workout>> GetAllAsync(CancellationToken ct)
-    {
-        return _repo.GetAllByOwnerAsync(_currentUser.UserId, ct);
-    }
+        => _repo.GetAllByOwnerAsync(_currentUser.UserId, ct);
 
     public Task<Workout?> GetLastCompletedAsync(CancellationToken ct)
-    {
-        return _repo.GetLastCompletedForOwnerAsync(_currentUser.UserId, ct);
-    }
+        => _repo.GetLastCompletedForOwnerAsync(_currentUser.UserId, ct);
 
     public async Task<Workout> CreateAsync(Workout workout, CancellationToken ct)
     {
-        if (workout.Exercises.Count == 0)
-            throw new ArgumentException("Workout must contain at least one exercise");
-
-        NormalizeTitle(workout);
-        NormalizeDates(workout);
-        ValidateExercises(workout.Exercises);
-
-        workout.SetOwner(_currentUser.UserId);
-
+        workout.OwnerUserId = _currentUser.UserId;
         await _repo.AddAsync(workout, ct);
         return workout;
     }
 
     public async Task<Workout?> UpdateStructureAsync(
-        Guid id,
-        List<Exercise> exercises,
+        Guid workoutId,
         string title,
+        List<Exercise> incoming,
         CancellationToken ct)
     {
-        var workout = await _repo.GetByIdForOwnerAsync(id, _currentUser.UserId, ct);
-        if (workout is null)
-            return null;
-
-        if (exercises.Count == 0)
-            throw new ArgumentException("Workout must contain at least one exercise");
+        var workout = await _repo.GetByIdForOwnerAsync(workoutId, _currentUser.UserId, ct);
+        if (workout is null) return null;
 
         workout.Title = title;
-        NormalizeTitle(workout);
-        ValidateExercises(exercises);
 
-        workout.Exercises = exercises;
+        var existing = workout.Exercises.ToDictionary(e => e.Id);
+
+        foreach (var inc in incoming)
+        {
+            if (existing.TryGetValue(inc.Id, out var tracked))
+            {
+                tracked.Name = inc.Name;
+                tracked.Sets = inc.Sets;
+                tracked.Reps = inc.Reps;
+                tracked.Weight = inc.Weight;
+                tracked.RestTimeSec = inc.RestTimeSec;
+            }
+            else
+            {
+                workout.Exercises.Add(inc);
+            }
+        }
+
+        var incomingIds = incoming.Select(e => e.Id).ToHashSet();
+        workout.Exercises.RemoveAll(e => !incomingIds.Contains(e.Id));
 
         await _repo.UpdateAsync(workout, ct);
         return workout;
@@ -63,17 +70,15 @@ public sealed class WorkoutService(IWorkoutRepository repo, ICurrentUser current
         CancellationToken ct)
     {
         var workout = await _repo.GetByIdForOwnerAsync(id, _currentUser.UserId, ct);
-        if (workout is null)
-            return null;
+        if (workout is null) return null;
 
         if (scheduledAt.HasValue)
-            workout.ScheduledAt = NormalizeUtc(scheduledAt.Value);
+            workout.ScheduledAt = scheduledAt.Value;
 
         if (completedAt.HasValue)
-            workout.CompletedAt = NormalizeUtc(completedAt.Value);
+            workout.CompletedAt = completedAt.Value;
 
-        if (perceivedLoad != null)
-            workout.PerceivedLoad = perceivedLoad.Trim();
+        workout.PerceivedLoad = perceivedLoad;
 
         await _repo.UpdateAsync(workout, ct);
         return workout;
@@ -82,48 +87,9 @@ public sealed class WorkoutService(IWorkoutRepository repo, ICurrentUser current
     public async Task<bool> DeleteAsync(Guid id, CancellationToken ct)
     {
         var workout = await _repo.GetByIdForOwnerAsync(id, _currentUser.UserId, ct);
-        if (workout is null)
-            return false;
+        if (workout is null) return false;
 
         await _repo.DeleteAsync(workout, ct);
         return true;
-    }
-
-    private static void NormalizeTitle(Workout workout)
-    {
-        workout.Title = workout.Title.Trim();
-        if (string.IsNullOrWhiteSpace(workout.Title))
-            workout.Title = "Untitled workout";
-    }
-
-    private static void NormalizeDates(Workout workout)
-    {
-        workout.ScheduledAt = NormalizeUtc(workout.ScheduledAt);
-
-        if (workout.CompletedAt.HasValue)
-            workout.CompletedAt = NormalizeUtc(workout.CompletedAt.Value);
-    }
-
-    private static void ValidateExercises(List<Exercise> exercises)
-    {
-        if (exercises.Any(e =>
-            string.IsNullOrWhiteSpace(e.Name) ||
-            e.Sets <= 0 ||
-            e.Reps <= 0 ||
-            e.RestTimeSec < 0))
-        {
-            throw new ArgumentException("One or more exercises are invalid");
-        }
-    }
-
-    private static DateTime NormalizeUtc(DateTime dt)
-    {
-        if (dt.Kind == DateTimeKind.Utc)
-            return dt;
-
-        if (dt.Kind == DateTimeKind.Local)
-            return dt.ToUniversalTime();
-
-        return DateTime.SpecifyKind(dt, DateTimeKind.Utc);
     }
 }

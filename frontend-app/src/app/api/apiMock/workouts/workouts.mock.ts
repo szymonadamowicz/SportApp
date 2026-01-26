@@ -1,10 +1,8 @@
 import { WorkoutDTO } from "@/types/workout/workoutDTO";
-import {
-  CreateWorkoutPayload,
-  UpdateWorkoutPayload,
-} from "@/types/workout/workout";
+import { CreateWorkoutPayload } from "@/types/workout/workout";
 import { workoutsMockDb } from "./workouts.mockDb";
 import { mapWorkoutToDTO } from "@/api/mappers/workout/workoutMapper";
+import { FeedbackValue } from "@/types/pages/progressPage";
 
 export const workoutsMock = {
   fetchWorkouts(): Promise<WorkoutDTO[]> {
@@ -20,8 +18,21 @@ export const workoutsMock = {
     return workoutsMockDb.create(data);
   },
 
-  updateWorkout(payload: UpdateWorkoutPayload): Promise<WorkoutDTO> {
-    const data = mapWorkoutToDTO(payload.workout);
-    return workoutsMockDb.update(data);
+  patchWorkoutMeta(
+    id: string,
+    dto: {
+      scheduledAt?: string | null;
+      completedAt?: string | null;
+      perceivedLoad?: FeedbackValue;
+    },
+  ): Promise<WorkoutDTO> {
+    return workoutsMockDb.patchMeta(id, dto);
+  },
+
+  putWorkoutStructure(
+    id: string,
+    dto: { title: string; exercises: WorkoutDTO["exercises"] },
+  ): Promise<WorkoutDTO> {
+    return workoutsMockDb.putStructure(id, dto);
   },
 };

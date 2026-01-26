@@ -9,9 +9,11 @@ import {
 import { ExerciseDTO } from "@/types/workout/workoutDTO";
 import { useCreateWorkout } from "@/hooks/apiHooks/workouts/useCreateWorkout";
 import { useWorkoutById } from "@/hooks/apiHooks/workouts/useWorkoutById";
-import { useUpdateWorkout } from "@/hooks/apiHooks/workouts/useUpdateWorkout";
 import { Workout } from "@/types/workout/workout";
 import { isValidExercise } from "@/helpers/utils/workout/workoutDraftValidateExercise";
+import { usePutWorkoutStructure } from "@/hooks/apiHooks/workouts/usePutWorkoutStructure";
+
+const EMPTY_GUID = "00000000-0000-0000-0000-000000000000";
 
 const PRESET_MUSCLE_GROUPS = [
   "chest",
@@ -55,7 +57,7 @@ export const useWorkoutModalVM = ({
   const mode: "create" | "edit" = editModalId ? "edit" : "create";
 
   const createMutation = useCreateWorkout();
-  const updateMutation = useUpdateWorkout();
+  const updateMutation = usePutWorkoutStructure();
   const { workoutById: workout } = useWorkoutById(editModalId);
 
   const [title, setTitle] = useState("");
@@ -211,6 +213,19 @@ export const useWorkoutModalVM = ({
       return;
     }
 
+    const existingIds =
+      mode === "edit" && workout
+        ? new Set(workout.exercises.map((e) => e.id))
+        : new Set<string>();
+
+    const exercisesForPayload = exercises
+      .filter(isValidExercise)
+      .map((e) => ({
+        ...e,
+        id:
+          mode === "edit" && workout && existingIds.has(e.id) ? e.id : EMPTY_GUID,
+      }));
+
     const payload: Workout = {
       ...(workout ?? { id: crypto.randomUUID() }),
       title,
@@ -218,7 +233,7 @@ export const useWorkoutModalVM = ({
       mainFocus: selectedMuscles[0],
       scheduledAt: mergeDateAndTime(date, time),
       completedAt: workout?.completedAt,
-      exercises: exercises.filter(isValidExercise),
+      exercises: exercisesForPayload,
     };
 
     if (mode === "create") createMutation.mutate(payload);
