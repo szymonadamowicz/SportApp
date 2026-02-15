@@ -8,13 +8,6 @@ export const useLandingPageVM = () => {
       "RepForge helps you track workouts, visualize progress and stay disciplined without overengineering your training.",
   }
 
-  const actions = {
-    primary: {
-      label: "Log in",
-      href: "/login",
-    },
-  }
-
   const features = [
     {
       icon: Zap,
@@ -35,7 +28,6 @@ export const useLandingPageVM = () => {
 
   return {
     hero,
-    actions,
     features,
     logoIcon: Dumbbell,
   }

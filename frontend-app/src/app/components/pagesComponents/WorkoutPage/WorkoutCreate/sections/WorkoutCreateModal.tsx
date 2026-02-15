@@ -15,8 +15,8 @@ import { Field } from "./WorkoutCreateField";
 import { IconButton } from "./WorkoutCreateIconButton";
 import { SmallLabel } from "./WorkoutCreateSmallLabel";
 import { useWorkoutModalVM } from "../WorkoutModalVM";
-import { AnimatePresence, motion, Variants } from "framer-motion";
-import { isValidExercise } from "@/helpers/utils/workout/workoutDraftValidateExercise";
+import { AnimatePresence, motion } from "framer-motion";
+import { overlay, modal, toast } from "./Variants";
 
 export function CreateWorkoutModal({
   open,
@@ -28,74 +28,6 @@ export function CreateWorkoutModal({
   const vm = useWorkoutModalVM({ editModalId, onClose, open });
 
   const isEditMode = vm.mode === "edit";
-
-  const overlay: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.18,
-        ease: [0.16, 1, 0.3, 1],
-      },
-    },
-    exit: {
-      opacity: 0,
-      transition: {
-        duration: 0.16,
-        ease: [0.4, 0, 1, 1],
-      },
-    },
-  };
-
-  const modal: Variants = {
-    hidden: {
-      opacity: 0,
-      y: 14,
-      scale: 0.985,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        duration: 0.22,
-        ease: [0.16, 1, 0.3, 1],
-      },
-    },
-    exit: {
-      opacity: 0,
-      y: 10,
-      scale: 0.99,
-      transition: {
-        duration: 0.18,
-        ease: [0.4, 0, 1, 1],
-      },
-    },
-  };
-
-  const toast: Variants = {
-    hidden: { opacity: 0, y: -8, scale: 0.98 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        duration: 0.18,
-        ease: [0.16, 1, 0.3, 1],
-      },
-    },
-    exit: {
-      opacity: 0,
-      y: -8,
-      scale: 0.98,
-      transition: {
-        duration: 0.16,
-        ease: [0.4, 0, 1, 1],
-      },
-    },
-  };
-  const lastExercise = vm.exercises.at(-1);
-  const canAddExercise = lastExercise ? isValidExercise(lastExercise) : false;
 
   return (
     <AnimatePresence>
@@ -181,7 +113,7 @@ export function CreateWorkoutModal({
                         type="button"
                         onClick={() => vm.removeMuscle(m)}
                         className="
-  rounded-full px-3 py-1 text-sm transition
+  rounded-full px-3 py-1 text-sm transition cursor-pointer
   bg-[rgba(34,197,94,0.10)]
   text-[rgba(167,243,208,0.95)]
   border border-[rgba(34,197,94,0.22)]
@@ -229,10 +161,10 @@ export function CreateWorkoutModal({
                               type="button"
                               onClick={() => vm.toggleTemp(m)}
                               className={clsx(
-                                "w-full px-4 py-2 text-left text-sm transition",
+                                "w-full px-4 py-2 text-left text-sm transition cursor-pointer",
                                 vm.tempSelected.includes(m)
-                                  ? "bg-emerald-500/15 text-emerald-300"
-                                  : "hover:bg-bgHighlight",
+                                  ? "bg-[rgba(34,197,94,0.15)] text-[rgba(167,243,208,1)] font-medium"
+                                  : "text-textPrimary hover:bg-bgHighlight/60",
                               )}
                             >
                               {m}
@@ -240,16 +172,16 @@ export function CreateWorkoutModal({
                           ))}
                         </div>
 
-                        <div className="flex justify-between items-center border-t border-borderSoft px-3 py-2">
+                        <div className="flex justify-between items-center border-t border-borderSoft px-3 py-2.5 bg-bgMain/20">
                           <button
                             type="button"
                             onClick={vm.addCustomMuscle}
                             disabled={!vm.muscleInput.trim()}
                             className={clsx(
-                              "text-xs px-3 py-1 rounded-full transition",
-                              vm.muscleInput.trim()
-                                ? "bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25"
-                                : "bg-bgHighlight text-textMuted cursor-not-allowed",
+                              "inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold transition border-2",
+                              !vm.muscleInput.trim()
+                                ? "bg-bgHighlight/50 text-textMuted/50 border-borderSoft/40 cursor-not-allowed"
+                                : "bg-[rgba(34,197,94,1)] text-[rgb(10,15,20)] border-[rgba(34,197,94,1)] hover:bg-[rgba(34,197,94,0.88)] hover:border-[rgba(34,197,94,0.88)] cursor-pointer",
                             )}
                           >
                             Add custom
@@ -260,10 +192,10 @@ export function CreateWorkoutModal({
                             onClick={vm.confirmAddMuscles}
                             disabled={vm.tempSelected.length === 0}
                             className={clsx(
-                              "inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-medium transition",
-                              vm.tempSelected.length
-                                ? "bg-accent text-bgMain hover:bg-accentHover"
-                                : "bg-bgHighlight text-textMuted cursor-not-allowed",
+                              "inline-flex items-center gap-1 rounded-full px-5 py-2 text-sm font-semibold transition border-2",
+                              vm.tempSelected.length === 0
+                                ? "bg-bgHighlight/50 text-textMuted/50 border-borderSoft/40 cursor-not-allowed"
+                                : "bg-[rgba(34,197,94,1)] text-[rgb(10,15,20)] border-[rgba(34,197,94,1)] hover:bg-[rgba(34,197,94,0.88)] hover:border-[rgba(34,197,94,0.88)] cursor-pointer",
                             )}
                           >
                             Add
@@ -379,7 +311,7 @@ export function CreateWorkoutModal({
                         "
                       >
                         <div className="space-y-1">
-                          <SmallLabel>Sets</SmallLabel>
+                          <SmallLabel>Sets*</SmallLabel>
                           <input
                             className={inlineInputClass}
                             value={ex.sets || ""}
@@ -399,7 +331,7 @@ export function CreateWorkoutModal({
                         </span>
 
                         <div className="space-y-1">
-                          <SmallLabel>Reps</SmallLabel>
+                          <SmallLabel>Reps*</SmallLabel>
                           <input
                             className={inlineInputClass}
                             value={ex.reps || ""}
@@ -451,7 +383,6 @@ export function CreateWorkoutModal({
 
                   <button
                     type="button"
-                    disabled={!canAddExercise}
                     onClick={vm.addExercise}
                     className={clsx(
                       `
@@ -469,8 +400,6 @@ export function CreateWorkoutModal({
       active:scale-[0.98]
       transition
     `,
-                      !canAddExercise &&
-                        "opacity-40 cursor-not-allowed hover:bg-transparent",
                     )}
                   >
                     <Plus size={16} />

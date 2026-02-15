@@ -143,7 +143,10 @@ export const useWorkoutFormVM = (workout: Workout): WorkoutFormVM => {
 
   return {
     now,
-    workout,
+    workout: {
+      ...workout,
+      exercises: computedExercises,
+    },
     editMode,
     hasChanges,
     draft,

@@ -36,18 +36,21 @@ export default function WorkoutForm({ workout }: WorkoutFormProps) {
 
           if (vm.hasChanges) {
             vm.saveAllChanges();
-          } else {
-            vm.cancelEdit();
           }
         },
       }}
-      secondaryButton={{
-        label: "Edit workout",
-        onClick: vm.handleEditWorkout,
-      }}
+      secondaryButton={
+        !vm.hasChanges ? {
+          label: "Edit workout",
+          onClick: vm.handleEditWorkout,
+        } : {
+          label: "Discard changes",
+          onClick: vm.cancelEdit,
+        }
+      }
     >
       <WorkoutExercisesSection
-        workout={workout}
+        workout={vm.workout ?? workout}
         editMode={vm.editMode}
         draft={vm.draft}
         errors={vm.exerciseErrors}

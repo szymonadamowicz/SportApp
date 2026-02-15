@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { useLandingPageVM } from "./LandingPageVM";
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+import { useLandingPageVM } from './LandingPageVM';
 
 export default function StartingPage() {
   const vm = useLandingPageVM();
@@ -12,7 +12,7 @@ export default function StartingPage() {
         className="absolute inset-0 -z-10"
         style={{
           background:
-            "radial-gradient(60% 55% at 50% 0%, rgba(34,197,94,0.24), transparent 70%), radial-gradient(55% 55% at 15% 25%, rgba(56,189,248,0.14), transparent 65%), radial-gradient(55% 55% at 85% 35%, rgba(250,204,21,0.10), transparent 65%)",
+            'radial-gradient(60% 55% at 50% 0%, rgba(34,197,94,0.24), transparent 70%), radial-gradient(55% 55% at 15% 25%, rgba(56,189,248,0.14), transparent 65%), radial-gradient(55% 55% at 85% 35%, rgba(250,204,21,0.10), transparent 65%)',
         }}
       />
       <div className="w-full max-w-5xl text-center">
@@ -28,14 +28,12 @@ export default function StartingPage() {
           <span className="text-gradient">{vm.hero.titleAccent}</span>
         </h1>
 
-        <p className="text-muted text-lg mt-6 max-w-2xl mx-auto">
-          {vm.hero.description}
-        </p>
+        <p className="text-muted text-lg mt-6 max-w-2xl mx-auto">{vm.hero.description}</p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
-          <Link href={vm.actions.primary.href} className="w-full sm:w-auto">
-            <button className="accent-btn w-full px-8 py-4">
-              {vm.actions.primary.label}
+          <Link href={'/login'} className="w-full sm:w-auto">
+            <button className="bg-green-500 rounded-2xl w-full px-8 py-4">
+              Log in
               <ArrowRight className="inline-block ml-2 w-5 h-5" />
             </button>
           </Link>

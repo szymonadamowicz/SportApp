@@ -215,7 +215,7 @@ export const useWorkoutModalVM = ({
 
     const existingIds =
       mode === "edit" && workout
-        ? new Set(workout.exercises.map((e) => e.id))
+        ? new Set(exercises.map((e) => e.id))
         : new Set<string>();
 
     const exercisesForPayload = exercises
