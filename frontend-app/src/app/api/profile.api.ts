@@ -5,9 +5,9 @@ import {
 } from "@/types/profile/profileDTO";
 import { profileMock } from "./apiMock/profile/profile.mock";
 import { profileReal } from "./apiReal/profile.real";
+import { API_MODE } from "./env";
 
-const mode = process.env.NEXT_PUBLIC_API_MODE;
-const impl = mode === "mock" ? profileMock : profileReal;
+const impl = API_MODE === "mock" ? profileMock : profileReal;
 
 export const getProfileApi = (): Promise<ProfileDTO> => impl.getProfile();
 

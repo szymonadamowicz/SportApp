@@ -30,6 +30,8 @@ frontend-app/pnpm-debug.log*
 
 # env files
 .env*
+!.env.example
+!**/.env.example
 
 # vercel
 .vercel
@@ -42,3 +44,14 @@ frontend-app/next-env.d.ts
 backend-app/assets
 backend-app/lsenv
 backend-app/venv
+
+# .NET build artifacts
+**/bin/
+**/obj/
+*.user
+*.suo
+
+# IDE metadata (JetBrains / VS)
+.idea/
+.vs/
+*.DotSettings.user

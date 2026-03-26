@@ -1,9 +1,9 @@
 import { LoginDTO, RegisterDTO } from "@/types/login/loginDTO";
 import { loginMock } from "./apiMock/login/login.mock";
 import { loginReal } from "./apiReal/login.real";
+import { API_MODE } from "./env";
 
-const mode = process.env.NEXT_PUBLIC_API_MODE;
-const impl = mode === "mock" ? loginMock : loginReal;
+const impl = API_MODE === "mock" ? loginMock : loginReal;
 
 export const loginApi = (payload: LoginDTO): Promise<string> =>
   impl.login(payload);

@@ -2,13 +2,16 @@
 using ApiModule.Domain;
 using ApiModule.Infrastructure;
 using ApiModule.Infrastructure.Auth;
+using ApiModule.Infrastructure.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+var runtimeSettings = RuntimeSettings.Resolve(builder.Configuration);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -46,8 +49,6 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Configuration.AddEnvironmentVariables();
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("frontend", policy =>
@@ -61,8 +62,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("Default"));
+    options.UseNpgsql(runtimeSettings.ConnectionString);
 });
 
 builder.Services.AddScoped<IWorkoutRepository, EfWorkoutRepository>();
@@ -76,17 +76,11 @@ builder.Services.AddScoped<ProfileService>();
 
 builder.Services.AddScoped<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
 
-builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+builder.Services.AddSingleton<IOptions<JwtOptions>>(Options.Create(runtimeSettings.Jwt));
 builder.Services.AddScoped<IJwtService, JwtService>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
-
-var jwt = builder.Configuration
-    .GetSection("Jwt")
-    .Get<JwtOptions>()
-    ?? throw new InvalidOperationException("Missing Jwt config");
-
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -98,9 +92,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
 
-            ValidIssuer = jwt.Issuer,
-            ValidAudience = jwt.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
+            ValidIssuer = runtimeSettings.Jwt.Issuer,
+            ValidAudience = runtimeSettings.Jwt.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(runtimeSettings.Jwt.Key)),
 
             ClockSkew = TimeSpan.FromSeconds(10)
         };
@@ -110,6 +104,12 @@ builder.Services.AddAuthorization();
 
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
 
 if (app.Environment.IsDevelopment())
 {

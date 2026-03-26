@@ -6,6 +6,55 @@ Backend: ASP.NET Core 8 (Minimal API project) using C# with Entity Framework Cor
 
 Overall, this project is a work-in-progress “fitness tracker” where a user can log in, create workouts, track their exercise history, and monitor weekly progress and personal records. The codebase is intended to be developer-friendly and is structured for future growth (e.g. adding Docker deployment, more features, etc.).
 
+Environment Quick Setup
+
+1. Keep `.env.example` as the only template for all runtime overrides (frontend + backend + docker).
+2. Copy `.env.example` to `.env` only when you want to override defaults.
+3. Frontend has built-in defaults in `frontend-app/src/app/api/env.ts` (default mode is `real`).
+4. Backend has built-in defaults in `backend-app/apiModule/ApiModule/WebApplication1/Infrastructure/Configuration/RuntimeSettings.cs`.
+5. Backend overrides can come from env variables or `appsettings.Development.json`.
+6. For backend env overrides in Docker/CI, use .NET keys:
+
+- `ConnectionStrings__Default`
+- `Jwt__Issuer`
+- `Jwt__Audience`
+- `Jwt__Key`
+- `Jwt__ExpiresMinutes`
+
+Local Database Script
+
+1. Use `scripts/run-database-local.ps1` (Windows PowerShell) or `scripts/run-database-local.sh` (Linux/macOS shell).
+2. The script builds and starts only postgres:
+   - `docker compose --profile real up -d --build postgres`
+3. Postgres runs independently until stopped manually:
+   - `docker compose --profile real stop postgres`
+4. In VS Code you can run task: `Run database (postgres)`.
+
+Docker (3 services)
+
+1. `docker-compose.yaml` defines 3 containers: `postgres`, `backend`, `frontend`.
+2. Default mode (frontend only):
+
+```bash
+docker compose up --build
+```
+
+3. Full real stack mode (frontend + backend + postgres):
+
+```bash
+docker compose --profile real up --build
+```
+
+4. Access apps:
+   - Frontend: `http://localhost:3000`
+   - Backend API: `http://localhost:5064/swagger`
+
+5. Stop all services:
+
+```bash
+docker compose down
+```
+
 Tech Stack
 
 Frontend: Next.js 13 (React 18, using the new App Router structure), TypeScript, HTML/CSS. State management is minimal, relying on React Query (TanStack Query) for server state and React Context for auth. The UI components are custom (no heavy UI library mentioned, but likely using some icons like Lucide).
@@ -41,9 +90,8 @@ Set up the Database:
 Install PostgreSQL and create a database (for example, named workoutdb). Update the connection string in the backend configuration if needed. By default, the backend expects:
 
 "ConnectionStrings": {
-  "Default": "Host=localhost;Port=5432;Database=workoutdb;Username=user;Password=pass"
+"Default": "Host=localhost;Port=5432;Database=workoutdb;Username=user;Password=pass"
 }
-
 
 In a development environment, you can use a simple username/password (as shown above). Make sure these credentials match your local DB setup.
 
@@ -59,7 +107,6 @@ Run the API using the .NET CLI or an IDE:
 
 dotnet run --project WebApplication1/ApiModule.csproj
 
-
 This should start the ASP.NET server on the URL and port configured. By default, it’s likely running at https://localhost:7105 (as referenced in the frontend config). You should see console output from the app indicating it’s listening, and you can visit https://localhost:7105/swagger in a browser to view the Swagger API docs (since Swagger is enabled in development).
 
 Note: The API expects to run on HTTPS by default. For local development, you might need to trust the self-signed developer certificate that ASP.NET Core uses. Alternatively, you can configure it to allow HTTP for local use.
@@ -73,14 +120,12 @@ Create a .env file in the frontend directory. (There is an example .env.example 
 NEXT_PUBLIC_API_MODE=real
 NEXT_PUBLIC_API_URL=https://localhost:7105/api
 
-
 This tells the frontend to use “real” API mode and target the backend you just ran. (The backend controllers are generally hosted under /api/... routes as per the code.)
 
 Install dependencies and start the development server:
 
 npm install
 npm run dev
-
 
 This will launch the Next.js development server on default port 3000. Open http://localhost:3000 in your browser. You should see the application’s landing page or login screen.
 
@@ -124,10 +169,9 @@ For each domain (login, profile, progress, workouts), there is a file in api/ (e
 const impl = mode === "mock" ? loginMock : loginReal;
 export const loginApi = (payload) => impl.login(payload);
 
-
 The real implementations (e.g., apiReal/login.real.ts) use fetch via a helper, while the mock ones (apiMock/...) return hardcoded sample data or simulate asynchronous calls.
 
-HTTP client: httpClient.ts is a wrapper around fetch that automatically prefixes the base API URL and includes the JWT token in headers. It also centralizes error handling and JSON parsing. This is used by all *.real.ts API calls to talk to the backend.
+HTTP client: httpClient.ts is a wrapper around fetch that automatically prefixes the base API URL and includes the JWT token in headers. It also centralizes error handling and JSON parsing. This is used by all \*.real.ts API calls to talk to the backend.
 
 Query keys and cache: In api/keys/ you’ll find definitions for React Query keys (e.g., workouts.keys.ts) – these are used to uniquely identify queries for caching (e.g., cache keys for workouts list, progress data, etc.).
 
@@ -167,7 +211,7 @@ AppDbContext.cs – The Entity Framework Core DbContext for the application. It 
 
 Repository Implementations:
 
-EfWorkoutRepository.cs, EfUserRepository.cs, EfProfileRepository.cs – these classes implement the interfaces from Domain using EF Core. They use dependency injection to get the AppDbContext and perform queries like GetAllByOwnerAsync(userId) or AddAsync(entity) which typically call EF methods (_db.Workouts.ToListAsync(), etc.). The repositories generally call _db.SaveChangesAsync() internally to persist changes. (In some cases, a separate SaveAsync is provided for batching updates.)
+EfWorkoutRepository.cs, EfUserRepository.cs, EfProfileRepository.cs – these classes implement the interfaces from Domain using EF Core. They use dependency injection to get the AppDbContext and perform queries like GetAllByOwnerAsync(userId) or AddAsync(entity) which typically call EF methods (\_db.Workouts.ToListAsync(), etc.). The repositories generally call \_db.SaveChangesAsync() internally to persist changes. (In some cases, a separate SaveAsync is provided for batching updates.)
 
 The User repository likely uses EF Core to manage AppUser entries. The project doesn’t use ASP.NET Identity directly, but it does use IPasswordHasher<AppUser> from Microsoft’s Identity library to hash passwords. The EfUserRepository provides methods to get a user by login and create a new user.
 
@@ -187,7 +231,7 @@ WorkoutService.cs – Contains methods to create a new workout, update a workout
 
 ProfileService.cs – Handles retrieving and updating the user’s profile. If a profile record doesn’t exist for the user, it creates one (so each user has at most one profile). It also has ChangePasswordAsync which verifies the current password and updates the user’s password hash via the user repository.
 
-ProgressService.cs – Computes the progress statistics for the current user. It fetches all workouts for the user and then calculates the streak, total stats, and personal records. For example, streak calculation iterates over the distinct dates of completed workouts to find the longest consecutive sequence up to today. Stats include total workouts, total reps (sum of setsreps of all exercises), total volume (sum of setsreps*weight), and max weight ever lifted. PRs are determined by grouping all exercises by name and finding the max weight for each exercise. (This service currently does calculations in memory; as the dataset grows, it might be worth optimizing or moving calculations to the database via queries, but for moderate data this is fine.)
+ProgressService.cs – Computes the progress statistics for the current user. It fetches all workouts for the user and then calculates the streak, total stats, and personal records. For example, streak calculation iterates over the distinct dates of completed workouts to find the longest consecutive sequence up to today. Stats include total workouts, total reps (sum of setsreps of all exercises), total volume (sum of setsreps\*weight), and max weight ever lifted. PRs are determined by grouping all exercises by name and finding the max weight for each exercise. (This service currently does calculations in memory; as the dataset grows, it might be worth optimizing or moving calculations to the database via queries, but for moderate data this is fine.)
 
 /WebApplication1/Api/Contracts/ – DTOs (Data Transfer Objects):
 

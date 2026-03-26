@@ -1,11 +1,12 @@
 import { RequestOptions } from "@/types/api";
 import { authStorage } from "@/contexts/auth/authStorage";
+import { API_BASE_URL } from "./env";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+const BASE_URL = API_BASE_URL;
 
 export async function httpClient<T>(
   url: string,
-  options?: RequestOptions
+  options?: RequestOptions,
 ): Promise<T> {
   const session = authStorage.read();
   const token = session?.accessToken;
