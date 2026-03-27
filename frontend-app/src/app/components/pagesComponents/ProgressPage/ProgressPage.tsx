@@ -1,100 +1,91 @@
 "use client";
 
-import InfoPanel from "@/components/InfoPanel/InfoPanel";
-import { useProgressPageVM } from "./ProgressPageVM";
-import { PRListItem } from "./sections/ProgressPRListItem";
-import { ProgressStatCard } from "./sections/ProgressStatCard";
-import { ProgressQualityTipItem } from "./sections/ProgressQualityTipItem";
-import { ProgressLastSessionFeedback } from "./sections/ProgressLastSessionFeedback";
-import { ProgressLastSessionFeedbackKind } from "@/types/pages/progressPage";
 import EmptyState from "@/components/EmptyState/EmptyState";
+import InfoPanel from "@/components/InfoPanel/InfoPanel";
+import { LoadingSpinner } from "@/components/Loading/LoadingSpinner";
+import { useProgressPageVM } from "./ProgressPageVM";
+import { ProgressLastSessionFeedback } from "./sections/ProgressLastSessionFeedback";
+import { ProgressPRPanel } from "./sections/ProgressPRPanel";
+import { ProgressQualityTipItem } from "./sections/ProgressQualityTipItem";
+import { ProgressStatCard } from "./sections/ProgressStatCard";
+import { ProgressStreakSummary } from "./sections/ProgressStreakSummary";
 
 export default function ProgressPage() {
   const vm = useProgressPageVM();
 
+  if (vm.isLoading) {
+    return <LoadingSpinner label="Loading progress..." />;
+  }
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-5 md:space-y-8">
       <InfoPanel
         title="Progress"
         layout="row"
         maxPerRow={4}
         outerButton={{
-          label: `See data for ${vm.toggleState ? "all trainings" : "this week"}`,
-          onClick: vm.settoggleState,
+          label: vm.scopeLabel,
+          onClick: vm.toggleScope,
         }}
       >
-        {vm.stats.length === 0 ? (
+        {vm.showStatsEmpty ? (
           <EmptyState
-            icon="📈"
+            icon="^"
             title="No progress data yet"
             description="Complete your first workout to start tracking stats and PRs."
           />
         ) : (
-          vm.stats.map((stat) => (
+          vm.statsCards.map((stat) => (
             <ProgressStatCard
-              key={stat.id}
-              label={stat.title}
-              value={vm.toggleState ? (stat.valueWeek ?? "—") : stat.value}
-              subLabel={vm.toggleState ? stat.subLabelWeek : stat.subLabel}
+              key={stat.label}
+              label={stat.label}
+              value={stat.value}
+              subLabel={stat.subLabel}
             />
           ))
         )}
+
+        {vm.streakCard && (
+          <ProgressStreakSummary
+            label={vm.streakCard.label}
+            value={vm.streakCard.value}
+            subLabel={vm.streakCard.subLabel}
+          />
+        )}
       </InfoPanel>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-        <InfoPanel title="PRs & Benchmarks">
-          {vm.prs.length === 0 ||
-          (vm.prs.length === 1 && vm.prs[0].id === "no-prs") ? (
-            <EmptyState
-              icon="🏆"
-              title="No PRs yet"
-              description="Once you complete workouts, your best sets will show up here."
-            />
-          ) : (
-            vm.prs.map((pr) => (
-              <PRListItem
-                key={pr.id}
-                name={pr.title}
-                value={pr.value}
-                diff={
-                  vm.toggleState
-                    ? (pr.valueWeek ?? pr.valueDiff ?? "—")
-                    : (pr.valueDiff ?? "—")
-                }
-              />
-            ))
-          )}
-        </InfoPanel>
+      <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2 md:gap-6">
+        <ProgressPRPanel
+          items={vm.prsItems}
+          isEmpty={vm.showPrsEmpty}
+          pageKey={vm.scopeLabel}
+        />
 
-        {vm.lastSessionFeedback.kind ===
-          ProgressLastSessionFeedbackKind.AVAILABLE && (
+        {vm.lastSessionView.kind === "available" && (
           <ProgressLastSessionFeedback
-            label={vm.lastSessionFeedback.sessionLabel}
-            streak={vm.streak}
-            onSelect={vm.lastSessionFeedback.onClick}
+            label={vm.lastSessionView.feedbackLabel}
+            streak={vm.lastSessionView.streak}
+            onSelect={vm.lastSessionView.onSelect}
           />
         )}
 
-        {vm.lastSessionFeedback.kind ===
-          ProgressLastSessionFeedbackKind.SUBMITTED && (
+        {vm.lastSessionView.kind === "submitted" && (
           <ProgressLastSessionFeedback submitted />
         )}
 
-        {vm.lastSessionFeedback.kind ===
-          ProgressLastSessionFeedbackKind.SEEN && (
+        {vm.lastSessionView.kind === "seen" && (
           <ProgressLastSessionFeedback
-            label="Thanks for letting us know how your last workout felt."
-            streak={vm.streak}
-            disableButtons
+            label={vm.lastSessionView.label}
+            streak={vm.lastSessionView.streak}
+            disableButtons={vm.lastSessionView.disableButtons}
           />
         )}
 
-        {vm.lastSessionFeedback.kind ===
-          ProgressLastSessionFeedbackKind.NONE && (
+        {vm.lastSessionView.kind === "none" && (
           <EmptyState
-            icon="🏋️"
-            title="No completed workouts yet"
-            description="Finish your first training and come back here to track your progress."
+            icon="!"
+            title={vm.lastSessionView.empty.title}
+            description={vm.lastSessionView.empty.description}
           />
         )}
       </div>

@@ -3,18 +3,18 @@ import {
   ProfileDTO,
   UpdateProfileDTO,
 } from "@/types/profile/profileDTO";
-import { profileMockDb } from "./profile.mockDb";
+import { mockProfileService } from "@/mocks/services/mockProfile.service";
 
 export const profileMock = {
   getProfile(): Promise<ProfileDTO> {
-    return profileMockDb.getProfile();
+    return mockProfileService.getProfile();
   },
 
   updateProfile(payload: UpdateProfileDTO): Promise<ProfileDTO> {
-    return profileMockDb.updateProfile(payload);
+    return mockProfileService.updateProfile(payload);
   },
 
   changePassword(payload: ChangePasswordDTO): Promise<void> {
-    return profileMockDb.changePassword(payload);
+    return mockProfileService.changePassword(payload);
   },
 };

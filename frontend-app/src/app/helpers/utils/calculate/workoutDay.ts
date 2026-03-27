@@ -1,4 +1,4 @@
-import { isSameDay } from "./workoutTime";
+import { isSameDay, isThisWeek } from "./workoutTime";
 
 export const getWorkoutDay = (workoutDate: Date, now: Date) => {
   const days = [
@@ -16,6 +16,10 @@ export const getWorkoutDay = (workoutDate: Date, now: Date) => {
 
   if (isSame) {
     return "Today";
+  }
+
+  if (!isThisWeek(workoutDate, now)) {
+    return getWorkoutDate(workoutDate);
   }
 
   return days[wDay];

@@ -2,5 +2,6 @@
 
 public record UpdateWorkoutStructureDto(
     string Title,
+    string[] MuscleGroups,
     List<ExerciseDto> Exercises
 );

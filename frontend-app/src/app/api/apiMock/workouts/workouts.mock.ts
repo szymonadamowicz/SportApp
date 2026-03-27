@@ -1,21 +1,22 @@
 import { WorkoutDTO } from "@/types/workout/workoutDTO";
 import { CreateWorkoutPayload } from "@/types/workout/workout";
-import { workoutsMockDb } from "./workouts.mockDb";
 import { mapWorkoutToDTO } from "@/api/mappers/workout/workoutMapper";
 import { FeedbackValue } from "@/types/pages/progressPage";
+import { mockWorkoutService } from "@/mocks/services/mockWorkout.service";
+import { UpdateWorkoutStructureDto } from "@/types/workout/workoutApi";
 
 export const workoutsMock = {
   fetchWorkouts(): Promise<WorkoutDTO[]> {
-    return workoutsMockDb.fetchAll();
+    return mockWorkoutService.fetchWorkouts();
   },
 
   fetchLastCompletedWorkout(): Promise<WorkoutDTO | null> {
-    return workoutsMockDb.getLastCompleted();
+    return mockWorkoutService.fetchLastCompletedWorkout();
   },
 
   createWorkout(payload: CreateWorkoutPayload): Promise<WorkoutDTO> {
     const data = mapWorkoutToDTO(payload.workout);
-    return workoutsMockDb.create(data);
+    return mockWorkoutService.createWorkout(data);
   },
 
   patchWorkoutMeta(
@@ -26,13 +27,17 @@ export const workoutsMock = {
       perceivedLoad?: FeedbackValue;
     },
   ): Promise<WorkoutDTO> {
-    return workoutsMockDb.patchMeta(id, dto);
+    return mockWorkoutService.patchWorkoutMeta(id, dto);
   },
 
   putWorkoutStructure(
     id: string,
-    dto: { title: string; exercises: WorkoutDTO["exercises"] },
+    dto: UpdateWorkoutStructureDto,
   ): Promise<WorkoutDTO> {
-    return workoutsMockDb.putStructure(id, dto);
+    return mockWorkoutService.putWorkoutStructure(id, dto);
+  },
+
+  deleteWorkout(id: string): Promise<boolean> {
+    return mockWorkoutService.deleteWorkout(id);
   },
 };

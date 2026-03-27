@@ -27,8 +27,6 @@ export const useProfilePageVM = () => {
 
   const [verifyPassword, setVerifyPassword] = useState("");
   const [verifyState, setVerifyState] = useState<VerifyState>("idle");
-
-  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [repeatNewPassword, setRepeatNewPassword] = useState("");
 
@@ -39,19 +37,35 @@ export const useProfilePageVM = () => {
     return login.length > 0 && verifyPassword.length > 0;
   }, [login, verifyPassword]);
 
+  const updateVerifyPassword = (value: string) => {
+    setVerifyPassword(value);
+
+    if (verifyState === "verified") {
+      setVerifyState("idle");
+    }
+  };
+
   const canSaveProfile = useMemo(() => {
     if (!login) return false;
     if (email && !emailRegex.test(email)) return false;
     return true;
   }, [login, email]);
 
+  const emailError = useMemo(() => {
+    if (!email) return undefined;
+    if (!emailRegex.test(email)) {
+      return "Enter a valid email address, for example name@example.com.";
+    }
+
+    return undefined;
+  }, [email]);
+
   const canChangePassword = useMemo(() => {
     if (verifyState !== "verified") return false;
-    if (!currentPassword || !newPassword || !repeatNewPassword) return false;
+    if (!verifyPassword || !newPassword || !repeatNewPassword) return false;
     if (newPassword !== repeatNewPassword) return false;
-    if (newPassword.length < 4) return false;
     return true;
-  }, [verifyState, currentPassword, newPassword, repeatNewPassword]);
+  }, [verifyState, verifyPassword, newPassword, repeatNewPassword]);
 
   useEffect(() => {
     let mounted = true;
@@ -95,7 +109,6 @@ export const useProfilePageVM = () => {
       }
 
       setVerifyState("verified");
-      setCurrentPassword(verifyPassword);
     } catch {
       setVerifyState("error");
     }
@@ -130,7 +143,7 @@ export const useProfilePageVM = () => {
 
     try {
       await changePasswordApi({
-        currentPassword,
+        currentPassword: verifyPassword,
         newPassword,
       });
 
@@ -140,7 +153,7 @@ export const useProfilePageVM = () => {
       setTimeout(() => setPasswordState("idle"), 1000);
     } catch {
       setPasswordState("error");
-      setPasswordError("Current password is invalid.");
+      setPasswordError("Unable to change password. Verify again and retry.");
     }
   };
 
@@ -158,17 +171,15 @@ export const useProfilePageVM = () => {
 
     saveProfile,
     canSaveProfile,
+    emailError,
     saveState,
     saveError,
 
     verifyPassword,
-    setVerifyPassword,
+    setVerifyPassword: updateVerifyPassword,
     verify,
     verifyState,
     canVerify,
-
-    currentPassword,
-    setCurrentPassword,
     newPassword,
     setNewPassword,
     repeatNewPassword,

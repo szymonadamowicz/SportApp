@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { workoutsKeys } from "@/api/keys/workouts.keys";
 import { patchWorkoutMetaApi } from "@/api/workouts.api";
 import { Workout } from "@/types/workout/workout";
-import { Ctx } from "@/types/components/cts";
+import { Ctx } from "@/types/components/ctx";
 
 export const usePatchWorkoutMeta = () => {
   const queryClient = useQueryClient();
@@ -23,7 +23,14 @@ export const usePatchWorkoutMeta = () => {
       queryClient.setQueryData<Workout[]>(workoutsKeys.all, (old) =>
         old
           ? old.map((w) =>
-              w.id === nextWorkout.id ? { ...w, ...nextWorkout } : w,
+              w.id === nextWorkout.id
+                ? {
+                    ...w,
+                    scheduledAt: nextWorkout.scheduledAt,
+                    completedAt: nextWorkout.completedAt,
+                    perceivedLoad: nextWorkout.perceivedLoad,
+                  }
+                : w,
             )
           : old,
       );

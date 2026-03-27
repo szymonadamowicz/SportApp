@@ -50,6 +50,7 @@ public sealed class WorkoutsController : ControllerBase
         var updated = await _service.UpdateStructureAsync(
             id,
             dto.Title ?? string.Empty,
+            dto.MuscleGroups?.ToList() ?? [],
             exercises,
             ct);
 

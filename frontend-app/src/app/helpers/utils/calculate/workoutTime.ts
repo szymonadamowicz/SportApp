@@ -6,10 +6,7 @@ export const formatTimeDiff = (
   const diffMs = scheduledAt.getTime() - now.getTime();
 
   if (diffMs <= 0) {
-    return scheduledAt.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return "missed";
   }
 
   const totalSeconds = Math.floor(diffMs / 1000);
@@ -36,6 +33,20 @@ export const formatTimeDiff = (
   }
 
   return "now";
+};
+
+export const formatScheduledTime = (scheduledAt: Date): string => {
+  return scheduledAt.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+export const formatViewTime = (scheduledAt: Date): string => {
+  return scheduledAt.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 
 export const isSameDay = (a: Date, b: Date) =>

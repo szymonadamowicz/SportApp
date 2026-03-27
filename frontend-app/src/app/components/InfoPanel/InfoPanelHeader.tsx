@@ -7,21 +7,24 @@ export function InfoPanelHeader({
   outerButton,
   showButton,
   secondaryButton,
+  actions,
 }: InfoPanelHeaderProps) {
   return (
-    <div className="flex items-start justify-between gap-4 mb-5">
-      <div className="space-y-1">
-        <h3 className="text-[var(--text-primary)] text-xl md:text-2xl font-semibold">
+    <div className="mb-4 flex flex-col gap-4 sm:mb-5 sm:flex-row sm:items-start sm:justify-between">
+      <div className="min-w-0 space-y-1">
+        <h3 className="break-words text-lg font-semibold leading-tight text-[var(--text-primary)] sm:text-xl md:text-2xl">
           {title}
         </h3>
         {desc && (
-          <p className="text-xs md:text-sm text-[var(--text-secondary)]">
+          <p className="text-xs leading-relaxed text-[var(--text-secondary)] md:text-sm">
             {desc}
           </p>
         )}
       </div>
 
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="grid w-full shrink-0 grid-cols-1 items-stretch gap-2 min-[420px]:grid-cols-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:justify-end sm:gap-3">
+        {actions && <div className="col-span-full sm:contents">{actions}</div>}
+
         {outerButton && (
           <InfoPanelAnchor
             label={outerButton.label}
@@ -34,17 +37,15 @@ export function InfoPanelHeader({
             type="button"
             onClick={secondaryButton.onClick}
             className="
+              rf-btn-secondary
+              rf-action-button
               rounded-lg
-              border border-[rgba(34,197,94,0.35)]
-              bg-[rgba(34,197,94,0.08)]
-              px-4 py-2
+              min-h-11 w-full px-4 py-2 sm:w-auto sm:flex-none
               text-sm font-semibold
-              text-[var(--accent)]
               shadow-[0_10px_24px_rgba(0,0,0,0.35)]
-              hover:bg-[rgba(34,197,94,0.14)]
-              hover:border-[rgba(34,197,94,0.55)]
               active:scale-[0.99]
               transition
+              cursor-pointer
             "
           >
             {secondaryButton.label}
@@ -56,16 +57,14 @@ export function InfoPanelHeader({
             type="button"
             onClick={showButton.onClick}
             className="
+              rf-btn-primary
+              rf-action-button
               rounded-lg
-              px-4 py-2
+              min-h-11 w-full px-4 py-2 sm:w-auto sm:flex-none
               text-sm font-semibold
-              text-[var(--bg-main)]
-              bg-[linear-gradient(180deg,#22c55e,#16a34a)]
-              shadow-[0_12px_30px_rgba(34,197,94,0.22)]
-              hover:shadow-[0_16px_44px_rgba(34,197,94,0.32)]
-              hover:brightness-95
               active:scale-[0.99]
               transition
+              cursor-pointer
             "
           >
             {showButton.label}

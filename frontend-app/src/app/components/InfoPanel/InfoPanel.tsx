@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import clsx from "clsx";
 import {
   panelClass,
@@ -16,12 +17,16 @@ export default function InfoPanel({
   outerButton,
   showButton,
   secondaryButton,
+  actions,
   progress,
   layout = "column",
   maxPerRow = 3,
   children,
 }: InfoPanelProps) {
   const isGrid = layout === "row";
+  const gridStyle = {
+    "--rf-max-per-row": maxPerRow,
+  } as CSSProperties;
 
   return (
     <section className={panelClass}>
@@ -31,19 +36,14 @@ export default function InfoPanel({
         outerButton={outerButton}
         showButton={showButton}
         secondaryButton={secondaryButton}
+        actions={actions}
       />
 
       {typeof progress === "number" && <InfoPanelProgress value={progress} />}
 
       <div
         className={clsx(isGrid ? gridWrapper : columnWrapper)}
-        style={
-          isGrid
-            ? {
-                gridTemplateColumns: `repeat(${maxPerRow}, minmax(0,1fr))`,
-              }
-            : undefined
-        }
+        style={isGrid ? gridStyle : undefined}
       >
         {children}
       </div>

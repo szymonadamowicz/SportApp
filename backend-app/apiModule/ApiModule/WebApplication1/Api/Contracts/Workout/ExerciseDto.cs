@@ -2,6 +2,7 @@
 
 public record ExerciseDto(
     Guid Id,
+    int OrderIndex,
     string? Name,
     int? Sets,
     int? Reps,

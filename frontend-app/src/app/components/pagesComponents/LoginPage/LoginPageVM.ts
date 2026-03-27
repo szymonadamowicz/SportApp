@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/auth/useAuth";
 import { LoginMode } from "@/types/login/login";
+import { ApiRequestError, getFriendlyErrorMessage } from "@/api/apiError";
 
 export const useLoginPageVM = () => {
   const auth = useAuth();
@@ -20,6 +21,7 @@ export const useLoginPageVM = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const canSubmit = isLogin
     ? login.trim().length > 0 && password.length > 0
@@ -43,6 +45,7 @@ export const useLoginPageVM = () => {
     if (!canSubmit || isSubmitting) return;
 
     setError(null);
+    setSuccessMessage(null);
     setIsSubmitting(true);
 
     try {
@@ -52,7 +55,8 @@ export const useLoginPageVM = () => {
           password,
         });
 
-        router.replace("/dashboard");
+        setSuccessMessage("Login successful. Redirecting...");
+        setTimeout(() => router.replace("/dashboard"), 700);
         return;
       }
 
@@ -67,12 +71,20 @@ export const useLoginPageVM = () => {
         repeatPassword: confirmPassword,
       });
 
-      router.replace("/dashboard");
+      setSuccessMessage("Account created. Redirecting...");
+      setTimeout(() => router.replace("/dashboard"), 700);
     } catch (e) {
       if (isLogin) {
         setError("Invalid login or password.");
       } else {
-        setError("Account could not be created. Login may already exist." + e);
+        setError(
+          e instanceof ApiRequestError && e.status === 401
+            ? "Account could not be created. Login may already exist."
+            : getFriendlyErrorMessage(
+                e,
+                "Account could not be created. Login may already exist.",
+              ),
+        );
       }
     } finally {
       setIsSubmitting(false);
@@ -97,5 +109,6 @@ export const useLoginPageVM = () => {
     isSubmitting,
 
     error,
+    successMessage,
   };
 };

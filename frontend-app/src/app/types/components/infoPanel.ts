@@ -1,13 +1,3 @@
-export interface DraftExercise {
-  id: string;
-  name: string;
-  sets: string;
-  reps: string;
-  weight: string;
-  restTimeSec: string;
-  muscleGroups: string;
-}
-
 export interface InfoPanelActionProps {
   label: string;
   onClick: () => void;
@@ -25,6 +15,7 @@ export interface InfoPanelHeaderProps {
     label: string;
     onClick: () => void;
   };
+  actions?: React.ReactNode;
 }
 
 export interface InfoPanelProps {
@@ -40,14 +31,8 @@ export interface InfoPanelProps {
     label: string;
     onClick: () => void;
   };
+  actions?: React.ReactNode;
 }
-
-export type InfoPanelItemCardProps = {
-  dimmed?: boolean;
-  clickable?: boolean;
-  onClick?: () => void;
-  children: React.ReactNode;
-};
 
 export type TipItemTone = "positive" | "neutral" | "warning";
 

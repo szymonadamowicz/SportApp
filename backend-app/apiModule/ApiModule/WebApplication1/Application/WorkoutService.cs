@@ -29,6 +29,7 @@ public sealed class WorkoutService
     public async Task<Workout?> UpdateStructureAsync(
         Guid workoutId,
         string title,
+        List<string> muscleGroups,
         List<Exercise> incoming,
         CancellationToken ct)
     {
@@ -36,13 +37,18 @@ public sealed class WorkoutService
         if (workout is null) return null;
 
         workout.Title = title;
+        workout.MuscleGroups = muscleGroups;
 
         var existing = workout.Exercises.ToDictionary(e => e.Id);
 
-        foreach (var inc in incoming)
+        for (var index = 0; index < incoming.Count; index++)
         {
+            var inc = incoming[index];
+            inc.OrderIndex = index;
+
             if (existing.TryGetValue(inc.Id, out var tracked))
             {
+                tracked.OrderIndex = index;
                 tracked.Name = inc.Name;
                 tracked.Sets = inc.Sets;
                 tracked.Reps = inc.Reps;
@@ -57,6 +63,9 @@ public sealed class WorkoutService
 
         var incomingIds = incoming.Select(e => e.Id).ToHashSet();
         workout.Exercises.RemoveAll(e => !incomingIds.Contains(e.Id));
+        workout.Exercises = workout.Exercises
+            .OrderBy(e => e.OrderIndex)
+            .ToList();
 
         await _repo.UpdateAsync(workout, ct);
         return workout;
@@ -75,8 +84,7 @@ public sealed class WorkoutService
         if (scheduledAt.HasValue)
             workout.ScheduledAt = scheduledAt.Value;
 
-        if (completedAt.HasValue)
-            workout.CompletedAt = completedAt.Value;
+        workout.CompletedAt = completedAt;
 
         workout.PerceivedLoad = perceivedLoad;
 

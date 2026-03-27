@@ -25,5 +25,6 @@ export const useWorkouts = () => {
     allWorkouts: query.data ?? [],
     isLoading: query.isLoading,
     isError: query.isError,
+    error: query.error,
   };
 };

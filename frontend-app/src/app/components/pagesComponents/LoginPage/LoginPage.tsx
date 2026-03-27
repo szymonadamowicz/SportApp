@@ -10,28 +10,17 @@ export default function LoginPage() {
   const vm = useLoginPageVM();
 
   return (
-    <div className="min-h-screen app-bg flex items-center justify-center px-6 relative overflow-hidden">
+    <div className="rf-page-radial relative flex min-h-dvh items-center justify-center overflow-hidden px-4 py-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
       <div
-        className="absolute inset-0 -z-10"
+        className="fade-in rf-surface-panel relative w-full max-w-md rounded-2xl p-5 sm:p-8"
         style={{
-          background:
-            "radial-gradient(70% 50% at 50% 0%, rgba(34,197,94,0.22), transparent 70%), radial-gradient(60% 55% at 15% 25%, rgba(56,189,248,0.12), transparent 65%), radial-gradient(55% 55% at 85% 35%, rgba(250,204,21,0.08), transparent 65%)",
-        }}
-      />
-
-      <div
-        className="w-full max-w-md rounded-2xl p-8 relative fade-in"
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(26,31,36,0.96), rgba(19,23,27,0.94))",
-          border: "1px solid rgba(34,197,94,0.22)",
           boxShadow:
             "0 40px 100px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04)",
         }}
       >
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm text-muted hover:text-[var(--accent)] transition-colors mb-6"
+          className="mb-6 inline-flex min-h-10 items-center gap-2 text-sm text-muted transition-colors hover:text-[var(--accent)]"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to landing
@@ -53,7 +42,7 @@ export default function LoginPage() {
 
         <div className="flex justify-center mb-8">
           <div
-            className="relative grid grid-cols-2 rounded-xl p-1 w-full max-w-xs overflow-hidden"
+            className="relative grid w-full max-w-xs grid-cols-2 overflow-hidden rounded-xl p-1"
             style={{
               background: "rgba(15,18,22,0.95)",
               boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.05)",
@@ -71,7 +60,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={vm.switchToLogin}
-              className={`relative z-10 h-10 text-sm font-semibold transition-colors ${
+              className={`relative z-10 h-10 text-sm font-semibold transition-colors cursor-pointer ${
                 vm.isLogin ? "text-black" : "text-muted"
               }`}
             >
@@ -81,7 +70,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={vm.switchToRegister}
-              className={`relative z-10 h-10 text-sm font-semibold transition-colors ${
+              className={`relative z-10 h-10 text-sm font-semibold transition-colors cursor-pointer ${
                 vm.isRegister ? "text-black" : "text-muted"
               }`}
             >
@@ -126,14 +115,16 @@ export default function LoginPage() {
 
           <FitnessButton
             type="submit"
-            className="w-full h-12 mt-6 text-black font-semibold"
-            style={{
-              background: "linear-gradient(135deg, #22c55e, #4ade80)",
-              boxShadow: "0 12px 40px rgba(34,197,94,0.45)",
-            }}
+            className="mt-6 h-12 w-full font-semibold active:scale-95"
+            variant="primary"
           >
             {vm.isLogin ? "Log in" : "Create account"}
           </FitnessButton>
+          {vm.successMessage && (
+            <div className="mt-3 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--accent)]">
+              {vm.successMessage}
+            </div>
+          )}
           {vm.error && <p className="text-sm mt-2 text-red-400">{vm.error}</p>}
         </form>
       </div>

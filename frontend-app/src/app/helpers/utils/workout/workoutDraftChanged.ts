@@ -6,6 +6,7 @@ import {
 
 export const toDraftExercise = (ex: Exercise): DraftExercise => ({
   id: ex.id,
+  orderIndex: ex.orderIndex,
   name: ex.name,
   sets: (ex.sets),
   reps: (ex.reps),

@@ -26,6 +26,7 @@ export const patchWorkoutMetaApi = (workout: Workout): Promise<WorkoutDTO> =>
 export const putWorkoutStructureApi = (workout: Workout): Promise<WorkoutDTO> =>
   impl.putWorkoutStructure(workout.id, {
     title: workout.title,
+    muscleGroups: workout.muscleGroups ?? [],
     exercises: workout.exercises.map((e) => ({
       id: e.id,
       name: e.name,
@@ -35,3 +36,6 @@ export const putWorkoutStructureApi = (workout: Workout): Promise<WorkoutDTO> =>
       restTimeSec: e.restTimeSec ?? 0,
     })),
   });
+
+export const deleteWorkoutApi = (id: string): Promise<boolean> =>
+  impl.deleteWorkout(id);

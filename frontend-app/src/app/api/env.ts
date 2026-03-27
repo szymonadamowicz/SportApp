@@ -1,4 +1,4 @@
-type ApiMode = "mock" | "real";
+import { ApiMode } from "@/types/api/env";
 
 const DEFAULT_API_MODE: ApiMode = "real";
 

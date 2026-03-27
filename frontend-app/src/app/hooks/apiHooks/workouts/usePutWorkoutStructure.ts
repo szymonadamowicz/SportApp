@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { workoutsKeys } from "@/api/keys/workouts.keys";
 import { putWorkoutStructureApi } from "@/api/workouts.api";
 import { Workout } from "@/types/workout/workout";
-import { Ctx } from "@/types/components/cts";
+import { Ctx } from "@/types/components/ctx";
 
 export const usePutWorkoutStructure = () => {
   const queryClient = useQueryClient();

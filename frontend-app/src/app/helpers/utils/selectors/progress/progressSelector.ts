@@ -69,13 +69,11 @@ const formatVolume = (n: number): string => {
 export const buildProgressAchievements = (
   all?: Progress,
   week?: Progress,
-  weeklyStats?: WeeklyStats,
+  preferWeekPrs = false,
 ): ProgressAchievements[] => {
   if (!all) return [];
 
   const weekStats = week?.stats;
-  const weekLabel =
-    weeklyStats ? `${weeklyStats.completed}/${weeklyStats.planned} sessions` : undefined;
 
   const items: ProgressAchievements[] = [
     {
@@ -118,13 +116,14 @@ export const buildProgressAchievements = (
       id: "streak",
       title: "Streak",
       value: `${all.streak.current} day${all.streak.current === 1 ? "" : "s"}`,
+      valueWeek: `${all.streak.current} day${all.streak.current === 1 ? "" : "s"}`,
       context: "info",
       subLabel: `Longest: ${all.streak.longest}`,
-      subLabelWeek: weekLabel,
+      subLabelWeek: `Longest: ${all.streak.longest}`,
     },
   ];
 
-  const prs = (week?.prs ?? all.prs).slice(0, 6);
+  const prs = (preferWeekPrs && week ? week.prs : all.prs).slice(0, 6);
   for (const pr of prs) {
     items.push({
       id: `pr-${pr.exerciseName}`,

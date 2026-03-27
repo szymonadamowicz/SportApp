@@ -1,17 +1,10 @@
 import { httpClient } from "@/api/httpClient";
 import { WorkoutDTO } from "@/types/workout/workoutDTO";
 import { CreateWorkoutPayload } from "@/types/workout/workout";
-
-type UpdateWorkoutMetaDto = {
-  scheduledAt?: string | null;
-  completedAt?: string | null;
-  perceivedLoad?: string | null;
-};
-
-type UpdateWorkoutStructureDto = {
-  title: string;
-  exercises: WorkoutDTO["exercises"];
-};
+import {
+  UpdateWorkoutMetaDto,
+  UpdateWorkoutStructureDto,
+} from "@/types/workout/workoutApi";
 
 export const workoutsReal = {
   fetchWorkouts(): Promise<WorkoutDTO[]> {
@@ -47,6 +40,12 @@ export const workoutsReal = {
     return httpClient<WorkoutDTO>(`/workouts/${id}`, {
       method: "PUT",
       body: dto,
+    });
+  },
+
+  deleteWorkout(id: string): Promise<boolean> {
+    return httpClient<boolean>(`/workouts/${id}`, {
+      method: "DELETE",
     });
   },
 };

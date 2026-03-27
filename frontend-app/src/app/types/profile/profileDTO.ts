@@ -8,6 +8,7 @@ export type UpdateProfileDTO = Partial<
   Pick<ProfileDTO, "name" | "email" | "birthDate">
 >;
 
+export type ProfilesDb = Record<string, ProfileDTO>;
 
 export type ChangePasswordDTO = {
   currentPassword: string;

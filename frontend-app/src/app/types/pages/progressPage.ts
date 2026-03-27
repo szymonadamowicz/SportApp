@@ -14,11 +14,6 @@ export type ProgressPRListItemProps = {
   diff?: string;
 };
 
-export type ProgressActivityPanelProps = {
-  streak: number;
-  consistency: "low" | "medium" | "high";
-};
-
 export type ProgressQualityTipItemProps = {
   label: string;
   value: string;
@@ -60,3 +55,28 @@ export type ProgressLastSessionFeedbackProps = {
   disableButtons?: boolean;
   onSelect?: (value: FeedbackValue) => void;
 };
+
+export type ProgressLastSessionView =
+  | {
+      kind: "available";
+      feedbackLabel: string;
+      streak: number;
+      onSelect: (value: FeedbackValue) => void;
+    }
+  | {
+      kind: "submitted";
+    }
+  | {
+      kind: "seen";
+      label: string;
+      streak: number;
+      disableButtons: true;
+    }
+  | {
+      kind: "none";
+      empty: {
+        icon: string;
+        title: string;
+        description: string;
+      };
+    };

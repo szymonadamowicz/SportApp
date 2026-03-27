@@ -34,7 +34,7 @@ export function CreateWorkoutModal({
       {open && (
         <motion.div
           key="overlay"
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/45 backdrop-blur-sm sm:items-center sm:p-4"
           variants={overlay}
           initial="hidden"
           animate="visible"
@@ -50,17 +50,17 @@ export function CreateWorkoutModal({
             animate="visible"
             exit="exit"
             className="
-  relative w-full max-w-xl md:max-w-2xl rounded-3xl
-  border border-borderSoft
-  shadow-2xl overflow-hidden
-  bg-[linear-gradient(180deg,#13171b,#0c0f12)]
-"
+              relative flex max-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-xl flex-col
+              overflow-hidden rounded-t-3xl border border-borderSoft
+              bg-[linear-gradient(180deg,#13171b,#0c0f12)] shadow-2xl
+              sm:rounded-3xl md:max-w-2xl
+            "
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-8 py-5 border-b border-borderSoft">
-              <div className="flex items-center gap-2">
+            <div className="shrink-0 flex items-center justify-between gap-4 border-b border-borderSoft px-5 py-4 sm:px-8 sm:py-5">
+              <div className="flex min-w-0 items-center gap-2">
                 <Dumbbell className="h-5 w-5 text-accent" />
-                <h2 className="text-lg font-semibold text-textPrimary">
+                <h2 className="truncate text-base font-semibold text-textPrimary sm:text-lg">
                   {isEditMode ? "Edit training" : "Create new training"}
                 </h2>
               </div>
@@ -70,7 +70,7 @@ export function CreateWorkoutModal({
               </IconButton>
             </div>
 
-            <div className="px-8 py-6 space-y-8 max-h-[65vh] overflow-y-auto">
+            <div className="rf-mobile-scroll flex-1 space-y-6 overflow-y-auto px-5 py-5 sm:max-h-[65vh] sm:space-y-8 sm:px-8 sm:py-6">
               <Field
                 label="Training name"
                 hint={
@@ -172,13 +172,13 @@ export function CreateWorkoutModal({
                           ))}
                         </div>
 
-                        <div className="flex justify-between items-center border-t border-borderSoft px-3 py-2.5 bg-bgMain/20">
+                        <div className="flex flex-col gap-2 border-t border-borderSoft bg-bgMain/20 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
                           <button
                             type="button"
                             onClick={vm.addCustomMuscle}
                             disabled={!vm.muscleInput.trim()}
                             className={clsx(
-                              "inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold transition border-2",
+                              "inline-flex min-h-10 items-center justify-center gap-1 rounded-full px-4 py-2 text-sm font-semibold transition border-2",
                               !vm.muscleInput.trim()
                                 ? "bg-bgHighlight/50 text-textMuted/50 border-borderSoft/40 cursor-not-allowed"
                                 : "bg-[rgba(34,197,94,1)] text-[rgb(10,15,20)] border-[rgba(34,197,94,1)] hover:bg-[rgba(34,197,94,0.88)] hover:border-[rgba(34,197,94,0.88)] cursor-pointer",
@@ -192,7 +192,7 @@ export function CreateWorkoutModal({
                             onClick={vm.confirmAddMuscles}
                             disabled={vm.tempSelected.length === 0}
                             className={clsx(
-                              "inline-flex items-center gap-1 rounded-full px-5 py-2 text-sm font-semibold transition border-2",
+                              "inline-flex min-h-10 items-center justify-center gap-1 rounded-full px-5 py-2 text-sm font-semibold transition border-2",
                               vm.tempSelected.length === 0
                                 ? "bg-bgHighlight/50 text-textMuted/50 border-borderSoft/40 cursor-not-allowed"
                                 : "bg-[rgba(34,197,94,1)] text-[rgb(10,15,20)] border-[rgba(34,197,94,1)] hover:bg-[rgba(34,197,94,0.88)] hover:border-[rgba(34,197,94,0.88)] cursor-pointer",
@@ -211,7 +211,7 @@ export function CreateWorkoutModal({
                 label="Schedule"
                 hint="Choose when this training takes place"
               >
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <input
                       type="date"
@@ -266,127 +266,265 @@ export function CreateWorkoutModal({
                 </div>
               </Field>
 
+              {isEditMode && (
+                <Field
+                  label="Completion"
+                  hint="Optionally mark this training as completed"
+                >
+                  <label className="inline-flex items-center gap-3 text-sm text-textPrimary">
+                    <input
+                      type="checkbox"
+                      checked={vm.isCompleted}
+                      onChange={(e) => vm.setIsCompleted(e.target.checked)}
+                      className="h-4 w-4 rounded border-borderSoft bg-bgCard text-accent"
+                    />
+                    Mark this training as completed
+                  </label>
+
+                  <AnimatePresence initial={false}>
+                    {vm.isCompleted && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.14 }}
+                        className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2"
+                      >
+                        <div>
+                          <input
+                            type="date"
+                            className={clsx(
+                              inputClass,
+                              vm.errors.completedDate && inputErrorClass,
+                            )}
+                            value={vm.completedDate}
+                            onChange={(e) =>
+                              vm.setCompletedDate(e.target.value)
+                            }
+                          />
+                          <AnimatePresence>
+                            {vm.errors.completedDate && (
+                              <motion.p
+                                key="completed-date-error"
+                                className={errorHintClass}
+                                initial={{ opacity: 0, y: -3 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -3 }}
+                                transition={{ duration: 0.14 }}
+                              >
+                                {vm.errors.completedDate}
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
+                        </div>
+
+                        <div>
+                          <input
+                            type="time"
+                            className={clsx(
+                              inputClass,
+                              vm.errors.completedTime && inputErrorClass,
+                            )}
+                            value={vm.completedTime}
+                            onChange={(e) =>
+                              vm.setCompletedTime(e.target.value)
+                            }
+                          />
+                          <AnimatePresence>
+                            {vm.errors.completedTime && (
+                              <motion.p
+                                key="completed-time-error"
+                                className={errorHintClass}
+                                initial={{ opacity: 0, y: -3 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -3 }}
+                                transition={{ duration: 0.14 }}
+                              >
+                                {vm.errors.completedTime}
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </Field>
+              )}
+
               <Field label="Exercises" hint="Add one or more exercises">
                 <div className="space-y-5">
-                  {vm.exercises.map((ex, index) => (
-                    <div
-                      key={ex.id}
-                      className="
-                        rounded-xl
-                        border border-borderSoft/70
-                        bg-bgHighlight/20
-                        p-4 space-y-4
-                      "
-                    >
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-textSecondary">
-                          Exercise {index + 1}
-                        </p>
-                        <IconButton
-                          onClick={() => vm.removeExercise(ex.id)}
-                          danger
-                        >
-                          <X size={14} />
-                        </IconButton>
-                      </div>
+                  {vm.exercises.map((ex, index) => {
+                    const fieldErrors = vm.errors.exerciseFields?.[ex.id];
 
-                      <div className="space-y-1">
-                        <SmallLabel>Name</SmallLabel>
-                        <input
-                          className={clsx(
-                            exerciseNameInputClass,
-                            "py-2 text-sm",
-                          )}
-                          value={ex.name}
-                          onChange={(e) =>
-                            vm.updateExercise(ex.id, { name: e.target.value })
-                          }
-                        />
-                      </div>
-
+                    return (
                       <div
+                        key={ex.id}
                         className="
-                          grid items-center gap-3
-                          [grid-template-columns:115px_20px_115px_20px_115px_115px]
+                          rounded-xl
+                          border border-borderSoft/70
+                          bg-bgHighlight/20
+                          p-4 space-y-4
                         "
                       >
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium text-textSecondary">
+                            Exercise {index + 1}
+                          </p>
+                          <IconButton
+                            onClick={() => vm.removeExercise(ex.id)}
+                            danger
+                          >
+                            <X size={14} />
+                          </IconButton>
+                        </div>
+
                         <div className="space-y-1">
-                          <SmallLabel>Sets*</SmallLabel>
+                          <SmallLabel>Name</SmallLabel>
                           <input
-                            className={inlineInputClass}
-                            value={ex.sets || ""}
+                            className={clsx(
+                              exerciseNameInputClass,
+                              fieldErrors?.name && inputErrorClass,
+                              "py-2 text-sm",
+                            )}
+                            value={ex.name}
                             onChange={(e) =>
-                              vm.updateExercise(ex.id, {
-                                sets:
-                                  Number(
-                                    e.target.value.replace(/[^\d]/g, ""),
-                                  ) || 0,
-                              })
+                              vm.updateExercise(ex.id, { name: e.target.value })
                             }
                           />
+                          <AnimatePresence>
+                            {fieldErrors?.name && (
+                              <motion.p
+                                key={`exercise-name-error-${ex.id}`}
+                                className={errorHintClass}
+                                initial={{ opacity: 0, y: -3 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -3 }}
+                                transition={{ duration: 0.14 }}
+                              >
+                                {fieldErrors.name}
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
                         </div>
 
-                        <span className="flex items-center justify-center text-textMuted text-sm pt-[24px]">
-                          ×
-                        </span>
+                        <div
+                          className="
+                          grid items-start gap-3
+                          grid-cols-2 sm:[grid-template-columns:115px_20px_115px_20px_115px_115px]
+                        "
+                        >
+                          <div className="space-y-1">
+                            <SmallLabel>Sets*</SmallLabel>
+                            <input
+                              className={clsx(
+                                inlineInputClass,
+                                fieldErrors?.sets && inputErrorClass,
+                              )}
+                              value={ex.sets || ""}
+                              onChange={(e) =>
+                                vm.updateExercise(ex.id, {
+                                  sets:
+                                    Number(
+                                      e.target.value.replace(/[^\d]/g, ""),
+                                    ) || 0,
+                                })
+                              }
+                            />
+                            <AnimatePresence>
+                              {fieldErrors?.sets && (
+                                <motion.p
+                                  key={`exercise-sets-error-${ex.id}`}
+                                  className={errorHintClass}
+                                  initial={{ opacity: 0, y: -3 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -3 }}
+                                  transition={{ duration: 0.14 }}
+                                >
+                                  {fieldErrors.sets}
+                                </motion.p>
+                              )}
+                            </AnimatePresence>
+                          </div>
 
-                        <div className="space-y-1">
-                          <SmallLabel>Reps*</SmallLabel>
-                          <input
-                            className={inlineInputClass}
-                            value={ex.reps || ""}
-                            onChange={(e) =>
-                              vm.updateExercise(ex.id, {
-                                reps:
-                                  Number(
-                                    e.target.value.replace(/[^\d]/g, ""),
-                                  ) || 0,
-                              })
-                            }
-                          />
-                        </div>
+                          <span className="hidden items-center justify-center pt-[24px] text-sm text-textMuted sm:flex">
+                            x
+                          </span>
 
-                        <span className="flex items-center justify-center text-textMuted text-sm pt-[24px]">
-                          @
-                        </span>
+                          <div className="space-y-1">
+                            <SmallLabel>Reps*</SmallLabel>
+                            <input
+                              className={clsx(
+                                inlineInputClass,
+                                fieldErrors?.reps && inputErrorClass,
+                              )}
+                              value={ex.reps || ""}
+                              onChange={(e) =>
+                                vm.updateExercise(ex.id, {
+                                  reps:
+                                    Number(
+                                      e.target.value.replace(/[^\d]/g, ""),
+                                    ) || 0,
+                                })
+                              }
+                            />
+                            <AnimatePresence>
+                              {fieldErrors?.reps && (
+                                <motion.p
+                                  key={`exercise-reps-error-${ex.id}`}
+                                  className={errorHintClass}
+                                  initial={{ opacity: 0, y: -3 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -3 }}
+                                  transition={{ duration: 0.14 }}
+                                >
+                                  {fieldErrors.reps}
+                                </motion.p>
+                              )}
+                            </AnimatePresence>
+                          </div>
 
-                        <div className="space-y-1">
-                          <SmallLabel>Weight</SmallLabel>
-                          <input
-                            className={inlineInputClass}
-                            value={ex.weight ?? ""}
-                            onChange={(e) => {
-                              const v = e.target.value.replace(/[^\d]/g, "");
-                              vm.updateExercise(ex.id, {
-                                weight: v ? Number(v) : undefined,
-                              });
-                            }}
-                          />
-                        </div>
+                          <span className="hidden items-center justify-center pt-[24px] text-sm text-textMuted sm:flex">
+                            @
+                          </span>
 
-                        <div className="space-y-1">
-                          <SmallLabel>Rest (s)</SmallLabel>
-                          <input
-                            className={inlineInputClass}
-                            value={ex.restTimeSec ?? ""}
-                            onChange={(e) => {
-                              const v = e.target.value.replace(/[^\d]/g, "");
-                              vm.updateExercise(ex.id, {
-                                restTimeSec: v ? Number(v) : undefined,
-                              });
-                            }}
-                          />
+                          <div className="space-y-1">
+                            <SmallLabel>Weight (kg)</SmallLabel>
+                            <input
+                              className={inlineInputClass}
+                              value={ex.weight ?? ""}
+                              onChange={(e) => {
+                                const v = e.target.value.replace(/[^\d]/g, "");
+                                vm.updateExercise(ex.id, {
+                                  weight: v ? Number(v) : undefined,
+                                });
+                              }}
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <SmallLabel>Rest (s)</SmallLabel>
+                            <input
+                              className={inlineInputClass}
+                              value={ex.restTimeSec ?? ""}
+                              onChange={(e) => {
+                                const v = e.target.value.replace(/[^\d]/g, "");
+                                vm.updateExercise(ex.id, {
+                                  restTimeSec: v ? Number(v) : undefined,
+                                });
+                              }}
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
 
                   <button
                     type="button"
                     onClick={vm.addExercise}
                     className={clsx(
                       `
-      inline-flex items-center gap-2
+      inline-flex min-h-11 w-full items-center justify-center gap-2 sm:w-auto
       rounded-full
       px-4 py-2 text-sm font-medium
 
@@ -432,30 +570,40 @@ export function CreateWorkoutModal({
                   initial="hidden"
                   animate="visible"
                   exit="exit"
-                  className="fixed top-6 left-1/2 -translate-x-1/2 z-[10000] rounded-xl bg-bgHighlight px-5 py-2 text-sm text-textPrimary shadow-lg border border-borderSoft"
+                  className="fixed left-4 right-4 top-[calc(1rem+env(safe-area-inset-top))] z-[10000] rounded-xl border border-borderSoft bg-bgHighlight px-5 py-2 text-center text-sm text-textPrimary shadow-lg sm:left-1/2 sm:right-auto sm:-translate-x-1/2"
                 >
                   Please complete all required fields
                 </motion.div>
               )}
             </AnimatePresence>
 
+            {vm.submitError && (
+              <div className="shrink-0 border-t border-danger/15 px-5 pt-3 sm:px-8">
+                <p className="rounded-xl border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger">
+                  {vm.submitError}
+                </p>
+              </div>
+            )}
+
             <div
               className="
-    flex justify-end gap-4 px-8 py-5 border-t border-borderSoft
-    bg-[linear-gradient(180deg,rgba(19,23,27,0.35),rgba(19,23,27,0.75))]
-  "
+                shrink-0 flex flex-col-reverse gap-3 border-t border-borderSoft
+                bg-[linear-gradient(180deg,rgba(19,23,27,0.35),rgba(19,23,27,0.75))]
+                px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:flex-row sm:justify-end sm:gap-4 sm:px-8 sm:py-5
+              "
             >
               <button
                 type="button"
                 onClick={onClose}
+                disabled={vm.isSaving}
                 className="
-  rounded-full px-5 py-2 text-sm font-semibold
+  min-h-11 w-full rounded-full px-5 py-2 text-sm font-semibold sm:w-auto
   border border-borderSoft
   bg-bgCard/80
   text-textSecondary
   hover:text-textPrimary
-  hover:bg-bgCard-elevated
-  hover:border-border-strong
+  hover:bg-bgCardElevated
+  hover:border-borderStrong
   transition
 "
               >
@@ -465,8 +613,9 @@ export function CreateWorkoutModal({
               <button
                 type="button"
                 onClick={vm.createOrUpdateWorkout}
+                disabled={vm.isSaving}
                 className="
-  rounded-full px-6 py-2 text-sm font-semibold
+  min-h-11 w-full rounded-full px-6 py-2 text-sm font-semibold sm:w-auto
   text-bgMain
   bg-[linear-gradient(180deg,#22c55e,#16a34a)]
   shadow-[0_10px_30px_rgba(34,197,94,0.22)]
@@ -476,7 +625,11 @@ export function CreateWorkoutModal({
   transition
 "
               >
-                {isEditMode ? "Save changes" : "Create training"}
+                {vm.isSaving
+                  ? "Saving..."
+                  : isEditMode
+                    ? "Save changes"
+                    : "Create training"}
               </button>
             </div>
           </motion.div>

@@ -2,6 +2,7 @@ import { FeedbackValue } from "../pages/progressPage";
 
 export interface ExerciseDTO {
   id: string;
+  orderIndex?: number;
   name: string;
   sets: number;
   reps: number;
