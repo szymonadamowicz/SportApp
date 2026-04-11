@@ -19,11 +19,6 @@ export const workoutsRepository = {
     return deepClone(state);
   },
 
-  getById(id: string): WorkoutDTO | null {
-    const workout = state.find((entry) => entry.id === id);
-    return workout ? deepClone(workout) : null;
-  },
-
   getLastCompleted(): WorkoutDTO | null {
     const completed = state.filter((workout) => workout.completedAt);
     if (completed.length === 0) return null;
@@ -54,24 +49,11 @@ export const workoutsRepository = {
     },
   ): WorkoutDTO {
     const index = requireIndex(id);
-    const hasScheduledAt = Object.prototype.hasOwnProperty.call(
-      patch,
-      "scheduledAt",
-    );
-    const hasCompletedAt = Object.prototype.hasOwnProperty.call(
-      patch,
-      "completedAt",
-    );
 
     state[index] = {
       ...state[index],
-      scheduledAt:
-        hasScheduledAt && patch.scheduledAt
-          ? patch.scheduledAt
-          : state[index].scheduledAt,
-      completedAt: hasCompletedAt
-        ? patch.completedAt
-        : state[index].completedAt,
+      scheduledAt: patch.scheduledAt ?? state[index].scheduledAt,
+      completedAt: patch.completedAt ?? state[index].completedAt,
       perceivedLoad:
         patch.perceivedLoad !== undefined
           ? patch.perceivedLoad

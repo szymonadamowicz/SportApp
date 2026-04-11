@@ -13,16 +13,12 @@ public static class WorkoutMapper
             workout.CompletedAt,
             workout.PerceivedLoad,
             workout.MuscleGroups?.ToArray() ?? [],
-            workout.Exercises
-                .OrderBy(e => e.OrderIndex)
-                .Select(ToDto)
-                .ToList()
+            workout.Exercises.Select(ToDto).ToList()
         );
 
     public static ExerciseDto ToDto(Exercise e)
         => new(
             e.Id,
-            e.OrderIndex,
             e.Name,
             e.Sets,
             e.Reps,
@@ -39,16 +35,13 @@ public static class WorkoutMapper
             CompletedAt = null,
             PerceivedLoad = null,
             MuscleGroups = dto.MuscleGroups?.ToList() ?? [],
-            Exercises = dto.Exercises
-                .Select((exercise, index) => ToDomain(exercise, index))
-                .ToList()
+            Exercises = dto.Exercises.Select(ToDomain).ToList()
         };
 
-    public static Exercise ToDomain(CreateExerciseDto dto, int orderIndex = 0)
+    public static Exercise ToDomain(CreateExerciseDto dto)
         => new()
         {
             Id = Guid.NewGuid(),
-            OrderIndex = dto.OrderIndex ?? orderIndex,
             Name = dto.Name ?? string.Empty,
             Sets = dto.Sets ?? 0,
             Reps = dto.Reps ?? 0,
@@ -60,7 +53,6 @@ public static class WorkoutMapper
         => new()
         {
             Id = dto.Id,
-            OrderIndex = dto.OrderIndex,
             Name = dto.Name ?? string.Empty,
             Sets = dto.Sets ?? 0,
             Reps = dto.Reps ?? 0,

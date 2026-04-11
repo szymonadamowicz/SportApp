@@ -117,25 +117,6 @@ describe("workoutsMock adapter", () => {
     expect(result.completedAt).toBe("2026-04-03T10:00:00.000Z");
   });
 
-  it("delegates patchWorkoutMeta with null completedAt", async () => {
-    const patch = {
-      completedAt: null,
-      perceivedLoad: "easy" as const,
-    };
-    mockWorkoutServiceMock.patchWorkoutMeta.mockResolvedValue({
-      ...dtoWorkout,
-      ...patch,
-    });
-
-    const result = await workoutsMock.patchWorkoutMeta("w1", patch);
-
-    expect(mockWorkoutServiceMock.patchWorkoutMeta).toHaveBeenCalledWith(
-      "w1",
-      patch,
-    );
-    expect(result.completedAt).toBeNull();
-  });
-
   it("delegates putWorkoutStructure", async () => {
     const patch = {
       title: "Upper Body",

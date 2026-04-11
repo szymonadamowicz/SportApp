@@ -5,7 +5,6 @@ export type AuthUser = {
 export type AuthSession = {
   user?: AuthUser;
   accessToken: string;
-  lastActive?: number;
 };
 
 export type AuthLoginPayload = {

@@ -44,7 +44,6 @@ frontend-app/next-env.d.ts
 backend-app/assets
 backend-app/lsenv
 backend-app/venv
-backend-app/videoAnalysysModule/*.pt
 
 # .NET build artifacts
 **/bin/
@@ -56,6 +55,3 @@ backend-app/videoAnalysysModule/*.pt
 .idea/
 .vs/
 *.DotSettings.user
-
-# local assistant/editor state
-.continue/

@@ -59,17 +59,6 @@ describe("workoutsRepository", () => {
     expect(updated.perceivedLoad).toBe("balanced");
   });
 
-  it("clears completedAt when meta patch contains null", () => {
-    const target = workoutsRepository.list().find((item) => item.completedAt);
-    expect(target).toBeTruthy();
-
-    const updated = workoutsRepository.updateMeta(target!.id, {
-      completedAt: null,
-    });
-
-    expect(updated.completedAt).toBeNull();
-  });
-
   it("throws on meta update for missing workout", () => {
     expect(() =>
       workoutsRepository.updateMeta("missing", {
@@ -84,34 +73,14 @@ describe("workoutsRepository", () => {
     const updated = workoutsRepository.updateStructure(target.id, {
       title: "Updated Title",
       muscleGroups: ["back", "arms"],
-      exercises: [
-        {
-          id: "e2",
-          orderIndex: 0,
-          name: "Bench",
-          sets: 4,
-          reps: 6,
-          weight: 90,
-        },
-        {
-          id: "e3",
-          orderIndex: 1,
-          name: "Row",
-          sets: 4,
-          reps: 8,
-          weight: 70,
-        },
-      ],
+      exercises: [{ id: "e2", name: "Bench", sets: 4, reps: 6, weight: 90 }],
     });
 
     expect(updated.title).toBe("Updated Title");
     expect(updated.muscleGroups).toEqual(["back", "arms"]);
     expect(updated.mainFocus).toBe("back");
-    expect(updated.exercises).toHaveLength(2);
+    expect(updated.exercises).toHaveLength(1);
     expect(updated.exercises[0].name).toBe("Bench");
-    expect(updated.exercises[0].orderIndex).toBe(0);
-    expect(updated.exercises[1].name).toBe("Row");
-    expect(updated.exercises[1].orderIndex).toBe(1);
   });
 
   it("clears mainFocus when muscle groups are cleared", () => {

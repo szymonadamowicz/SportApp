@@ -13,7 +13,6 @@ import { Workout } from "@/types/workout/workout";
 import { isValidExercise } from "@/helpers/utils/workout/workoutDraftValidateExercise";
 import { usePutWorkoutStructure } from "@/hooks/apiHooks/workouts/usePutWorkoutStructure";
 import { usePatchWorkoutMeta } from "@/hooks/apiHooks/workouts/usePatchWorkoutMeta";
-import { getFriendlyErrorMessage } from "@/api/apiError";
 
 const PRESET_MUSCLE_GROUPS = [
   "chest",
@@ -31,7 +30,6 @@ const PRESET_MUSCLE_GROUPS = [
 
 const createEmptyExercise = (): ExerciseDTO => ({
   id: crypto.randomUUID(),
-  orderIndex: 0,
   name: "",
   sets: 0,
   reps: 0,
@@ -83,9 +81,6 @@ export const useWorkoutModalVM = ({
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [isCompleted, setIsCompletedState] = useState(false);
-  const [completedDate, setCompletedDateState] = useState("");
-  const [completedTime, setCompletedTimeState] = useState("");
 
   const [muscleInput, setMuscleInput] = useState("");
   const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
@@ -100,7 +95,6 @@ export const useWorkoutModalVM = ({
   ]);
 
   const [errors, setErrors] = useState<WorkoutCreateErrors>({});
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
 
   const hydratedForIdRef = useRef<string | null>(null);
@@ -110,16 +104,12 @@ export const useWorkoutModalVM = ({
     setTitle("");
     setDate("");
     setTime("");
-    setIsCompletedState(false);
-    setCompletedDateState("");
-    setCompletedTimeState("");
     setMuscleInput("");
     setSelectedMuscles([]);
     setTempSelected([]);
     setCustomMuscles([]);
     setExercises([createEmptyExercise()]);
     setErrors({});
-    setSubmitError(null);
     setShowToast(false);
     setDropdownOpen(false);
   };
@@ -130,28 +120,15 @@ export const useWorkoutModalVM = ({
     setTitle(source.title);
     setDate(toDateInput(source.scheduledAt));
     setTime(toTimeInput(source.scheduledAt));
-    setIsCompletedState(Boolean(source.completedAt));
-    setCompletedDateState(
-      source.completedAt ? toDateInput(source.completedAt) : "",
-    );
-    setCompletedTimeState(
-      source.completedAt ? toTimeInput(source.completedAt) : "",
-    );
     setSelectedMuscles(source.muscleGroups ?? []);
     setTempSelected([]);
     setCustomMuscles([]);
     setExercises(
       source.exercises.length
-        ? [...source.exercises]
-            .sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0))
-            .map((exercise, orderIndex) => ({
-              ...exercise,
-              orderIndex: exercise.orderIndex ?? orderIndex,
-            }))
+        ? source.exercises.map((exercise) => ({ ...exercise }))
         : [createEmptyExercise()],
     );
     setErrors({});
-    setSubmitError(null);
     setShowToast(false);
     setDropdownOpen(false);
   };
@@ -236,21 +213,7 @@ export const useWorkoutModalVM = ({
   };
 
   const addExercise = () =>
-    setExercises((prev) => {
-      const nextOrderIndex =
-        prev.reduce(
-          (max, exercise) => Math.max(max, exercise.orderIndex ?? -1),
-          -1,
-        ) + 1;
-
-      return [
-        ...prev,
-        {
-          ...createEmptyExercise(),
-          orderIndex: nextOrderIndex,
-        },
-      ];
-    });
+    setExercises((prev) => [...prev, createEmptyExercise()]);
 
   const removeExercise = (id: string) => {
     setExercises((prev) => {
@@ -300,30 +263,6 @@ export const useWorkoutModalVM = ({
     clearExerciseError(id);
   };
 
-  const setIsCompleted = (value: boolean) => {
-    setIsCompletedState(value);
-    setErrors((prev) => ({
-      ...prev,
-      completedDate: undefined,
-      completedTime: undefined,
-    }));
-
-    if (!value) {
-      setCompletedDateState("");
-      setCompletedTimeState("");
-    }
-  };
-
-  const setCompletedDate = (value: string) => {
-    setCompletedDateState(value);
-    setErrors((prev) => ({ ...prev, completedDate: undefined }));
-  };
-
-  const setCompletedTime = (value: string) => {
-    setCompletedTimeState(value);
-    setErrors((prev) => ({ ...prev, completedTime: undefined }));
-  };
-
   const validate = () => {
     const next: WorkoutCreateErrors = {};
     const exerciseFields: NonNullable<WorkoutCreateErrors["exerciseFields"]> =
@@ -332,23 +271,6 @@ export const useWorkoutModalVM = ({
     if (!title.trim()) next.title = "Training name is required";
     if (!date) next.date = "Date is required";
     if (!time) next.time = "Time is required";
-
-    if (isCompleted && !completedDate) {
-      next.completedDate = "Completion date is required";
-    }
-
-    if (isCompleted && !completedTime) {
-      next.completedTime = "Completion time is required";
-    }
-
-    if (isCompleted && date && time && completedDate && completedTime) {
-      const scheduledAt = mergeDateAndTime(date, time);
-      const completedAt = mergeDateAndTime(completedDate, completedTime);
-
-      if (completedAt.getTime() < scheduledAt.getTime()) {
-        next.completedTime = "Completion cannot be earlier than scheduled time";
-      }
-    }
 
     exercises.forEach((exercise) => {
       const fieldErrors = getExerciseFieldErrors(exercise);
@@ -373,24 +295,12 @@ export const useWorkoutModalVM = ({
 
   const createOrUpdateWorkout = async () => {
     if (!validate()) {
-      setSubmitError(null);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2500);
       return;
     }
 
-    setSubmitError(null);
-
-    const normalizedExercisesForPayload = exercises
-      .map((exercise, orderIndex) => ({
-        ...exercise,
-        orderIndex,
-      }))
-      .sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
-    const completedAt =
-      isCompleted && completedDate && completedTime
-        ? mergeDateAndTime(completedDate, completedTime)
-        : undefined;
+    const exercisesForPayload = exercises.map((e) => ({ ...e }));
 
     const payload: Workout = {
       ...(workout ?? { id: crypto.randomUUID() }),
@@ -398,32 +308,21 @@ export const useWorkoutModalVM = ({
       muscleGroups: selectedMuscles,
       mainFocus: selectedMuscles[0],
       scheduledAt: mergeDateAndTime(date, time),
-      completedAt,
-      exercises: normalizedExercisesForPayload,
+      completedAt: workout?.completedAt,
+      exercises: exercisesForPayload,
     };
 
-    try {
-      if (mode === "create") {
-        await createMutation.mutateAsync(payload);
-        onClose();
-        return;
-      }
-
-      await updateMutation.mutateAsync(payload);
-
-      await patchMetaMutation.mutateAsync(payload);
-
+    if (mode === "create") {
+      createMutation.mutate(payload);
       onClose();
-    } catch (error) {
-      setSubmitError(
-        getFriendlyErrorMessage(
-          error,
-          mode === "create"
-            ? "Could not create this training. Please try again."
-            : "Could not save this training. Please try again.",
-        ),
-      );
+      return;
     }
+
+    await updateMutation.mutateAsync(payload);
+
+    await patchMetaMutation.mutateAsync(payload);
+
+    onClose();
   };
 
   return {
@@ -434,12 +333,6 @@ export const useWorkoutModalVM = ({
     setDate,
     time,
     setTime,
-    isCompleted,
-    setIsCompleted,
-    completedDate,
-    setCompletedDate,
-    completedTime,
-    setCompletedTime,
 
     muscleInput,
     setMuscleInput,
@@ -460,12 +353,7 @@ export const useWorkoutModalVM = ({
     updateExercise: updateExerciseAndClearErrors,
 
     errors,
-    submitError,
     showToast,
-    isSaving:
-      createMutation.isPending ||
-      updateMutation.isPending ||
-      patchMetaMutation.isPending,
     createOrUpdateWorkout,
   };
 };

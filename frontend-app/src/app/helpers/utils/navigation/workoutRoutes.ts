@@ -10,12 +10,3 @@ export const openEditWorkout = (
     scroll: false,
   });
 };
-
-export const openWorkoutRun = (
-  router: AppRouterInstance,
-  workoutId: string,
-) => {
-  router.push(`/workout-run/${workoutId}`, {
-    scroll: false,
-  });
-};

@@ -1,11 +1,9 @@
 ﻿using ApiModule.Application;
-using ApiModule.Application.FormAnalysis;
 using ApiModule.Domain;
 using ApiModule.Infrastructure;
 using ApiModule.Infrastructure.Auth;
 using ApiModule.Infrastructure.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -14,14 +12,8 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 var runtimeSettings = RuntimeSettings.Resolve(builder.Configuration);
-var corsAllowedOrigins = ResolveCorsAllowedOrigins(builder.Configuration);
-ValidateRuntimeSecurity(builder.Environment, runtimeSettings, corsAllowedOrigins);
 
 builder.Services.AddControllers();
-builder.Services.Configure<FormOptions>(options =>
-{
-    options.MultipartBodyLengthLimit = ResolveMaxMultipartBytes(builder.Configuration);
-});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -63,20 +55,8 @@ builder.Services.AddCors(options =>
     {
         policy
             .AllowAnyHeader()
-            .AllowAnyMethod();
-
-        if (corsAllowedOrigins.Length > 0)
-        {
-            policy.WithOrigins(corsAllowedOrigins);
-        }
-        else if (builder.Environment.IsDevelopment())
-        {
-            policy.AllowAnyOrigin();
-        }
-        else
-        {
-            policy.SetIsOriginAllowed(_ => false);
-        }
+            .AllowAnyMethod()
+            .AllowAnyOrigin();
     });
 });
 
@@ -86,16 +66,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 builder.Services.AddScoped<IWorkoutRepository, EfWorkoutRepository>();
-builder.Services.AddScoped<IWorkoutRunRepository, EfWorkoutRunRepository>();
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<IProfileRepository, EfProfileRepository>();
 
 builder.Services.AddScoped<WorkoutService>();
-builder.Services.AddScoped<WorkoutRunService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProgressService>();
 builder.Services.AddScoped<ProfileService>();
-builder.Services.AddScoped<FormAnalysisService>();
 
 builder.Services.AddScoped<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
 
@@ -145,68 +122,6 @@ app.UseCors("frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/health", () => Results.Ok(new
-{
-    status = "ok",
-    utc = DateTime.UtcNow
-})).AllowAnonymous();
-
 app.MapControllers();
 
 app.Run();
-
-static string[] ResolveCorsAllowedOrigins(IConfiguration configuration)
-{
-    var values = configuration
-        .GetSection("Cors:AllowedOrigins")
-        .Get<string[]>() ?? [];
-    var scalar = configuration["Cors:AllowedOrigins"];
-    var envScalar = configuration["CORS_ALLOWED_ORIGINS"];
-
-    return values
-        .Concat(SplitSetting(scalar))
-        .Concat(SplitSetting(envScalar))
-        .Select(origin => origin.Trim().TrimEnd('/'))
-        .Where(origin => !string.IsNullOrWhiteSpace(origin))
-        .Distinct(StringComparer.OrdinalIgnoreCase)
-        .ToArray();
-}
-
-static void ValidateRuntimeSecurity(
-    IWebHostEnvironment environment,
-    RuntimeSettings runtimeSettings,
-    string[] corsAllowedOrigins)
-{
-    if (environment.IsDevelopment()) return;
-
-    if (corsAllowedOrigins.Length == 0)
-    {
-        throw new InvalidOperationException(
-            "Cors:AllowedOrigins or CORS_ALLOWED_ORIGINS must be configured outside Development.");
-    }
-
-    if (runtimeSettings.Jwt.Key == RuntimeSettings.DevelopmentJwtKey ||
-        runtimeSettings.Jwt.Key.Length < 64)
-    {
-        throw new InvalidOperationException(
-            "Jwt:Key must be a non-development secret with at least 64 characters outside Development.");
-    }
-}
-
-static long ResolveMaxMultipartBytes(IConfiguration configuration)
-{
-    const int defaultMegabytes = 250;
-    var configured = configuration["FormAnalysis:MaxVideoMegabytes"];
-
-    if (int.TryParse(configured, out var megabytes))
-    {
-        return Math.Clamp(megabytes, 1, defaultMegabytes) * 1024L * 1024L;
-    }
-
-    return defaultMegabytes * 1024L * 1024L;
-}
-
-static IEnumerable<string> SplitSetting(string? value) =>
-    string.IsNullOrWhiteSpace(value)
-        ? []
-        : value.Split([';', ',', ' '], StringSplitOptions.RemoveEmptyEntries);

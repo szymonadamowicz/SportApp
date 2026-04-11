@@ -1,39 +1,27 @@
 import { Workout } from "@/types/workout/workout";
 
-export const isWorkoutCompleted = (
-  workout: Workout,
-  _now: Date = new Date(),
-) => {
-  void _now;
-  return Boolean(workout.completedAt);
-};
-
 export const sortAsc = (workouts: Workout[]) =>
   [...workouts].sort(
-    (a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime(),
+    (a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime()
   );
 
 export const sortDesc = (workouts: Workout[]) =>
   [...workouts].sort(
-    (a, b) => b.scheduledAt.getTime() - a.scheduledAt.getTime(),
+    (a, b) => b.scheduledAt.getTime() - a.scheduledAt.getTime()
   );
 
 export const getUpcomingWorkouts = (workouts: Workout[], now: Date) =>
-  sortAsc(
-    workouts.filter((w) => !isWorkoutCompleted(w, now) && w.scheduledAt > now),
-  );
+  sortAsc(workouts.filter((w) => !w.completedAt && w.scheduledAt > now));
 
 export const getMissedWorkouts = (workouts: Workout[], now: Date) =>
-  sortDesc(
-    workouts.filter((w) => !isWorkoutCompleted(w, now) && w.scheduledAt <= now),
-  );
+  sortDesc(workouts.filter((w) => !w.completedAt && w.scheduledAt <= now));
 
-export const getCompletedWorkouts = (workouts: Workout[], now: Date) =>
-  sortDesc(workouts.filter((w) => isWorkoutCompleted(w, now)));
+export const getCompletedWorkouts = (workouts: Workout[]) =>
+  sortDesc(workouts.filter((w) => Boolean(w.completedAt)));
 
 export const getWorkoutsForWeek = (
   workouts: Workout[],
-  referenceDate: Date = new Date(),
+  referenceDate: Date = new Date()
 ) => {
   const start = new Date(referenceDate);
   const isoDay = (start.getDay() + 6) % 7;
@@ -87,7 +75,7 @@ export const getLastCompletedWorkout = (workouts: Workout[]) => {
 
 export const getWorkoutById = (
   workouts: Workout[],
-  workoutId: string,
+  workoutId: string
 ): Workout | undefined => {
   return workouts.find((w) => w.id == workoutId);
 };

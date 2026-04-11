@@ -15,7 +15,6 @@ export interface InfoPanelHeaderProps {
     label: string;
     onClick: () => void;
   };
-  actions?: React.ReactNode;
 }
 
 export interface InfoPanelProps {
@@ -31,7 +30,6 @@ export interface InfoPanelProps {
     label: string;
     onClick: () => void;
   };
-  actions?: React.ReactNode;
 }
 
 export type TipItemTone = "positive" | "neutral" | "warning";

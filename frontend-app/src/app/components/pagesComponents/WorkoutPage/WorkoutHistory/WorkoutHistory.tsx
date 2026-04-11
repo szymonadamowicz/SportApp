@@ -1,4 +1,3 @@
-import { CheckCircle2 } from "lucide-react";
 import { HistorySectionProps } from "@/types/pages/workoutPage";
 import { WorkoutHistorySection } from "./sections/WorkoutHistorySection";
 import { useWorkoutsHistoryVM } from "./WorkoutHistoryVM";
@@ -8,7 +7,7 @@ export const WorkoutHistory = ({
   selectedId,
 }: HistorySectionProps) => {
   const vm = useWorkoutsHistoryVM();
-
+  
   return (
     <WorkoutHistorySection
       title={vm.seeAllHistory ? "All trainings" : "Missed trainings"}
@@ -18,9 +17,9 @@ export const WorkoutHistory = ({
         onClick: vm.toggle,
       }}
       empty={{
-        icon: <CheckCircle2 size={28} />,
+        icon: "💯",
         title: "No missed trainings",
-        description: "Nice work! You did not skip anything.",
+        description: "Nice work! You didn’t skip anything.",
       }}
       onSelect={onSelect}
       selectedId={selectedId}

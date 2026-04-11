@@ -1,16 +1,16 @@
 export const inputClass = `
   w-full rounded-xl border border-borderSoft
   bg-bgHighlight/50 px-4 py-3
-  text-base text-textPrimary
+  text-md text-textPrimary
   outline-none transition
   focus:border-accent focus:bg-bgHighlight/70
   placeholder:text-textSecondary
 `;
 
 export const inlineInputClass = `
-  w-full rounded-lg border border-borderSoft sm:max-w-[115px]
+  rounded-lg border border-borderSoft max-w-[115px]
   bg-bgHighlight/50 px-2 py-1.5
-  text-base sm:text-sm text-textPrimary
+  text-sm text-textPrimary
   outline-none transition
   focus:border-accent
   placeholder:text-textSecondary

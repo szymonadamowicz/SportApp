@@ -5,7 +5,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -30,29 +29,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const [session, setSession] = useState<AuthSession | null>(null);
   const [isReady, setIsReady] = useState(false);
-  const inactivityTimerRef = useRef<number | null>(null);
-  const lastResetRef = useRef(0);
-  const lastStorageWriteRef = useRef(0);
-
-  const THROTTLE_MS = 5000; // throttle activity handling to once per 5 seconds
-
-  const INACTIVITY_TIMEOUT_MS =
-    (Number(process.env.NEXT_PUBLIC_SESSION_INACTIVITY_MINUTES) || 30) *
-    60 *
-    1000;
 
   useEffect(() => {
     const stored = authStorage.read();
-
-    if (stored) {
-      const last = stored.lastActive ?? Date.now();
-      const expired = Date.now() - last > INACTIVITY_TIMEOUT_MS;
-      if (!expired) setSession(stored);
-      else authStorage.write(null);
-    }
-
+    if (stored) setSession(stored);
     setIsReady(true);
-  }, [INACTIVITY_TIMEOUT_MS]);
+  }, []);
 
   const isAuthenticated = !!session?.accessToken;
 
@@ -79,7 +61,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const nextSession: AuthSession = {
       user: { login: payload.login },
       accessToken: token,
-      lastActive: Date.now(),
     };
 
     setSession(nextSession);
@@ -94,7 +75,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const nextSession: AuthSession = {
       user: { login: payload.login },
       accessToken: token,
-      lastActive: Date.now(),
     };
 
     setSession(nextSession);
@@ -107,68 +87,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     queryClient.clear();
     router.replace("/login");
   }, [router, queryClient]);
-
-  const resetActivity = useCallback(() => {
-    if (!session) return;
-    const now = Date.now();
-    const prev = session.lastActive ?? 0;
-    if (now - prev < THROTTLE_MS) return; // avoid frequent updates
-
-    const next = { ...session, lastActive: now };
-    setSession(next);
-    if (now - lastStorageWriteRef.current > THROTTLE_MS) {
-      authStorage.write(next);
-      lastStorageWriteRef.current = now;
-    }
-  }, [session]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (inactivityTimerRef.current) {
-      window.clearTimeout(inactivityTimerRef.current);
-      inactivityTimerRef.current = null;
-    }
-
-    if (!session) {
-      return;
-    }
-
-    const startTimer = () => {
-      if (inactivityTimerRef.current)
-        window.clearTimeout(inactivityTimerRef.current);
-      inactivityTimerRef.current = window.setTimeout(() => {
-        logout();
-      }, INACTIVITY_TIMEOUT_MS);
-    };
-
-    const events = ["mousemove", "keydown", "click", "touchstart"] as const;
-    const onActivity = () => {
-      const now = Date.now();
-      if (now - lastResetRef.current > THROTTLE_MS) {
-        resetActivity();
-        startTimer();
-        lastResetRef.current = now;
-      }
-    };
-
-    events.forEach((e) => window.addEventListener(e, onActivity));
-    const onVisibility = () => {
-      if (document.visibilityState === "visible") {
-        // don't treat visibilitychange as user activity, only restart timer
-        startTimer();
-      }
-    };
-    document.addEventListener("visibilitychange", onVisibility);
-
-    startTimer();
-
-    return () => {
-      if (inactivityTimerRef.current)
-        window.clearTimeout(inactivityTimerRef.current);
-      events.forEach((e) => window.removeEventListener(e, onActivity));
-      document.removeEventListener("visibilitychange", onVisibility);
-    };
-  }, [session, INACTIVITY_TIMEOUT_MS, logout, resetActivity]);
 
   const value: AuthContextValue = useMemo(
     () => ({

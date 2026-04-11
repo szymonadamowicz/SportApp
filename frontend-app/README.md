@@ -1,58 +1,36 @@
-# RepForge Frontend
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-This folder contains the shared Next.js frontend used by:
+## Getting Started
 
-- desktop web,
-- mobile web,
-- the Capacitor Android shell.
+First, run the development server:
 
-Use the root `README.md` as the main project runbook. The notes below are only
-for frontend-specific commands.
-
-## Data Modes
-
-The frontend supports two API modes:
-
-- `mock` uses browser-local mock repositories and does not need the backend.
-- `real` calls the ASP.NET Core API.
-
-The local helper script sets the required environment variables for development:
-
-```powershell
-..\scripts\run-frontend-local.ps1 -Mode mock
-..\scripts\run-frontend-local.ps1 -Mode real -ApiUrl http://localhost:5064/api
-```
-
-For phone testing, run the frontend on the LAN interface:
-
-```powershell
-..\scripts\run-frontend-local.ps1 -Mode mock -Mobile
-```
-
-## Direct npm Commands
-
-```powershell
+```bash
 npm run dev
-npm run lint
-npm test -- --runInBand
-npm run build
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Direct `npm run dev` uses the environment from `.env.local` or process
-variables. Prefer the helper scripts when switching between `mock`, `real`, web
-mobile, and Android workflows.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Capacitor
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-The Android project lives in `frontend-app/android`. The app loads a running web
-server through `CAPACITOR_SERVER_URL`.
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-Common commands from the repository root:
+## Learn More
 
-```powershell
-.\scripts\android-doctor.ps1
-.\scripts\run-android-local.ps1 -ServerUrl http://10.0.2.2:3000
-.\scripts\build-android-debug.ps1 -ServerUrl http://192.168.1.25:3000
-```
+To learn more about Next.js, take a look at the following resources:
 
-See `../MOBILE_APP.md` and `../README.md` for the full mobile workflow.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

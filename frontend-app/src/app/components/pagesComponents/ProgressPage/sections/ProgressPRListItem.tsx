@@ -15,16 +15,16 @@ export function PRListItem({
       "
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 space-y-0.5">
-          <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
+        <div className="space-y-0.5">
+          <p className="text-sm font-semibold text-[var(--text-primary)]">
             {name}
           </p>
-          <p className="truncate text-xs text-[var(--text-secondary)]">{value}</p>
+          <p className="text-xs text-[var(--text-secondary)]">{value}</p>
         </div>
 
         <span
           className="
-            inline-flex shrink-0 items-center
+            inline-flex items-center
             rounded-full px-2.5 py-1
             text-xs font-semibold
             border border-[rgba(56,189,248,0.35)]

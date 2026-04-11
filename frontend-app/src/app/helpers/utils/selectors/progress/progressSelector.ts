@@ -69,7 +69,6 @@ const formatVolume = (n: number): string => {
 export const buildProgressAchievements = (
   all?: Progress,
   week?: Progress,
-  preferWeekPrs = false,
 ): ProgressAchievements[] => {
   if (!all) return [];
 
@@ -123,7 +122,7 @@ export const buildProgressAchievements = (
     },
   ];
 
-  const prs = (preferWeekPrs && week ? week.prs : all.prs).slice(0, 6);
+  const prs = (week?.prs ?? all.prs).slice(0, 6);
   for (const pr of prs) {
     items.push({
       id: `pr-${pr.exerciseName}`,
