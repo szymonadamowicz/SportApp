@@ -61,6 +61,9 @@ describe("useWorkoutModalVM", () => {
       result.current.setDate("2026-04-10");
       result.current.setTime("11:30");
       result.current.setTitle("Updated");
+      result.current.setIsCompleted(true);
+      result.current.setCompletedDate("2026-04-10");
+      result.current.setCompletedTime("12:15");
     });
 
     await act(async () => {
@@ -69,6 +72,8 @@ describe("useWorkoutModalVM", () => {
 
     expect(updateMutateAsync).toHaveBeenCalled();
     expect(patchMetaMutateAsync).toHaveBeenCalled();
+    const payload = patchMetaMutateAsync.mock.calls[0][0];
+    expect(payload.completedAt).toBeInstanceOf(Date);
     expect(onClose).toHaveBeenCalled();
   });
 

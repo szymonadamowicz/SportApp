@@ -51,6 +51,15 @@ export const useProfilePageVM = () => {
     return true;
   }, [login, email]);
 
+  const emailError = useMemo(() => {
+    if (!email) return undefined;
+    if (!emailRegex.test(email)) {
+      return "Enter a valid email address, for example name@example.com.";
+    }
+
+    return undefined;
+  }, [email]);
+
   const canChangePassword = useMemo(() => {
     if (verifyState !== "verified") return false;
     if (!verifyPassword || !newPassword || !repeatNewPassword) return false;
@@ -162,6 +171,7 @@ export const useProfilePageVM = () => {
 
     saveProfile,
     canSaveProfile,
+    emailError,
     saveState,
     saveError,
 

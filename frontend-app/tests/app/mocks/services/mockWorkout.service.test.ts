@@ -85,6 +85,22 @@ describe("mockWorkoutService", () => {
     expect(result.completedAt).toBe("2026-04-03T11:00:00.000Z");
   });
 
+  it("passes null completedAt when clearing completion", async () => {
+    const patch = {
+      completedAt: null,
+      perceivedLoad: "easy" as const,
+    };
+    workoutsRepositoryMock.updateMeta.mockReturnValue({
+      ...baseWorkout,
+      ...patch,
+    });
+
+    const result = await mockWorkoutService.patchWorkoutMeta("w1", patch);
+
+    expect(workoutsRepositoryMock.updateMeta).toHaveBeenCalledWith("w1", patch);
+    expect(result.completedAt).toBeNull();
+  });
+
   it("updates workout structure", async () => {
     const patch = {
       title: "Push day",

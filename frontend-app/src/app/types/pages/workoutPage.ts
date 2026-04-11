@@ -17,8 +17,11 @@ export type WorkoutFormVM = {
   editMode: boolean;
   hasChanges: boolean;
   draft: Record<string, DraftExercise>;
-  enterEdit: () => void;
+  actionError: string | null;
+  isSaving: boolean;
   handleEditWorkout: () => void;
+  handleStartWorkout: () => void;
+  startButtonLabel: string;
   cancelEdit: () => void;
   updateDraft: (exerciseId: string, patch: Partial<DraftExercise>) => void;
   saveAllChanges: () => void;
@@ -34,6 +37,7 @@ export type WorkoutStatus = "completed" | "upcoming" | "missed" | "default";
 
 export interface WorkoutFormProps {
   workout: Workout;
+  onClose: () => void;
 }
 
 export type ExerciseEditProps = {
@@ -99,7 +103,7 @@ export type WorkoutHistorySectionProps = {
   title: string;
   items: WorkoutListItemVM[];
   empty?: {
-    icon: string;
+    icon: React.ReactNode;
     title: string;
     description?: string;
   };
@@ -125,6 +129,8 @@ export type WorkoutCreateErrors = {
   title?: string;
   date?: string;
   time?: string;
+  completedDate?: string;
+  completedTime?: string;
   exercises?: string;
   exerciseFields?: Record<
     string,
@@ -149,6 +155,15 @@ export type WorkoutModalVM = {
   time: string;
   setTime: (v: string) => void;
 
+  isCompleted: boolean;
+  setIsCompleted: (v: boolean) => void;
+
+  completedDate: string;
+  setCompletedDate: (v: string) => void;
+
+  completedTime: string;
+  setCompletedTime: (v: string) => void;
+
   muscleInput: string;
   setMuscleInput: (v: string) => void;
 
@@ -172,7 +187,9 @@ export type WorkoutModalVM = {
   updateExercise: (id: string, patch: Partial<ExerciseDTO>) => void;
 
   errors: WorkoutCreateErrors;
+  submitError: string | null;
   showToast: boolean;
+  isSaving: boolean;
 
   createOrUpdateWorkout: () => Promise<void>;
 };

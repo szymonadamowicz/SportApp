@@ -3,6 +3,7 @@ import { ProgressAchievements } from "../progress/progress";
 
 export interface Exercise {
   id: string;
+  orderIndex?: number;
   name: string;
   sets: number;
   reps: number;
@@ -71,6 +72,7 @@ export type HeroState =
 
 export interface DraftExercise {
   id?: string;
+  orderIndex?: number;
   name: string;
   sets: number;
   reps: number;

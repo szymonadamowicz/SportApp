@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/auth/useAuth";
 import { LoginMode } from "@/types/login/login";
+import { ApiRequestError, getFriendlyErrorMessage } from "@/api/apiError";
 
 export const useLoginPageVM = () => {
   const auth = useAuth();
@@ -76,7 +77,14 @@ export const useLoginPageVM = () => {
       if (isLogin) {
         setError("Invalid login or password.");
       } else {
-        setError("Account could not be created. Login may already exist." + e);
+        setError(
+          e instanceof ApiRequestError && e.status === 401
+            ? "Account could not be created. Login may already exist."
+            : getFriendlyErrorMessage(
+                e,
+                "Account could not be created. Login may already exist.",
+              ),
+        );
       }
     } finally {
       setIsSubmitting(false);

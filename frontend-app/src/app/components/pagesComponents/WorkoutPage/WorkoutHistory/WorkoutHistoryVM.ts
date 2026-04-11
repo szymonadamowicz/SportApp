@@ -15,14 +15,14 @@ export const useWorkoutsHistoryVM = () => {
 
   const upcoming = getUpcomingWorkouts(workouts, now);
   const missed = getMissedWorkouts(workouts, now);
-  const completed = getCompletedWorkouts(workouts);
+  const completed = getCompletedWorkouts(workouts, now);
 
   const orderedWorkoutsRaw = seeAllHistory
     ? [...upcoming, ...missed, ...completed]
     : missed;
 
   const orderedWorkouts = Array.from(
-    new Map(orderedWorkoutsRaw.map((w) => [w.id, w])).values()
+    new Map(orderedWorkoutsRaw.map((w) => [w.id, w])).values(),
   );
 
   const items = orderedWorkouts.map((w) => mapWorkoutToListItemVM(w, now));

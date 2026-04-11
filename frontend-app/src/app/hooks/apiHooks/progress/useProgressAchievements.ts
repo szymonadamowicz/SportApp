@@ -1,18 +1,19 @@
 import { buildProgressAchievements } from "@/helpers/utils/selectors/progress/progressSelector";
 import { useProgress } from "./useProgress";
 
-export const useProgressAchievements = () => {
+export const useProgressAchievements = (includeWeek = true) => {
   const { progress: all, isLoading: isLoadingAll, isError: isErrorAll } =
     useProgress("all");
 
   const { progress: week, isLoading: isLoadingWeek, isError: isErrorWeek } =
-    useProgress("week");
+    useProgress("week", { enabled: includeWeek });
 
-  const achievements = buildProgressAchievements(all, week);
+  const achievements = buildProgressAchievements(all, week, includeWeek);
 
   return {
     achievements,
-    isLoading: isLoadingAll || isLoadingWeek,
-    isError: isErrorAll || isErrorWeek,
+    allProgress: all,
+    isLoading: isLoadingAll || (includeWeek && isLoadingWeek),
+    isError: isErrorAll || (includeWeek && isErrorWeek),
   };
 };

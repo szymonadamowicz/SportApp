@@ -1,12 +1,12 @@
-Set-StrictMode -Version Latest
-$ErrorActionPreference = "Stop"
-
 param(
     [ValidateSet("real", "mock")]
     [string]$Profile = "mock",
     [switch]$Detached,
     [switch]$NoCache
 )
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = Resolve-Path (Join-Path $scriptDir "..")
@@ -33,6 +33,7 @@ try {
 
     if ($Detached) {
         Write-Host "[docker-run] Running in background. Logs: docker compose --profile $Profile logs -f"
+        docker compose --profile $Profile ps | Out-Host
     }
 }
 finally {

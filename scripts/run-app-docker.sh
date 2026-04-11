@@ -54,6 +54,7 @@ if [ "$DETACHED" -eq 1 ]; then
   echo "[docker-run] Starting profile '$PROFILE' in background..."
   docker compose --profile "$PROFILE" up --build -d
   echo "[docker-run] Logs: docker compose --profile $PROFILE logs -f"
+  docker compose --profile "$PROFILE" ps
 else
   echo "[docker-run] Starting profile '$PROFILE'..."
   docker compose --profile "$PROFILE" up --build

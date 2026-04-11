@@ -1,7 +1,9 @@
+import { PageTransition } from "@/components/animations/PageTransition";
+
 export default function LandingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return <PageTransition>{children}</PageTransition>;
 }

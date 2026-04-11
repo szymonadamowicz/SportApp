@@ -1,8 +1,11 @@
 import { ProgressAchievements } from "@/types/progress/progress";
+import { WorkoutRunStart } from "../workout/workoutRun";
 import { HeroState, Highlights, Tip, Workout } from "../workout/workout";
 
 export interface HeroProps {
   hero: HeroState;
+  activeRun?: WorkoutRunStart | null;
+  activeElapsedSeconds?: number;
   completedCount: number;
   upcomingCount: number;
   onPrimaryAction: () => void;
@@ -10,6 +13,8 @@ export interface HeroProps {
 
 export interface HomePageVM {
   hero: HeroState;
+  activeRun: WorkoutRunStart | null;
+  activeElapsedSeconds: number;
   now: Date;
 
   statsWeekly: {
@@ -30,6 +35,7 @@ export interface HomePageVM {
   };
 
   goTo: (path: string) => void;
+  isLoading: boolean;
 }
 
 export type HighlightsItemsProps = {

@@ -3,7 +3,6 @@ import {
   getPRAchievementProgressItems,
 } from "@/helpers/utils/selectors/progress/progressSelector";
 import { useProgressAchievements } from "@/hooks/apiHooks/progress/useProgressAchievements";
-import { useProgressStreak } from "@/hooks/apiHooks/progress/useProgressStreak";
 import { useLastCompletedWorkout } from "@/hooks/apiHooks/workouts/useLastCompletedWorkout";
 import { usePatchWorkoutMeta } from "@/hooks/apiHooks/workouts/usePatchWorkoutMeta";
 import {
@@ -19,13 +18,21 @@ import { ProgressAchievements } from "@/types/progress/progress";
 import { useCallback, useMemo, useState } from "react";
 
 export const useProgressPageVM = () => {
-  const { achievements } = useProgressAchievements();
-  const { streak } = useProgressStreak();
-  const { lastCompletedWorkout } = useLastCompletedWorkout();
+  const [showWeek, setShowWeek] = useState(false);
+  const {
+    achievements,
+    allProgress,
+    isLoading: isLoadingAchievements,
+    isError: isErrorAchievements,
+  } = useProgressAchievements(showWeek);
+  const {
+    lastCompletedWorkout,
+    isLoading: isLoadingLastWorkout,
+    isError: isErrorLastWorkout,
+  } = useLastCompletedWorkout();
 
   const updateWorkout = usePatchWorkoutMeta();
 
-  const [showWeek, setShowWeek] = useState(false);
   const [prevFeedbackState, setPrevFeedbackState] =
     useState<ProgressLastSessionFeedbackKind>(
       ProgressLastSessionFeedbackKind.NONE,
@@ -65,7 +72,7 @@ export const useProgressPageVM = () => {
       case ProgressLastSessionFeedbackKind.AVAILABLE:
         return {
           kind: ProgressLastSessionFeedbackKind.AVAILABLE,
-          sessionLabel: `${lastCompletedWorkout.title} • ${lastCompletedWorkout.mainFocus}`,
+          sessionLabel: `${lastCompletedWorkout.title} - ${lastCompletedWorkout.mainFocus}`,
           onClick: submitFeedback,
         };
 
@@ -146,11 +153,22 @@ export const useProgressPageVM = () => {
           },
         ];
 
-  const statsCards: ProgressStatCardProps[] = stats.map((stat) => ({
+  const kpiStats = stats.filter((stat) => stat.id !== "streak");
+  const streakStat = stats.find((stat) => stat.id === "streak");
+
+  const statsCards: ProgressStatCardProps[] = kpiStats.map((stat) => ({
     label: stat.title,
     value: showWeek ? (stat.valueWeek ?? "-") : stat.value,
     subLabel: showWeek ? stat.subLabelWeek : stat.subLabel,
   }));
+
+  const streakCard: ProgressStatCardProps | null = streakStat
+    ? {
+        label: streakStat.title,
+        value: showWeek ? (streakStat.valueWeek ?? "-") : streakStat.value,
+        subLabel: showWeek ? streakStat.subLabelWeek : streakStat.subLabel,
+      }
+    : null;
 
   const prsItems: ProgressPRListItemProps[] = prs.map((pr) => ({
     name: pr.title,
@@ -168,7 +186,7 @@ export const useProgressPageVM = () => {
       ? {
           kind: "available",
           feedbackLabel: lastSessionFeedback.sessionLabel,
-          streak: streak?.current ?? 0,
+          streak: allProgress?.streak.current ?? 0,
           onSelect: lastSessionFeedback.onClick,
         }
       : lastSessionFeedback.kind === ProgressLastSessionFeedbackKind.SUBMITTED
@@ -177,13 +195,13 @@ export const useProgressPageVM = () => {
           ? {
               kind: "seen",
               label: "Thanks for letting us know how your last workout felt.",
-              streak: streak?.current ?? 0,
+              streak: allProgress?.streak.current ?? 0,
               disableButtons: true,
             }
           : {
               kind: "none",
               empty: {
-                icon: "🏋️",
+                icon: "!",
                 title: "No completed workouts yet",
                 description:
                   "Finish your first training and come back here to track your progress.",
@@ -192,6 +210,7 @@ export const useProgressPageVM = () => {
 
   return {
     statsCards,
+    streakCard,
     prsItems,
     showStatsEmpty: stats.length === 0,
     showPrsEmpty,
@@ -202,7 +221,9 @@ export const useProgressPageVM = () => {
     hasAnyProgress: Boolean(
       stats.find((s) => s.id === "total-workouts" && s.value !== "0"),
     ),
-    streak: streak?.current ?? 0,
+    streak: allProgress?.streak.current ?? 0,
     qualityTips,
+    isLoading: isLoadingAchievements || isLoadingLastWorkout,
+    isError: isErrorAchievements || isErrorLastWorkout,
   };
 };

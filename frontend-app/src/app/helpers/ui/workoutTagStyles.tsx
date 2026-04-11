@@ -1,4 +1,4 @@
-import { Clock, Calendar, AlertTriangle } from "lucide-react";
+import { Clock, Calendar, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { WorkoutListItemVM, WorkoutTagVM } from "@/types/pages/workoutPage";
 
 export const getWorkoutTags = (workout: WorkoutListItemVM): WorkoutTagVM[] => {
@@ -28,6 +28,15 @@ export const getWorkoutTags = (workout: WorkoutListItemVM): WorkoutTagVM[] => {
       label: "Missed",
       icon: <AlertTriangle size={12} />,
       state: "missed",
+    });
+  }
+
+  if (workout.status === "completed") {
+    tags.push({
+      id: "completed",
+      label: "Completed",
+      icon: <CheckCircle2 size={12} />,
+      state: "highlight",
     });
   }
 

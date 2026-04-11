@@ -18,4 +18,18 @@ describe("getWorkoutTags", () => {
     expect(missedTags).toHaveLength(1);
     expect(timeTag?.state).toBeUndefined();
   });
+
+  it("adds completed badge for completed workouts", () => {
+    const vm: WorkoutListItemVM = {
+      id: "w2",
+      title: "Completed workout",
+      status: "completed",
+      timeLabel: "10:24",
+      dayLabel: "10 Apr 2026",
+    };
+
+    const tags = getWorkoutTags(vm);
+
+    expect(tags.some((tag) => tag.id === "completed")).toBe(true);
+  });
 });

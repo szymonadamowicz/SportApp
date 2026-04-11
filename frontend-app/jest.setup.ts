@@ -1,4 +1,10 @@
 import "@testing-library/jest-dom";
+import { TextDecoder, TextEncoder } from "util";
+
+(global as typeof globalThis).TextEncoder =
+  TextEncoder as unknown as typeof globalThis.TextEncoder;
+(global as typeof globalThis).TextDecoder =
+  TextDecoder as unknown as typeof globalThis.TextDecoder;
 
 Object.defineProperty(window, "matchMedia", {
   writable: true,
