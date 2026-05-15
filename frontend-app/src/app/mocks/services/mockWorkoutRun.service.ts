@@ -1,7 +1,6 @@
 import { workoutsRepository } from "@/mocks/repositories/workouts.repository";
 import { workoutRunsRepository } from "@/mocks/repositories/workoutRuns.repository";
 import { mockDelay } from "@/mocks/runtime/delay";
-import { estimateSetSeconds } from "@/helpers/utils/calculate/workoutRunEstimate";
 import {
   CompleteWorkoutRunDto,
   SaveWorkoutRunProgressDto,
@@ -27,7 +26,14 @@ const buildSteps = (
     const expectedReps = Math.max(1, exercise.reps || 1);
     const expectedWeight = Math.max(0, exercise.weight || 0);
     const restSeconds = Math.max(15, exercise.restTimeSec || 60);
-    const exerciseSeconds = estimateSetSeconds(expectedReps, expectedWeight);
+    const secondsPerRep =
+      expectedReps <= 5 ? 5 : expectedReps <= 10 ? 4 : 3;
+    const loadAdjustment =
+      expectedWeight <= 0 ? 0 : expectedWeight < 40 ? 4 : expectedWeight < 80 ? 8 : 12;
+    const exerciseSeconds = Math.max(
+      20,
+      Math.min(180, 10 + expectedReps * secondsPerRep + loadAdjustment),
+    );
 
     for (let setNumber = 1; setNumber <= totalSets; setNumber++) {
       steps.push({
@@ -53,11 +59,6 @@ export const mockWorkoutRunService = {
     return workoutRunsRepository.getActive(workoutId);
   },
 
-  async getLatestActiveRun(): Promise<WorkoutRunStartDto | null> {
-    await mockDelay(90);
-    return workoutRunsRepository.getLatestActive();
-  },
-
   async startRun(workoutId: string): Promise<WorkoutRunStartDto> {
     await mockDelay(120);
 
@@ -78,12 +79,6 @@ export const mockWorkoutRunService = {
       startedAt: new Date().toISOString(),
       isResumed: false,
       nextStepIndex: 0,
-      activePhase: "exercise",
-      currentStepIndex: 0,
-      remainingSeconds: undefined,
-      phaseDurationSec: undefined,
-      isPaused: false,
-      lastProgressAt: undefined,
       durationSec: 0,
       notes: "",
       entries: [],
@@ -114,10 +109,5 @@ export const mockWorkoutRunService = {
     });
 
     return summary;
-  },
-
-  async cancelRun(runId: string): Promise<void> {
-    await mockDelay(90);
-    workoutRunsRepository.cancel(runId);
   },
 };

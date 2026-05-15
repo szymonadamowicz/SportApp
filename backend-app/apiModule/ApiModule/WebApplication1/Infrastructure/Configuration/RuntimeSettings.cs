@@ -4,8 +4,6 @@ namespace ApiModule.Infrastructure.Configuration;
 
 public sealed class RuntimeSettings
 {
-    public const string DevelopmentJwtKey = "dev-only-change-me-to-at-least-32-characters";
-
     public string ConnectionString { get; init; } =
         "Host=localhost;Port=5432;Database=workoutdb;Username=workout_user;Password=workout_pass";
 
@@ -13,7 +11,7 @@ public sealed class RuntimeSettings
     {
         Issuer = "ApiModule",
         Audience = "ApiModule.Client",
-        Key = DevelopmentJwtKey,
+        Key = "dev-only-change-me-to-at-least-32-characters",
         ExpiresMinutes = 120
     };
 
@@ -45,7 +43,7 @@ public sealed class RuntimeSettings
                 configuredJwt.Key,
                 configuration["Jwt__Key"],
                 configuration["JWT_KEY"],
-                DevelopmentJwtKey
+                "dev-only-change-me-to-at-least-32-characters"
             ),
             ExpiresMinutes = configuredJwt.ExpiresMinutes > 0
                 ? configuredJwt.ExpiresMinutes

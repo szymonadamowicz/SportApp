@@ -1,7 +1,6 @@
 "use client";
 
 import { useCompleteWorkoutRun } from "@/hooks/apiHooks/workoutRun/useCompleteWorkoutRun";
-import { workoutRunKeys } from "@/api/keys/workoutRun.keys";
 import { useStartWorkoutRun } from "@/hooks/apiHooks/workoutRun/useStartWorkoutRun";
 import { useSaveWorkoutRunProgress } from "@/hooks/apiHooks/workoutRun/useSaveWorkoutRunProgress";
 import { useActiveWorkoutRun } from "@/hooks/apiHooks/workoutRun/useActiveWorkoutRun";
@@ -11,20 +10,13 @@ import {
 } from "@/types/pages/workoutRunPage";
 import {
   CompleteWorkoutRunDto,
-  SaveWorkoutRunProgressDto,
   WorkoutRunEntryInputDto,
   WorkoutRunStart,
   WorkoutRunStep,
   WorkoutRunSummary,
 } from "@/types/workout/workoutRun";
-import {
-  clearLiveActiveWorkoutRun,
-  setLiveActiveWorkoutRun,
-} from "@/state/activeWorkoutRun.live";
 import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getFriendlyErrorMessage } from "@/api/apiError";
 
 const normalizeRepsInput = (value: string): string => {
   return value.replace(/[^\d]/g, "");
@@ -42,55 +34,8 @@ const clampProgress = (value: number): number => {
   return Math.max(0, Math.min(1, value));
 };
 
-const upsertEntries = (
-  entries: WorkoutRunEntryInputDto[],
-  entry: WorkoutRunEntryInputDto,
-): WorkoutRunEntryInputDto[] => {
-  const index = entries.findIndex((item) => item.stepIndex === entry.stepIndex);
-  const next = [...entries];
-
-  if (index >= 0) {
-    next[index] = entry;
-  } else {
-    next.push(entry);
-  }
-
-  return next.sort((a, b) => a.stepIndex - b.stepIndex);
-};
-
-const getRestoredRemainingSeconds = (
-  run: WorkoutRunStart,
-  phase: WorkoutRunPhase,
-  fallbackSeconds: number,
-): number => {
-  const storedSeconds =
-    run.remainingSeconds ?? (phase === "summary" ? 0 : fallbackSeconds);
-
-  if (phase === "summary" || run.isPaused || !run.lastProgressAt) {
-    return storedSeconds;
-  }
-
-  const elapsedSinceLastProgress = Math.floor(
-    Math.max(0, Date.now() - run.lastProgressAt.getTime()) / 1000,
-  );
-
-  return storedSeconds - elapsedSinceLastProgress;
-};
-
-type ProgressStateOverride = Partial<
-  Pick<
-    SaveWorkoutRunProgressDto,
-    | "activePhase"
-    | "currentStepIndex"
-    | "remainingSeconds"
-    | "phaseDurationSec"
-    | "isPaused"
-  >
->;
-
 export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
   const router = useRouter();
-  const queryClient = useQueryClient();
 
   const startMutation = useStartWorkoutRun();
   const completeMutation = useCompleteWorkoutRun();
@@ -107,6 +52,7 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
   const [remainingMs, setRemainingMs] = useState(0);
   const [phaseDuration, setPhaseDuration] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [showSetPrompt, setShowSetPrompt] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
 
   const [pendingActualReps, setPendingActualReps] = useState("");
@@ -124,101 +70,48 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
   const autoSaveTimerRef = useRef<number | null>(null);
   const autoSaveInFlightRef = useRef<Promise<void> | null>(null);
   const isCompletingRef = useRef(false);
-  const phaseRef = useRef<WorkoutRunPhase>("exercise");
-  const currentStepIndexRef = useRef(0);
-  const phaseDurationRef = useRef(0);
-  const isPausedRef = useRef(false);
-  const entriesRef = useRef<WorkoutRunEntryInputDto[]>([]);
-  const notesRef = useRef("");
 
   useEffect(() => {
     remainingMsRef.current = remainingMs;
   }, [remainingMs]);
 
   useEffect(() => {
-    phaseRef.current = phase;
-  }, [phase]);
-
-  useEffect(() => {
-    currentStepIndexRef.current = currentStepIndex;
-  }, [currentStepIndex]);
-
-  useEffect(() => {
-    phaseDurationRef.current = phaseDuration;
-  }, [phaseDuration]);
-
-  useEffect(() => {
-    isPausedRef.current = isPaused;
-  }, [isPaused]);
-
-  useEffect(() => {
-    entriesRef.current = entries;
-  }, [entries]);
-
-  useEffect(() => {
-    notesRef.current = notes;
-  }, [notes]);
-
-  const restoreSessionState = useCallback((run: WorkoutRunStart) => {
-    const normalizedRun = {
-      ...run,
-      steps: [...(run.steps ?? [])].sort((a, b) => a.stepIndex - b.stepIndex),
-    };
-    const steps = normalizedRun.steps;
-    const requestedStepIndex =
-      Number.isFinite(normalizedRun.currentStepIndex)
-        ? (normalizedRun.currentStepIndex ?? 0)
-        : (normalizedRun.nextStepIndex ?? 0);
-    const safeStepIndex =
-      steps.length === 0
-        ? 0
-        : Math.max(0, Math.min(requestedStepIndex, steps.length - 1));
-    const restoredPhase =
-      normalizedRun.activePhase ??
-      ((normalizedRun.nextStepIndex ?? 0) >= steps.length
-        ? "summary"
-        : "exercise");
-    const currentRestoredStep = steps[safeStepIndex];
-    const fallbackDuration =
-      restoredPhase === "rest"
-        ? Math.max(5, currentRestoredStep?.restSeconds ?? 0)
-        : Math.max(1, currentRestoredStep?.exerciseSeconds ?? 0);
-    const durationSec =
-      normalizedRun.phaseDurationSec ?? (restoredPhase === "summary" ? 0 : fallbackDuration);
-    const remainingSec =
-      getRestoredRemainingSeconds(normalizedRun, restoredPhase, durationSec);
-    const restoredRemainingMs = remainingSec * 1000;
-    const restoredPaused = restoredPhase === "summary" ? true : Boolean(normalizedRun.isPaused);
-
-    setSession(normalizedRun);
-    setLiveActiveWorkoutRun(normalizedRun);
-    entriesRef.current = normalizedRun.entries ?? [];
-    setEntries(normalizedRun.entries ?? []);
-    setCurrentStepIndex(safeStepIndex);
-    setNotes(normalizedRun.notes ?? "");
-    setElapsedMs((normalizedRun.durationSec ?? 0) * 1000);
-    elapsedTickRef.current = Date.now();
-    setStatus("running");
-    setSummary(null);
-    setPhase(restoredPhase);
-    setPhaseDuration(durationSec);
-    setRemainingMs(restoredRemainingMs);
-    setSecondsLeft(toSecondsLeft(restoredRemainingMs));
-    setIsPaused(restoredPaused);
-    setPendingActualReps(String(currentRestoredStep?.expectedReps ?? ""));
-    setPendingMetTarget(true);
-    phaseEndAtRef.current =
-      restoredPaused || restoredPhase === "summary"
-        ? null
-        : Date.now() + restoredRemainingMs;
-  }, []);
-
-  useEffect(() => {
     if (!activeRun || hasRestoredSession) return;
 
-    restoreSessionState(activeRun);
+    const normalizedActive = {
+      ...activeRun,
+      steps: [...(activeRun.steps ?? [])].sort(
+        (a, b) => a.stepIndex - b.stepIndex,
+      ),
+    };
+    setSession(normalizedActive);
+    setEntries(normalizedActive.entries ?? []);
+    setCurrentStepIndex(normalizedActive.nextStepIndex ?? 0);
+    setNotes(normalizedActive.notes ?? "");
+    setElapsedMs((normalizedActive.durationSec ?? 0) * 1000);
+    elapsedTickRef.current = Date.now();
+    setStatus("running");
+    setPhase("exercise");
     setHasRestoredSession(true);
-  }, [activeRun, hasRestoredSession, restoreSessionState]);
+
+    if (
+      normalizedActive.steps.length > 0 &&
+      (normalizedActive.nextStepIndex ?? 0) < normalizedActive.steps.length
+    ) {
+      const nextStep =
+        normalizedActive.steps[normalizedActive.nextStepIndex ?? 0];
+      if (nextStep) {
+        const exerciseSeconds = Math.max(1, nextStep.exerciseSeconds);
+        const durationMs = exerciseSeconds * 1000;
+        setPhaseDuration(exerciseSeconds);
+        setRemainingMs(durationMs);
+        setSecondsLeft(toSecondsLeft(durationMs));
+        setPendingActualReps(String(nextStep.expectedReps));
+        setPendingMetTarget(true);
+        phaseEndAtRef.current = Date.now() + durationMs;
+      }
+    }
+  }, [activeRun, hasRestoredSession]);
 
   const currentStep = useMemo(() => {
     if (!session) return null;
@@ -233,7 +126,21 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
   }, [phaseDuration, remainingMs]);
 
   const upsertEntry = useCallback((entry: WorkoutRunEntryInputDto) => {
-    setEntries((prev) => upsertEntries(prev, entry));
+    setEntries((prev) => {
+      const index = prev.findIndex(
+        (item) => item.stepIndex === entry.stepIndex,
+      );
+      const next = [...prev];
+
+      if (index >= 0) {
+        next[index] = entry;
+      } else {
+        next.push(entry);
+      }
+
+      next.sort((a, b) => a.stepIndex - b.stepIndex);
+      return next;
+    });
   }, []);
 
   const getElapsedExerciseSeconds = useCallback((step: WorkoutRunStep) => {
@@ -253,6 +160,7 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     setPhaseDuration(exerciseSeconds);
     setRemainingMs(durationMs);
     setSecondsLeft(toSecondsLeft(durationMs));
+    setShowSetPrompt(false);
     setIsPaused(false);
     setPendingActualReps(String(step.expectedReps));
     setPendingMetTarget(true);
@@ -267,6 +175,7 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     setPhaseDuration(safeRestSeconds);
     setRemainingMs(durationMs);
     setSecondsLeft(toSecondsLeft(durationMs));
+    setShowSetPrompt(false);
     setIsPaused(false);
     phaseEndAtRef.current = Date.now() + durationMs;
   }, []);
@@ -280,6 +189,7 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
       setSecondsLeft(0);
       setRemainingMs(0);
       setPhaseDuration(0);
+      setShowSetPrompt(false);
       setIsPaused(true);
       phaseEndAtRef.current = null;
       return;
@@ -289,120 +199,10 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     enterExercisePhase(session.steps[nextStepIndex]);
   }, [session, currentStepIndex, enterExercisePhase]);
 
-  const buildProgressPayload = useCallback(
-    (
-      entriesOverride: WorkoutRunEntryInputDto[] = entriesRef.current,
-      stateOverride: ProgressStateOverride = {},
-    ): SaveWorkoutRunProgressDto => {
-      const durationSec = session
-        ? Math.max(
-            1,
-            Math.round((Date.now() - session.startedAt.getTime()) / 1000),
-          )
-        : 0;
-
-      return {
-        durationSec,
-        notes: notesRef.current.trim() || undefined,
-        entries: entriesOverride,
-        activePhase: stateOverride.activePhase ?? phaseRef.current,
-        currentStepIndex:
-          stateOverride.currentStepIndex ?? currentStepIndexRef.current,
-        remainingSeconds:
-          stateOverride.remainingSeconds ?? toSecondsLeft(remainingMsRef.current),
-        phaseDurationSec:
-          stateOverride.phaseDurationSec ?? phaseDurationRef.current,
-        isPaused: stateOverride.isPaused ?? isPausedRef.current,
-      };
-    },
-    [session],
-  );
-
-  const syncActiveRunCache = useCallback(
-    (payload: SaveWorkoutRunProgressDto) => {
-      if (!session) return;
-
-      const optimisticRun: WorkoutRunStart = {
-        ...session,
-        activePhase: payload.activePhase,
-        currentStepIndex: payload.currentStepIndex,
-        remainingSeconds: payload.remainingSeconds,
-        phaseDurationSec: payload.phaseDurationSec,
-        isPaused: Boolean(payload.isPaused),
-        durationSec: payload.durationSec,
-        notes: payload.notes,
-        entries: payload.entries.map((entry) => ({
-          ...entry,
-          completedAt: entry.completedAt ?? new Date().toISOString(),
-        })),
-        lastProgressAt: new Date(),
-      };
-
-      queryClient.setQueryData(
-        workoutRunKeys.active(session.workoutId),
-        optimisticRun,
-      );
-      queryClient.setQueryData(workoutRunKeys.latestActive(), optimisticRun);
-      setLiveActiveWorkoutRun(optimisticRun);
-    },
-    [queryClient, session],
-  );
-
-  const persistProgress = useCallback(
-    async (
-      entriesOverride: WorkoutRunEntryInputDto[] = entriesRef.current,
-      stateOverride?: ProgressStateOverride,
-    ) => {
-      if (
-        !session ||
-        session.runId.length === 0 ||
-        isCompletingRef.current
-      ) {
-        return;
-      }
-
-      const payload = buildProgressPayload(entriesOverride, stateOverride);
-      syncActiveRunCache(payload);
-
-      const savePromise = progressMutation
-        .mutateAsync({
-          runId: session.runId,
-          payload,
-        })
-        .then(
-          () => undefined,
-          () => undefined,
-        );
-
-      autoSaveInFlightRef.current = savePromise;
-
-      try {
-        await savePromise;
-      } finally {
-        if (autoSaveInFlightRef.current === savePromise) {
-          autoSaveInFlightRef.current = null;
-        }
-      }
-    },
-    [buildProgressPayload, progressMutation, session, syncActiveRunCache],
-  );
-
-  const syncRuntimeProgressCache = useCallback(
-    (stateOverride: ProgressStateOverride = {}) => {
-      if (!session || status !== "running" || isCompletingRef.current) {
-        return;
-      }
-
-      syncActiveRunCache(
-        buildProgressPayload(entriesRef.current, stateOverride),
-      );
-    },
-    [buildProgressPayload, session, status, syncActiveRunCache],
-  );
-
   useEffect(() => {
     if (!session) return;
     if (phase === "summary") return;
+    if (showSetPrompt) return;
     if (isPaused) return;
 
     const tick = () => {
@@ -419,28 +219,12 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
 
     tick();
 
-    const timerId = window.setInterval(tick, 250);
+    const timerId = window.setInterval(tick, 16);
 
     return () => {
       window.clearInterval(timerId);
     };
-  }, [session, phase, isPaused]);
-
-  useEffect(() => {
-    if (!session || status !== "running" || isCompletingRef.current) {
-      return;
-    }
-
-    syncRuntimeProgressCache();
-
-    const cacheTimerId = window.setInterval(() => {
-      syncRuntimeProgressCache();
-    }, 1000);
-
-    return () => {
-      window.clearInterval(cacheTimerId);
-    };
-  }, [session, status, syncRuntimeProgressCache]);
+  }, [session, phase, showSetPrompt, isPaused]);
 
   const startSession = useCallback(async () => {
     if (status === "starting" || status === "running" || status === "saving") {
@@ -458,24 +242,26 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
           (a, b) => a.stepIndex - b.stepIndex,
         ),
       };
-
-      if (normalizedStarted.isResumed) {
-        restoreSessionState(normalizedStarted);
-        setHasRestoredSession(true);
-        return;
-      }
-
       setSession(normalizedStarted);
-      setLiveActiveWorkoutRun(normalizedStarted);
       setElapsedMs((normalizedStarted.durationSec ?? 0) * 1000);
       elapsedTickRef.current = Date.now();
 
-      entriesRef.current = [];
-      setEntries([]);
-      setCurrentStepIndex(0);
-      setNotes("");
+      if (
+        normalizedStarted.isResumed &&
+        normalizedStarted.entries &&
+        normalizedStarted.entries.length > 0
+      ) {
+        setEntries(normalizedStarted.entries);
+        setCurrentStepIndex(normalizedStarted.nextStepIndex ?? 0);
+        setNotes(normalizedStarted.notes ?? "");
+      } else {
+        setEntries([]);
+        setCurrentStepIndex(0);
+        setNotes("");
+      }
 
       setSummary(null);
+      setShowSetPrompt(false);
       setIsPaused(false);
 
       if ((normalizedStarted.steps ?? []).length === 0) {
@@ -495,22 +281,33 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
       }
 
       setStatus("running");
-    } catch (error) {
+    } catch {
       setStatus("error");
-      setErrorMessage(
-        getFriendlyErrorMessage(
-          error,
-          "Unable to start workout session. Please try again.",
-        ),
-      );
+      setErrorMessage("Unable to start workout session.");
     }
-  }, [
-    status,
-    startMutation,
-    workoutId,
-    enterExercisePhase,
-    restoreSessionState,
-  ]);
+  }, [status, startMutation, workoutId, enterExercisePhase]);
+
+  const handleScreenTap = useCallback(() => {
+    if (status !== "running") return;
+    if (!currentStep) return;
+    if (phase !== "exercise") return;
+    if (showSetPrompt) return;
+
+    setShowSetPrompt(true);
+    setIsPaused(true);
+    phaseEndAtRef.current = null;
+  }, [status, currentStep, phase, showSetPrompt]);
+
+  const resumeFromSetPrompt = useCallback(() => {
+    if (!showSetPrompt) return;
+    if (phase !== "exercise") return;
+
+    const ms = remainingMsRef.current;
+
+    phaseEndAtRef.current = Date.now() + ms;
+    setShowSetPrompt(false);
+    setIsPaused(false);
+  }, [showSetPrompt, phase]);
 
   const saveSetAndContinue = useCallback(() => {
     if (!currentStep || !session) return;
@@ -531,19 +328,11 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
       completedAt: new Date().toISOString(),
     };
 
-    const nextEntries = upsertEntries(entriesRef.current, entry);
-    entriesRef.current = nextEntries;
     upsertEntry(entry);
+    setShowSetPrompt(false);
 
     const isLastStep = currentStepIndex >= session.steps.length - 1;
     if (isLastStep) {
-      persistProgress(nextEntries, {
-        activePhase: "summary",
-        currentStepIndex,
-        remainingSeconds: 0,
-        phaseDurationSec: 0,
-        isPaused: true,
-      }).catch(() => {});
       setPhase("summary");
       setPhaseDuration(0);
       setSecondsLeft(0);
@@ -553,13 +342,6 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
       return;
     }
 
-    persistProgress(nextEntries, {
-      activePhase: "rest",
-      currentStepIndex,
-      remainingSeconds: Math.max(5, currentStep.restSeconds),
-      phaseDurationSec: Math.max(5, currentStep.restSeconds),
-      isPaused: false,
-    }).catch(() => {});
     enterRestPhase(currentStep.restSeconds);
   }, [
     currentStep,
@@ -569,7 +351,6 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     currentStepIndex,
     enterRestPhase,
     getElapsedExerciseSeconds,
-    persistProgress,
     upsertEntry,
   ]);
 
@@ -591,19 +372,11 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
       completedAt: new Date().toISOString(),
     };
 
-    const nextEntries = upsertEntries(entriesRef.current, entry);
-    entriesRef.current = nextEntries;
     upsertEntry(entry);
+    setShowSetPrompt(false);
 
     const isLastStep = currentStepIndex >= session.steps.length - 1;
     if (isLastStep) {
-      persistProgress(nextEntries, {
-        activePhase: "summary",
-        currentStepIndex,
-        remainingSeconds: 0,
-        phaseDurationSec: 0,
-        isPaused: true,
-      }).catch(() => {});
       setPhase("summary");
       setPhaseDuration(0);
       setSecondsLeft(0);
@@ -613,13 +386,6 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
       return;
     }
 
-    persistProgress(nextEntries, {
-      activePhase: "rest",
-      currentStepIndex,
-      remainingSeconds: Math.max(5, currentStep.restSeconds),
-      phaseDurationSec: Math.max(5, currentStep.restSeconds),
-      isPaused: false,
-    }).catch(() => {});
     enterRestPhase(currentStep.restSeconds);
   }, [
     session,
@@ -630,30 +396,12 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     upsertEntry,
     currentStepIndex,
     enterRestPhase,
-    persistProgress,
   ]);
 
   const skipRest = useCallback(() => {
     if (phase !== "rest") return;
-    const nextStepIndex = currentStepIndex + 1;
-    const nextStep = session?.steps[nextStepIndex];
-    if (nextStep) {
-      persistProgress(entriesRef.current, {
-        activePhase: "exercise",
-        currentStepIndex: nextStepIndex,
-        remainingSeconds: Math.max(1, nextStep.exerciseSeconds),
-        phaseDurationSec: Math.max(1, nextStep.exerciseSeconds),
-        isPaused: false,
-      }).catch(() => {});
-    }
     moveToNextStep();
-  }, [
-    phase,
-    currentStepIndex,
-    session,
-    moveToNextStep,
-    persistProgress,
-  ]);
+  }, [phase, moveToNextStep]);
 
   const goToPreviousStep = useCallback(() => {
     if (!session || session.steps.length === 0) return;
@@ -665,15 +413,55 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     setCurrentStepIndex(previousStepIndex);
     setStatus("running");
     setSummary(null);
-    persistProgress(entriesRef.current, {
-      activePhase: "exercise",
-      currentStepIndex: previousStepIndex,
-      remainingSeconds: Math.max(1, previousStep.exerciseSeconds),
-      phaseDurationSec: Math.max(1, previousStep.exerciseSeconds),
-      isPaused: false,
-    }).catch(() => {});
     enterExercisePhase(previousStep);
-  }, [session, currentStepIndex, enterExercisePhase, persistProgress]);
+  }, [session, currentStepIndex, enterExercisePhase]);
+
+  const restartCurrentStep = useCallback(() => {
+    if (!currentStep) return;
+
+    setStatus("running");
+    setSummary(null);
+    enterExercisePhase(currentStep);
+  }, [currentStep, enterExercisePhase]);
+
+  const jumpToStep = useCallback(
+    (stepIndex: number) => {
+      if (!session) return;
+      const step = session.steps[stepIndex];
+      if (!step) return;
+
+      setCurrentStepIndex(stepIndex);
+      setStatus("running");
+      setSummary(null);
+      enterExercisePhase(step);
+    },
+    [session, enterExercisePhase],
+  );
+
+  const updateEntry = useCallback(
+    (
+      stepIndex: number,
+      patch: { actualReps?: number; metTarget?: boolean },
+    ) => {
+      setEntries((prev) =>
+        prev.map((entry) => {
+          if (entry.stepIndex !== stepIndex) return entry;
+
+          return {
+            ...entry,
+            actualReps:
+              patch.actualReps !== undefined
+                ? Math.max(0, Math.floor(patch.actualReps))
+                : entry.actualReps,
+            metTarget:
+              patch.metTarget !== undefined ? patch.metTarget : entry.metTarget,
+            completedAt: new Date().toISOString(),
+          };
+        }),
+      );
+    },
+    [],
+  );
 
   const buildCompletionPayload = useCallback(
     (entriesOverride?: WorkoutRunEntryInputDto[]): CompleteWorkoutRunDto => {
@@ -759,17 +547,17 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
         payload: buildCompletionPayload(completionEntries),
       });
 
-      clearLiveActiveWorkoutRun(session.runId);
       setSummary(completed);
       setStatus("completed");
     } catch (error) {
       isCompletingRef.current = false;
       setStatus("error");
       setErrorMessage(
-        getFriendlyErrorMessage(
-          error,
-          "Unable to save workout session. Please try again.",
-        ),
+        error instanceof Error
+          ? error.message.length > 180
+            ? "Unable to save workout session. Please try again."
+            : error.message
+          : "Unable to save workout session.",
       );
     }
   }, [
@@ -788,28 +576,22 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
   const pauseTimer = useCallback(() => {
     if (phase === "summary") return;
     phaseEndAtRef.current = null;
-    persistProgress(entriesRef.current, {
-      isPaused: true,
-      remainingSeconds: toSecondsLeft(remainingMsRef.current),
-    }).catch(() => {});
     setIsPaused(true);
-  }, [phase, persistProgress]);
+  }, [phase]);
 
   const resumeTimer = useCallback(() => {
     if (phase === "summary") return;
+    if (showSetPrompt) return;
 
     const ms = remainingMsRef.current;
     phaseEndAtRef.current = Date.now() + ms;
     elapsedTickRef.current = Date.now();
-    persistProgress(entriesRef.current, {
-      isPaused: false,
-      remainingSeconds: toSecondsLeft(ms),
-    }).catch(() => {});
     setIsPaused(false);
-  }, [phase, persistProgress]);
+  }, [phase, showSetPrompt]);
 
   const togglePause = useCallback(() => {
     if (phase === "summary") return;
+    if (showSetPrompt) return;
 
     if (isPaused) {
       resumeTimer();
@@ -817,15 +599,46 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     }
 
     pauseTimer();
-  }, [phase, isPaused, pauseTimer, resumeTimer]);
+  }, [phase, showSetPrompt, isPaused, pauseTimer, resumeTimer]);
 
   const autosaveProgress = useCallback(async () => {
-    if (!session || status !== "running" || isCompletingRef.current) {
+    if (
+      !session ||
+      session.runId.length === 0 ||
+      status !== "running" ||
+      entries.length === 0 ||
+      isCompletingRef.current
+    ) {
       return;
     }
 
-    await persistProgress(entriesRef.current);
-  }, [session, status, persistProgress]);
+    const savePromise = progressMutation
+      .mutateAsync({
+        runId: session.runId,
+        payload: {
+          durationSec: Math.max(
+            1,
+            Math.round((Date.now() - session.startedAt.getTime()) / 1000),
+          ),
+          notes: notes.trim() || undefined,
+          entries,
+        },
+      })
+      .then(
+        () => undefined,
+        () => undefined,
+      );
+
+    autoSaveInFlightRef.current = savePromise;
+
+    try {
+      await savePromise;
+    } finally {
+      if (autoSaveInFlightRef.current === savePromise) {
+        autoSaveInFlightRef.current = null;
+      }
+    }
+  }, [session, status, entries, notes, progressMutation]);
 
   useEffect(() => {
     if (!session || status !== "running" || isPaused || phase === "summary") {
@@ -858,7 +671,7 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
 
     autoSaveTimerRef.current = window.setInterval(() => {
       autosaveProgress();
-    }, 10_000);
+    }, 30_000);
 
     return () => {
       if (autoSaveTimerRef.current) {
@@ -868,33 +681,10 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     };
   }, [autosaveProgress, session, status]);
 
-  useEffect(() => {
-    if (!session || status !== "running") return;
-
-    const saveBeforeBackground = () => {
-      autosaveProgress().catch(() => {});
-    };
-
-    const saveWhenHidden = () => {
-      if (document.visibilityState === "hidden") {
-        saveBeforeBackground();
-      }
-    };
-
-    window.addEventListener("pagehide", saveBeforeBackground);
-    document.addEventListener("visibilitychange", saveWhenHidden);
-
-    return () => {
-      window.removeEventListener("pagehide", saveBeforeBackground);
-      document.removeEventListener("visibilitychange", saveWhenHidden);
-    };
-  }, [autosaveProgress, session, status]);
-
   const backToWorkouts = useCallback(() => {
-    syncRuntimeProgressCache();
     autosaveProgress().catch(() => {});
     router.push("/workouts");
-  }, [router, autosaveProgress, syncRuntimeProgressCache]);
+  }, [router, autosaveProgress]);
 
   return {
     workoutId,
@@ -910,6 +700,7 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     phaseProgress,
     elapsedSeconds: Math.floor(elapsedMs / 1000),
     isPaused,
+    showSetPrompt,
 
     pendingActualReps,
     setPendingActualReps: (value) =>
@@ -924,11 +715,18 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
 
     startSession,
     togglePause,
+    handleScreenTap,
+    resumeFromSetPrompt,
     saveSetAndContinue,
     skipRest,
     skipExercise,
     goToPreviousStep,
+    restartCurrentStep,
+    jumpToStep,
+    updateEntry,
     finishSession,
     backToWorkouts,
+
+    buildCompletionPayload,
   };
 };

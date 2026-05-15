@@ -1,4 +1,19 @@
 import { act, renderHook } from "@testing-library/react";
+import { JSDOM } from "jsdom";
+
+// Ensure basic DOM globals when running tests in non-jsdom environments
+if (typeof global.window === "undefined") {
+  const dom = new JSDOM("<!doctype html><html><body></body></html>");
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  global.window = dom.window;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  global.document = dom.window.document;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  global.navigator = dom.window.navigator;
+}
 import { useWorkoutRunPageVM } from "@/components/pagesComponents/WorkoutRunPage/WorkoutRunPageVM";
 
 const getActiveRunMock = jest.fn();
@@ -6,15 +21,6 @@ const startMutateAsync = jest.fn();
 const completeMutateAsync = jest.fn();
 const saveProgressMock = jest.fn();
 const pushMock = jest.fn();
-const mockSetQueryData = jest.fn();
-
-jest.mock("@tanstack/react-query", () => {
-  const actual = jest.requireActual("@tanstack/react-query");
-  return {
-    ...actual,
-    useQueryClient: () => ({ setQueryData: mockSetQueryData }),
-  };
-});
 
 jest.mock("@/hooks/apiHooks/workoutRun/useActiveWorkoutRun", () => ({
   useActiveWorkoutRun: jest.fn((workoutId) => ({
@@ -134,29 +140,6 @@ describe("useWorkoutRunPageVM - session continuity", () => {
     expect(result.current.notes).toBe("Good start");
   });
 
-  it("restores saved rest phase and timer state", async () => {
-    getActiveRunMock.mockReturnValue({
-      ...resumeSession,
-      activePhase: "rest",
-      currentStepIndex: 0,
-      remainingSeconds: 23,
-      phaseDurationSec: 60,
-      isPaused: true,
-    });
-
-    const { result } = renderHook(() => useWorkoutRunPageVM("w1"));
-
-    await act(async () => {
-      jest.advanceTimersByTime(1);
-    });
-
-    expect(result.current.phase).toBe("rest");
-    expect(result.current.currentStepIndex).toBe(0);
-    expect(result.current.secondsLeft).toBe(23);
-    expect(result.current.phaseDuration).toBe(60);
-    expect(result.current.isPaused).toBe(true);
-  });
-
   it("starts fresh session if no active run exists", async () => {
     getActiveRunMock.mockReturnValue(null);
 
@@ -179,26 +162,13 @@ describe("useWorkoutRunPageVM - session continuity", () => {
     });
 
     act(() => {
+      result.current.handleScreenTap();
       result.current.setPendingActualReps("8");
       result.current.setPendingMetTarget(true);
       result.current.saveSetAndContinue();
     });
 
     expect(result.current.entries).toHaveLength(1);
-
-    expect(saveProgressMock).toHaveBeenLastCalledWith({
-      runId: "run-1",
-      payload: expect.objectContaining({
-        activePhase: "rest",
-        currentStepIndex: 0,
-        remainingSeconds: 60,
-        phaseDurationSec: 60,
-        isPaused: false,
-        entries: expect.arrayContaining([
-          expect.objectContaining({ stepIndex: 0, actualReps: 8 }),
-        ]),
-      }),
-    });
 
     act(() => {
       jest.advanceTimersByTime(30_000);
@@ -241,6 +211,7 @@ describe("useWorkoutRunPageVM - session continuity", () => {
     });
 
     act(() => {
+      result.current.handleScreenTap();
       result.current.setPendingActualReps("8");
       result.current.setPendingMetTarget(true);
       result.current.saveSetAndContinue();
@@ -279,14 +250,9 @@ describe("useWorkoutRunPageVM - session continuity", () => {
     });
 
     act(() => {
+      result.current.handleScreenTap();
       result.current.saveSetAndContinue();
-    });
-
-    act(() => {
-      result.current.skipRest();
-    });
-
-    act(() => {
+      result.current.handleScreenTap();
       result.current.saveSetAndContinue();
     });
 

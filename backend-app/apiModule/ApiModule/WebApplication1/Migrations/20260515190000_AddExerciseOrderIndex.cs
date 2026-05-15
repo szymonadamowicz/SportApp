@@ -1,13 +1,9 @@
 using Microsoft.EntityFrameworkCore.Migrations;
-using ApiModule.Infrastructure;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 
 #nullable disable
 
 namespace ApiModule.Migrations
 {
-    [DbContext(typeof(AppDbContext))]
-    [Migration("20260515190000_AddExerciseOrderIndex")]
     public partial class AddExerciseOrderIndex : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -1,6 +1,5 @@
 "use client";
 
-import { LoadingSpinner } from "@/components/Loading/LoadingSpinner";
 import { mapWorkoutToListItemVM } from "@/helpers/mappers/mapWorkoutToListItemVm";
 import InfoPanel from "../../InfoPanel/InfoPanel";
 import { WorkoutListItem } from "../WorkoutPage/sections/WorkoutListItem";
@@ -10,34 +9,25 @@ import HighlightItem from "./sections/HighlightItem";
 import TipItem from "./sections/TipItem";
 import WeeklyProgressItem from "./sections/WeeklyProgressItem";
 import EmptyState from "@/components/EmptyState/EmptyState";
-import { CalendarDays } from "lucide-react";
 
 export default function HomePage() {
   const vm = useHomePageVM();
-
-  if (vm.isLoading) {
-    return <LoadingSpinner label="Loading dashboard..." />;
-  }
 
   return (
     <div className="relative">
       <Hero
         hero={vm.hero}
-        activeRun={vm.activeRun}
-        activeElapsedSeconds={vm.activeElapsedSeconds}
         completedCount={vm.statsWeekly.completedCount}
         upcomingCount={vm.statsWeekly.plannedCount}
         onPrimaryAction={() =>
-          vm.activeRun
-            ? vm.goTo(`/workout-run/${vm.activeRun.workoutId}`)
-            : vm.hero.kind === "rest"
+          vm.hero.kind === "rest"
             ? vm.goTo("/workouts?modal=open")
             : vm.goTo(`/workout-run/${vm.hero.workout.id}`)
         }
       />
 
-      <div className="mt-5 flex flex-col gap-5 md:mt-6 md:flex-row md:items-start md:gap-6">
-        <div className="flex flex-1 flex-col gap-5 md:gap-6">
+      <div className="mt-6 flex flex-col md:flex-row md:items-start md:gap-6">
+        <div className="flex-1 flex flex-col gap-6">
           {vm.today.hasItems ? (
             <InfoPanel
               title="Trainings Today"
@@ -56,7 +46,7 @@ export default function HomePage() {
             </InfoPanel>
           ) : (
             <EmptyState
-              icon={<CalendarDays size={28} />}
+              icon="🎉"
               title="No upcoming workouts"
               description="Nothing scheduled for now."
               missed={vm.today.missedItems.length > 0}
@@ -71,7 +61,7 @@ export default function HomePage() {
           </InfoPanel>
         </div>
 
-        <div className="flex flex-1 flex-col gap-5 md:gap-6">
+        <div className="flex-1 flex flex-col gap-6 mt-6 md:mt-0">
           <InfoPanel
             title="Week progress"
             desc={`sessions ${vm.statsWeekly.completedCount}/${vm.statsWeekly.plannedCount}`}

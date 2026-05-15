@@ -1,19 +1,25 @@
 import { act, renderHook } from "@testing-library/react";
+import { JSDOM } from "jsdom";
+
+// Ensure basic DOM globals when running tests in non-jsdom environments
+if (typeof global.window === "undefined") {
+  const dom = new JSDOM("<!doctype html><html><body></body></html>");
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  global.window = dom.window;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  global.document = dom.window.document;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  global.navigator = dom.window.navigator;
+}
 import { useWorkoutRunPageVM } from "@/components/pagesComponents/WorkoutRunPage/WorkoutRunPageVM";
 
 const startMutateAsync = jest.fn();
 const completeMutateAsync = jest.fn();
 const saveProgressMock = jest.fn();
 const pushMock = jest.fn();
-const mockSetQueryData = jest.fn();
-
-jest.mock("@tanstack/react-query", () => {
-  const actual = jest.requireActual("@tanstack/react-query");
-  return {
-    ...actual,
-    useQueryClient: () => ({ setQueryData: mockSetQueryData }),
-  };
-});
 
 jest.mock("@/hooks/apiHooks/workoutRun/useActiveWorkoutRun", () => ({
   useActiveWorkoutRun: () => ({ activeRun: null, isLoading: false }),
@@ -110,6 +116,7 @@ describe("useWorkoutRunPageVM", () => {
     expect(result.current.status).toBe("running");
 
     act(() => {
+      result.current.handleScreenTap();
       result.current.setPendingActualReps("8");
       result.current.setPendingMetTarget(true);
       result.current.saveSetAndContinue();
@@ -144,6 +151,28 @@ describe("useWorkoutRunPageVM", () => {
     expect(result.current.phase).toBe("summary");
   });
 
+  it("can return from set feedback prompt to timer while time remains", async () => {
+    const { result } = renderHook(() => useWorkoutRunPageVM("w1"));
+
+    await act(async () => {
+      await result.current.startSession();
+    });
+
+    act(() => {
+      result.current.handleScreenTap();
+    });
+
+    expect(result.current.showSetPrompt).toBe(true);
+    expect(result.current.isPaused).toBe(true);
+
+    act(() => {
+      result.current.resumeFromSetPrompt();
+    });
+
+    expect(result.current.showSetPrompt).toBe(false);
+    expect(result.current.isPaused).toBe(false);
+  });
+
   it("allows finishing workout before summary phase", async () => {
     const { result } = renderHook(() => useWorkoutRunPageVM("w1"));
 
@@ -159,6 +188,25 @@ describe("useWorkoutRunPageVM", () => {
     expect(result.current.status).toBe("completed");
   });
 
+  it("can edit previously logged entry feedback", async () => {
+    const { result } = renderHook(() => useWorkoutRunPageVM("w1"));
+
+    await act(async () => {
+      await result.current.startSession();
+    });
+
+    act(() => {
+      result.current.handleScreenTap();
+      result.current.setPendingActualReps("8");
+      result.current.setPendingMetTarget(true);
+      result.current.saveSetAndContinue();
+      result.current.updateEntry(0, { actualReps: 6, metTarget: false });
+    });
+
+    expect(result.current.entries[0].actualReps).toBe(6);
+    expect(result.current.entries[0].metTarget).toBe(false);
+  });
+
   it("supports moving back to previous step", async () => {
     startMutateAsync.mockResolvedValueOnce(startedSessionTwoSteps);
 
@@ -169,11 +217,7 @@ describe("useWorkoutRunPageVM", () => {
     });
 
     act(() => {
-      result.current.saveSetAndContinue();
-    });
-
-    act(() => {
-      result.current.skipRest();
+      result.current.jumpToStep(1);
     });
 
     expect(result.current.currentStepIndex).toBe(1);

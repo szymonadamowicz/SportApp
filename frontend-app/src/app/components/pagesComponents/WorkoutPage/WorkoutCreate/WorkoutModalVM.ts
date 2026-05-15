@@ -13,7 +13,6 @@ import { Workout } from "@/types/workout/workout";
 import { isValidExercise } from "@/helpers/utils/workout/workoutDraftValidateExercise";
 import { usePutWorkoutStructure } from "@/hooks/apiHooks/workouts/usePutWorkoutStructure";
 import { usePatchWorkoutMeta } from "@/hooks/apiHooks/workouts/usePatchWorkoutMeta";
-import { getFriendlyErrorMessage } from "@/api/apiError";
 
 const PRESET_MUSCLE_GROUPS = [
   "chest",
@@ -100,7 +99,6 @@ export const useWorkoutModalVM = ({
   ]);
 
   const [errors, setErrors] = useState<WorkoutCreateErrors>({});
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
 
   const hydratedForIdRef = useRef<string | null>(null);
@@ -119,7 +117,6 @@ export const useWorkoutModalVM = ({
     setCustomMuscles([]);
     setExercises([createEmptyExercise()]);
     setErrors({});
-    setSubmitError(null);
     setShowToast(false);
     setDropdownOpen(false);
   };
@@ -151,7 +148,6 @@ export const useWorkoutModalVM = ({
         : [createEmptyExercise()],
     );
     setErrors({});
-    setSubmitError(null);
     setShowToast(false);
     setDropdownOpen(false);
   };
@@ -373,13 +369,10 @@ export const useWorkoutModalVM = ({
 
   const createOrUpdateWorkout = async () => {
     if (!validate()) {
-      setSubmitError(null);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2500);
       return;
     }
-
-    setSubmitError(null);
 
     const normalizedExercisesForPayload = exercises
       .map((exercise, orderIndex) => ({
@@ -402,28 +395,17 @@ export const useWorkoutModalVM = ({
       exercises: normalizedExercisesForPayload,
     };
 
-    try {
-      if (mode === "create") {
-        await createMutation.mutateAsync(payload);
-        onClose();
-        return;
-      }
-
-      await updateMutation.mutateAsync(payload);
-
-      await patchMetaMutation.mutateAsync(payload);
-
+    if (mode === "create") {
+      createMutation.mutate(payload);
       onClose();
-    } catch (error) {
-      setSubmitError(
-        getFriendlyErrorMessage(
-          error,
-          mode === "create"
-            ? "Could not create this training. Please try again."
-            : "Could not save this training. Please try again.",
-        ),
-      );
+      return;
     }
+
+    await updateMutation.mutateAsync(payload);
+
+    await patchMetaMutation.mutateAsync(payload);
+
+    onClose();
   };
 
   return {
@@ -460,12 +442,7 @@ export const useWorkoutModalVM = ({
     updateExercise: updateExerciseAndClearErrors,
 
     errors,
-    submitError,
     showToast,
-    isSaving:
-      createMutation.isPending ||
-      updateMutation.isPending ||
-      patchMetaMutation.isPending,
     createOrUpdateWorkout,
   };
 };

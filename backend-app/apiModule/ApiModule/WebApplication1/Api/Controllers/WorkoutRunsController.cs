@@ -19,13 +19,6 @@ public sealed class WorkoutRunsController(WorkoutRunService service) : Controlle
         return Ok(activeRun);
     }
 
-    [HttpGet("active")]
-    public async Task<ActionResult<WorkoutRunStartDto?>> Active(CancellationToken ct)
-    {
-        var activeRun = await _service.GetLatestActiveAsync(ct);
-        return Ok(activeRun);
-    }
-
     [HttpPost("start/{workoutId:guid}")]
     public async Task<ActionResult<WorkoutRunStartDto>> Start(Guid workoutId, CancellationToken ct)
     {
@@ -57,14 +50,5 @@ public sealed class WorkoutRunsController(WorkoutRunService service) : Controlle
         if (summary is null) return NotFound();
 
         return Ok(summary);
-    }
-
-    [HttpPost("{runId:guid}/cancel")]
-    public async Task<IActionResult> Cancel(Guid runId, CancellationToken ct)
-    {
-        var cancelled = await _service.CancelAsync(runId, ct);
-        if (!cancelled) return NotFound();
-
-        return NoContent();
     }
 }

@@ -12,13 +12,6 @@ public sealed class WorkoutRun
     public DateTime? FinishedAt { get; set; }
     public int? DurationSec { get; set; }
     public string? Notes { get; set; }
-    public string ActivePhase { get; set; } = "exercise";
-    public int CurrentStepIndex { get; set; }
-    public int? RemainingSeconds { get; set; }
-    public int? PhaseDurationSec { get; set; }
-    public bool IsPaused { get; set; }
-    public DateTime? LastProgressAt { get; set; }
 
     public List<WorkoutRunEntry> Entries { get; set; } = [];
-    public List<FormAnalysis> FormAnalyses { get; set; } = [];
 }

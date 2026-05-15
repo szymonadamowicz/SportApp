@@ -7,27 +7,27 @@ export default function StartingPage() {
   const LogoIcon = vm.logoIcon;
 
   return (
-    <div className="rf-page-radial relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 py-[calc(3rem+env(safe-area-inset-top))] sm:px-6 md:py-24">
+    <div className="min-h-screen rf-page-radial flex flex-col items-center justify-center px-6 py-24 relative overflow-hidden">
       <div className="w-full max-w-5xl text-center">
-        <div className="mb-8 flex justify-center md:mb-10">
-          <div className="accent-chip flex h-16 w-16 items-center justify-center rounded-3xl sm:h-20 sm:w-20">
-            <LogoIcon className="h-8 w-8 text-[var(--accent)] sm:h-10 sm:w-10" />
+        <div className="flex justify-center mb-10">
+          <div className="w-20 h-20 rounded-3xl accent-chip flex items-center justify-center">
+            <LogoIcon className="w-10 h-10 text-[var(--accent)]" />
           </div>
         </div>
 
-        <h1 className="text-4xl font-bold leading-tight md:text-5xl lg:text-6xl">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
           {vm.hero.titleTop}
           <br />
           <span className="text-gradient">{vm.hero.titleAccent}</span>
         </h1>
 
-        <p className="text-muted mx-auto mt-5 max-w-2xl text-base sm:text-lg md:mt-6">
+        <p className="text-muted text-lg mt-6 max-w-2xl mx-auto">
           {vm.hero.description}
         </p>
 
-        <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row md:mt-10">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
           <Link href={"/login"} className="w-full sm:w-auto">
-            <button className="group rf-btn-primary min-h-12 w-full cursor-pointer rounded-2xl px-8 py-4 font-semibold active:scale-95">
+            <button className="group rf-btn-primary active:scale-95 rounded-2xl w-full px-8 py-4 font-semibold cursor-pointer">
               Log in
               <ArrowRight className="inline-block ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
             </button>
@@ -35,7 +35,7 @@ export default function StartingPage() {
         </div>
       </div>
 
-      <div className="fade-in mt-12 grid w-full max-w-6xl gap-5 md:mt-28 md:grid-cols-3 md:gap-6">
+      <div className="w-full max-w-6xl grid md:grid-cols-3 gap-6 mt-28 fade-in">
         {vm.features.map((feature, index) => (
           <div key={index} className="glass-panel card-hover p-6 text-center">
             <div className="flex justify-center mb-4">

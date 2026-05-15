@@ -10,7 +10,7 @@ export function ProgressQualityTipItem({
     <div className={getToneStyles(tone)}>
       <div className="flex items-start gap-3 p-4">
         <span
-          className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full"
+          className="mt-2 h-2.5 w-2.5 rounded-full"
           style={{
             background:
               tone === "positive"
@@ -21,7 +21,7 @@ export function ProgressQualityTipItem({
           }}
         />
 
-        <div className="min-w-0">
+        <div>
           <p className="text-sm font-semibold text-[var(--text-primary)]">
             {label}
           </p>

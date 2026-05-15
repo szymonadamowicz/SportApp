@@ -12,7 +12,6 @@ public class Workout
     public List<string> MuscleGroups { get; set; } = new();
     public List<Exercise> Exercises { get; set; } = new();
     public List<WorkoutRun> Runs { get; set; } = new();
-    public List<FormAnalysis> FormAnalyses { get; set; } = new();
 
     public Guid OwnerUserId { get; set; }
 }

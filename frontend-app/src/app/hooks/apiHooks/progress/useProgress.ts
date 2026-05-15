@@ -8,16 +8,8 @@ import { Progress } from "@/types/progress/progress";
 import { ProgressScope } from "@/types/progress/progressDTO";
 import { useQuery } from "@tanstack/react-query";
 
-type UseProgressOptions = {
-  enabled?: boolean;
-};
-
-export const useProgress = (
-  scope: ProgressScope = "all",
-  options: UseProgressOptions = {},
-) => {
+export const useProgress = (scope: ProgressScope = "all") => {
   const { isAuthenticated, isReady } = useAuth();
-  const isEnabled = options.enabled ?? true;
 
   const query = useQuery<Progress>({
     queryKey: progressKeys.all(scope),
@@ -27,7 +19,7 @@ export const useProgress = (
     },
     staleTime: 2 * 60 * 1000,
     refetchOnMount: false,
-    enabled: isEnabled && isReady && isAuthenticated,
+    enabled: isReady && isAuthenticated,
   });
 
   return {

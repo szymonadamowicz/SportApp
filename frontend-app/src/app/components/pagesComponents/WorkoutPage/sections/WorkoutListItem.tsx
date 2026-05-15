@@ -4,7 +4,6 @@ import { Tag } from "@/components/Tag/Tag";
 import { getWorkoutTags } from "@/helpers/ui/workoutTagStyles";
 import { WorkoutListItemVMProps } from "@/types/pages/workoutPage";
 import clsx from "clsx";
-import { motion } from "framer-motion";
 
 export function WorkoutListItem({
   item,
@@ -21,31 +20,27 @@ export function WorkoutListItem({
   const tags = getWorkoutTags(item);
 
   return (
-    <motion.button
-      type="button"
-      layout
+    <div
       onClick={onClick}
       className={clsx(
-        "rf-animate-item rf-hover-lift min-h-16 w-full cursor-pointer rounded-2xl border border-borderSoft/80 px-4 py-3 text-left transition duration-200 sm:rounded-xl",
+        "rounded-xl px-4 py-3 cursor-pointer transition duration-200 border border-borderSoft/80",
         stateClass,
         selected
-          ? "rf-selection-pop bg-[rgba(34,197,94,0.08)] ring-2 ring-[var(--accent-border)] border border-[var(--accent-border)] shadow-lg shadow-[rgba(34,197,94,0.2)]"
+          ? "bg-[rgba(34,197,94,0.08)] ring-2 ring-[var(--accent-border)] border border-[var(--accent-border)] shadow-lg shadow-[rgba(34,197,94,0.2)]"
           : "hover:bg-white/5",
       )}
-      whileTap={{ scale: 0.992 }}
-      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-        <div className="min-w-0">
-          <p className="truncate font-medium">{item.title}</p>
-          <p className="truncate text-sm text-textSecondary">{item.mainFocus}</p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="font-medium">{item.title}</p>
+          <p className="text-sm text-textSecondary">{item.mainFocus}</p>
         </div>
-        <div className="flex min-w-0 flex-wrap gap-2 sm:justify-end">
+        <div className="flex flex-wrap gap-2 mt-2">
           {tags.map((tag) => (
             <Tag key={tag.id} {...tag} />
           ))}
         </div>
       </div>
-    </motion.button>
+    </div>
   );
 }

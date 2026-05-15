@@ -14,15 +14,9 @@ import {
 import { useLocalStorageState } from "@/hooks/useLocalStorageState";
 import { useNow } from "@/hooks/helperHooks/useNow";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getFriendlyErrorMessage } from "@/api/apiError";
 
 export const useWorkoutsPageVM = () => {
-  const {
-    allWorkouts: workouts,
-    isLoading,
-    isError,
-    error,
-  } = useWorkouts();
+  const { allWorkouts: workouts } = useWorkouts();
   const now = useNow();
 
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<
@@ -129,13 +123,5 @@ export const useWorkoutsPageVM = () => {
     isCreateModalOpen,
 
     selectedEditWorkoutId,
-    isLoading,
-    isError,
-    errorMessage: isError
-      ? getFriendlyErrorMessage(
-          error,
-          "Could not load workouts. Refresh and try again.",
-        )
-      : null,
   };
 };
