@@ -32,7 +32,7 @@ export function WorkoutRunTimerHeader({
   const isTimerOver = vm.secondsLeft < 0;
 
   return (
-    <section className="mb-6 rounded-xl border border-borderSoft bg-[linear-gradient(135deg,rgba(34,49,59,0.96),rgba(11,18,25,0.94))] p-4 shadow-[0_24px_70px_rgba(0,0,0,0.36)] md:p-5">
+    <section className="rf-animate-panel mb-6 rounded-xl border border-borderSoft bg-[linear-gradient(135deg,rgba(34,49,59,0.96),rgba(11,18,25,0.94))] p-4 shadow-[0_24px_70px_rgba(0,0,0,0.36)] md:p-5">
       <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
         <button
           type="button"

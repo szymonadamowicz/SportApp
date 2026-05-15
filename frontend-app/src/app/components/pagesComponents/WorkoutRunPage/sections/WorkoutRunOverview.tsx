@@ -21,7 +21,7 @@ export function WorkoutRunOverview({
   onRequestFinish,
 }: WorkoutRunOverviewProps) {
   return (
-    <section className="rounded-xl border border-borderSoft bg-bgCard/80 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)]">
+    <section className="rf-animate-panel rounded-xl border border-borderSoft bg-bgCard/80 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)]">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-base font-semibold">Overview</h2>
         <span className="rounded-full border border-borderSoft bg-bgHighlight/30 px-3 py-1 text-xs text-textSecondary">

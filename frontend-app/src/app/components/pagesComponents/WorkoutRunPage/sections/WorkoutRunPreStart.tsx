@@ -59,7 +59,7 @@ export function WorkoutRunPreStart({
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-      <section className="rounded-xl border border-borderSoft bg-[linear-gradient(135deg,rgba(27,43,52,0.96),rgba(14,22,30,0.95))] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.36)] md:p-8">
+      <section className="rf-animate-panel rounded-xl border border-borderSoft bg-[linear-gradient(135deg,rgba(27,43,52,0.96),rgba(14,22,30,0.95))] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.36)] md:p-8">
         <div className="flex items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.18em] text-textMuted">
             <span>Ready to begin</span>
@@ -124,7 +124,7 @@ export function WorkoutRunPreStart({
         {errorMessage && <p className="mt-4 text-sm text-danger">{errorMessage}</p>}
       </section>
 
-      <section className="rounded-xl border border-borderSoft bg-bgCard/80 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)] md:p-5">
+      <section className="rf-animate-panel rounded-xl border border-borderSoft bg-bgCard/80 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)] md:p-5">
         <div className="flex items-center justify-between gap-3">
           <p className="text-xs uppercase tracking-[0.18em] text-textMuted">
             Quick view

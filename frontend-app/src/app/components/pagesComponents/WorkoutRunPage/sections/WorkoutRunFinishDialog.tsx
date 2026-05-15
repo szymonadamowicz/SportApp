@@ -8,8 +8,8 @@ export function WorkoutRunFinishDialog({
   onConfirm,
 }: WorkoutRunFinishDialogProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 px-4 py-6 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-xl border border-borderSoft bg-bgCard p-5 shadow-[0_30px_120px_rgba(0,0,0,0.55)]">
+    <div className="rf-animate-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/65 px-4 py-6 backdrop-blur-sm">
+      <div className="rf-animate-modal w-full max-w-md rounded-xl border border-borderSoft bg-bgCard p-5 shadow-[0_30px_120px_rgba(0,0,0,0.55)]">
         <p className="text-xs uppercase tracking-[0.18em] text-textMuted">
           Finish workout
         </p>

@@ -29,7 +29,7 @@ export default function Hero({
         : "Recovery is part of progress.";
 
   return (
-    <section className={`${heroClass} fade-in relative`}>
+    <section className={`${heroClass} rf-hero-reveal relative overflow-hidden`}>
       <div
         className="absolute inset-0 rounded-3xl pointer-events-none"
         style={{
@@ -69,7 +69,7 @@ export default function Hero({
               }}
             >
               <span
-                className="h-2 w-2 rounded-full"
+                className="rf-pulse-dot h-2 w-2 rounded-full"
                 style={{
                   background: "linear-gradient(135deg, #22c55e, #4ade80)",
                   boxShadow: "0 0 0 3px rgba(34,197,94,0.12)",
@@ -94,7 +94,7 @@ export default function Hero({
                   }}
                 >
                   <span
-                    className="h-2 w-2 rounded-full"
+                    className="rf-pulse-dot h-2 w-2 rounded-full"
                     style={{
                       background: "linear-gradient(135deg, #22c55e, #4ade80)",
                     }}

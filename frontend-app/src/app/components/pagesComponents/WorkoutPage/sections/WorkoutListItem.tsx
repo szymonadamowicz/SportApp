@@ -23,7 +23,7 @@ export function WorkoutListItem({
     <div
       onClick={onClick}
       className={clsx(
-        "rounded-xl px-4 py-3 cursor-pointer transition duration-200 border border-borderSoft/80",
+        "rf-animate-item rf-hover-lift rounded-xl px-4 py-3 cursor-pointer transition duration-200 border border-borderSoft/80",
         stateClass,
         selected
           ? "bg-[rgba(34,197,94,0.08)] ring-2 ring-[var(--accent-border)] border border-[var(--accent-border)] shadow-lg shadow-[rgba(34,197,94,0.2)]"

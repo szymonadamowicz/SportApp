@@ -1,5 +1,6 @@
 "use client";
 
+import { PageTransition } from "@/components/animations/PageTransition";
 import { AuthGate } from "@/contexts/auth/authGate";
 
 export default function WorkoutRunLayout({
@@ -9,7 +10,9 @@ export default function WorkoutRunLayout({
 }) {
   return (
     <AuthGate>
-      <main className="min-h-screen">{children}</main>
+      <main className="min-h-screen">
+        <PageTransition>{children}</PageTransition>
+      </main>
     </AuthGate>
   );
 }

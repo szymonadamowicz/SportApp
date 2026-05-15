@@ -26,7 +26,7 @@ export function WorkoutRunSetConsole({
     vm.phase === "rest" ? "Start next set" : "Skip current set";
 
   return (
-    <section className="rounded-xl border border-borderSoft bg-bgCard/80 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)] md:p-5">
+    <section className="rf-animate-panel rounded-xl border border-borderSoft bg-bgCard/80 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)] md:p-5">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.18em] text-textMuted">

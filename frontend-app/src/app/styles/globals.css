@@ -160,14 +160,20 @@ input[type="time"]::-webkit-calendar-picker-indicator {
       transform 0.25s ease,
       box-shadow 0.25s ease,
       border-color 0.25s ease;
+    will-change: transform;
   }
 
   .rf-hover-lift:hover,
   .card-hover:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     box-shadow:
       0 24px 58px rgba(0, 0, 0, 0.48),
       0 0 0 1px rgba(56, 189, 248, 0.16);
+  }
+
+  .rf-hover-lift:active,
+  .card-hover:active {
+    transform: translateY(-1px) scale(0.995);
   }
 
   .rf-text-muted,
@@ -216,11 +222,17 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     border: 1px solid transparent;
     box-shadow: 0 12px 34px rgba(52, 211, 153, 0.28);
     transition: all 0.2s ease;
+    will-change: transform, box-shadow;
   }
 
   .rf-btn-primary:hover {
     filter: brightness(0.97);
     box-shadow: 0 16px 40px rgba(56, 189, 248, 0.24);
+    transform: translateY(-1px);
+  }
+
+  .rf-btn-primary:active {
+    transform: translateY(0) scale(0.98);
   }
 
   .rf-btn-secondary {
@@ -228,11 +240,17 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     background: rgba(56, 189, 248, 0.1);
     border: 1px solid rgba(56, 189, 248, 0.34);
     transition: all 0.2s ease;
+    will-change: transform, background-color, border-color;
   }
 
   .rf-btn-secondary:hover {
     background: rgba(56, 189, 248, 0.16);
     border-color: rgba(56, 189, 248, 0.5);
+    transform: translateY(-1px);
+  }
+
+  .rf-btn-secondary:active {
+    transform: translateY(0) scale(0.985);
   }
 
   .rf-btn-danger {
@@ -240,11 +258,17 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     background: rgba(248, 113, 113, 0.1);
     border: 1px solid rgba(248, 113, 113, 0.32);
     transition: all 0.2s ease;
+    will-change: transform, background-color, border-color;
   }
 
   .rf-btn-danger:hover {
     background: rgba(248, 113, 113, 0.16);
     border-color: rgba(248, 113, 113, 0.48);
+    transform: translateY(-1px);
+  }
+
+  .rf-btn-danger:active {
+    transform: translateY(0) scale(0.985);
   }
 
   .rf-input-surface {
@@ -318,6 +342,98 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     animation: fadeIn 0.45s ease-out both;
   }
 
+  .rf-route-view {
+    min-height: inherit;
+    transform-origin: top center;
+  }
+
+  .rf-page-sequence > * {
+    animation: pageItemIn 0.46s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .rf-page-sequence > *:nth-child(1) {
+    animation-delay: 0.02s;
+  }
+
+  .rf-page-sequence > *:nth-child(2) {
+    animation-delay: 0.08s;
+  }
+
+  .rf-page-sequence > *:nth-child(3) {
+    animation-delay: 0.14s;
+  }
+
+  .rf-page-sequence > *:nth-child(4) {
+    animation-delay: 0.2s;
+  }
+
+  .rf-animate-panel {
+    animation: panelIn 0.44s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .rf-animate-item {
+    animation: itemIn 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .rf-stagger-list > * {
+    animation: itemIn 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .rf-stagger-list > *:nth-child(1) {
+    animation-delay: 0.02s;
+  }
+
+  .rf-stagger-list > *:nth-child(2) {
+    animation-delay: 0.06s;
+  }
+
+  .rf-stagger-list > *:nth-child(3) {
+    animation-delay: 0.1s;
+  }
+
+  .rf-stagger-list > *:nth-child(4) {
+    animation-delay: 0.14s;
+  }
+
+  .rf-stagger-list > *:nth-child(5) {
+    animation-delay: 0.18s;
+  }
+
+  .rf-stagger-list > *:nth-child(n + 6) {
+    animation-delay: 0.22s;
+  }
+
+  .rf-hero-reveal {
+    animation: heroIn 0.58s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .rf-hero-reveal::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      110deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.09) 46%,
+      transparent 62%
+    );
+    transform: translateX(-120%);
+    animation: surfaceSheen 1.6s 0.18s ease-out both;
+  }
+
+  .rf-pulse-dot {
+    animation: pulseDot 1.9s ease-in-out infinite;
+  }
+
+  .rf-animate-overlay {
+    animation: overlayIn 0.18s ease-out both;
+  }
+
+  .rf-animate-modal {
+    animation: modalIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
   .dropdown-panel {
     background: linear-gradient(
       180deg,
@@ -353,5 +469,119 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes pageItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes itemIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heroIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes surfaceSheen {
+  0% {
+    opacity: 0;
+    transform: translateX(-120%);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(120%);
+  }
+}
+
+@keyframes pulseDot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.22);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(52, 211, 153, 0);
+  }
+}
+
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .rf-hover-lift,
+  .card-hover,
+  .rf-hover-lift:hover,
+  .card-hover:hover,
+  .rf-hover-lift:active,
+  .card-hover:active,
+  .rf-btn-primary:hover,
+  .rf-btn-primary:active,
+  .rf-btn-secondary:hover,
+  .rf-btn-secondary:active,
+  .rf-btn-danger:hover,
+  .rf-btn-danger:active {
+    transform: none;
   }
 }
