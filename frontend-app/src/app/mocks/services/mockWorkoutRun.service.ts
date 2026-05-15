@@ -1,6 +1,7 @@
 import { workoutsRepository } from "@/mocks/repositories/workouts.repository";
 import { workoutRunsRepository } from "@/mocks/repositories/workoutRuns.repository";
 import { mockDelay } from "@/mocks/runtime/delay";
+import { estimateSetSeconds } from "@/helpers/utils/calculate/workoutRunEstimate";
 import {
   CompleteWorkoutRunDto,
   SaveWorkoutRunProgressDto,
@@ -26,14 +27,7 @@ const buildSteps = (
     const expectedReps = Math.max(1, exercise.reps || 1);
     const expectedWeight = Math.max(0, exercise.weight || 0);
     const restSeconds = Math.max(15, exercise.restTimeSec || 60);
-    const secondsPerRep =
-      expectedReps <= 5 ? 5 : expectedReps <= 10 ? 4 : 3;
-    const loadAdjustment =
-      expectedWeight <= 0 ? 0 : expectedWeight < 40 ? 4 : expectedWeight < 80 ? 8 : 12;
-    const exerciseSeconds = Math.max(
-      20,
-      Math.min(180, 10 + expectedReps * secondsPerRep + loadAdjustment),
-    );
+    const exerciseSeconds = estimateSetSeconds(expectedReps, expectedWeight);
 
     for (let setNumber = 1; setNumber <= totalSets; setNumber++) {
       steps.push({

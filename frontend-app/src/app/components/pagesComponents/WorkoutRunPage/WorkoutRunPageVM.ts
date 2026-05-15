@@ -52,7 +52,6 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
   const [remainingMs, setRemainingMs] = useState(0);
   const [phaseDuration, setPhaseDuration] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [showSetPrompt, setShowSetPrompt] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
 
   const [pendingActualReps, setPendingActualReps] = useState("");
@@ -160,7 +159,6 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     setPhaseDuration(exerciseSeconds);
     setRemainingMs(durationMs);
     setSecondsLeft(toSecondsLeft(durationMs));
-    setShowSetPrompt(false);
     setIsPaused(false);
     setPendingActualReps(String(step.expectedReps));
     setPendingMetTarget(true);
@@ -175,7 +173,6 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     setPhaseDuration(safeRestSeconds);
     setRemainingMs(durationMs);
     setSecondsLeft(toSecondsLeft(durationMs));
-    setShowSetPrompt(false);
     setIsPaused(false);
     phaseEndAtRef.current = Date.now() + durationMs;
   }, []);
@@ -189,7 +186,6 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
       setSecondsLeft(0);
       setRemainingMs(0);
       setPhaseDuration(0);
-      setShowSetPrompt(false);
       setIsPaused(true);
       phaseEndAtRef.current = null;
       return;
@@ -202,7 +198,6 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
   useEffect(() => {
     if (!session) return;
     if (phase === "summary") return;
-    if (showSetPrompt) return;
     if (isPaused) return;
 
     const tick = () => {
@@ -219,12 +214,12 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
 
     tick();
 
-    const timerId = window.setInterval(tick, 16);
+    const timerId = window.setInterval(tick, 250);
 
     return () => {
       window.clearInterval(timerId);
     };
-  }, [session, phase, showSetPrompt, isPaused]);
+  }, [session, phase, isPaused]);
 
   const startSession = useCallback(async () => {
     if (status === "starting" || status === "running" || status === "saving") {
@@ -261,7 +256,6 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
       }
 
       setSummary(null);
-      setShowSetPrompt(false);
       setIsPaused(false);
 
       if ((normalizedStarted.steps ?? []).length === 0) {
@@ -287,28 +281,6 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     }
   }, [status, startMutation, workoutId, enterExercisePhase]);
 
-  const handleScreenTap = useCallback(() => {
-    if (status !== "running") return;
-    if (!currentStep) return;
-    if (phase !== "exercise") return;
-    if (showSetPrompt) return;
-
-    setShowSetPrompt(true);
-    setIsPaused(true);
-    phaseEndAtRef.current = null;
-  }, [status, currentStep, phase, showSetPrompt]);
-
-  const resumeFromSetPrompt = useCallback(() => {
-    if (!showSetPrompt) return;
-    if (phase !== "exercise") return;
-
-    const ms = remainingMsRef.current;
-
-    phaseEndAtRef.current = Date.now() + ms;
-    setShowSetPrompt(false);
-    setIsPaused(false);
-  }, [showSetPrompt, phase]);
-
   const saveSetAndContinue = useCallback(() => {
     if (!currentStep || !session) return;
 
@@ -329,7 +301,6 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     };
 
     upsertEntry(entry);
-    setShowSetPrompt(false);
 
     const isLastStep = currentStepIndex >= session.steps.length - 1;
     if (isLastStep) {
@@ -373,7 +344,6 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     };
 
     upsertEntry(entry);
-    setShowSetPrompt(false);
 
     const isLastStep = currentStepIndex >= session.steps.length - 1;
     if (isLastStep) {
@@ -415,53 +385,6 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     setSummary(null);
     enterExercisePhase(previousStep);
   }, [session, currentStepIndex, enterExercisePhase]);
-
-  const restartCurrentStep = useCallback(() => {
-    if (!currentStep) return;
-
-    setStatus("running");
-    setSummary(null);
-    enterExercisePhase(currentStep);
-  }, [currentStep, enterExercisePhase]);
-
-  const jumpToStep = useCallback(
-    (stepIndex: number) => {
-      if (!session) return;
-      const step = session.steps[stepIndex];
-      if (!step) return;
-
-      setCurrentStepIndex(stepIndex);
-      setStatus("running");
-      setSummary(null);
-      enterExercisePhase(step);
-    },
-    [session, enterExercisePhase],
-  );
-
-  const updateEntry = useCallback(
-    (
-      stepIndex: number,
-      patch: { actualReps?: number; metTarget?: boolean },
-    ) => {
-      setEntries((prev) =>
-        prev.map((entry) => {
-          if (entry.stepIndex !== stepIndex) return entry;
-
-          return {
-            ...entry,
-            actualReps:
-              patch.actualReps !== undefined
-                ? Math.max(0, Math.floor(patch.actualReps))
-                : entry.actualReps,
-            metTarget:
-              patch.metTarget !== undefined ? patch.metTarget : entry.metTarget,
-            completedAt: new Date().toISOString(),
-          };
-        }),
-      );
-    },
-    [],
-  );
 
   const buildCompletionPayload = useCallback(
     (entriesOverride?: WorkoutRunEntryInputDto[]): CompleteWorkoutRunDto => {
@@ -581,17 +504,15 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
 
   const resumeTimer = useCallback(() => {
     if (phase === "summary") return;
-    if (showSetPrompt) return;
 
     const ms = remainingMsRef.current;
     phaseEndAtRef.current = Date.now() + ms;
     elapsedTickRef.current = Date.now();
     setIsPaused(false);
-  }, [phase, showSetPrompt]);
+  }, [phase]);
 
   const togglePause = useCallback(() => {
     if (phase === "summary") return;
-    if (showSetPrompt) return;
 
     if (isPaused) {
       resumeTimer();
@@ -599,7 +520,7 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     }
 
     pauseTimer();
-  }, [phase, showSetPrompt, isPaused, pauseTimer, resumeTimer]);
+  }, [phase, isPaused, pauseTimer, resumeTimer]);
 
   const autosaveProgress = useCallback(async () => {
     if (
@@ -700,7 +621,6 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     phaseProgress,
     elapsedSeconds: Math.floor(elapsedMs / 1000),
     isPaused,
-    showSetPrompt,
 
     pendingActualReps,
     setPendingActualReps: (value) =>
@@ -715,18 +635,11 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
 
     startSession,
     togglePause,
-    handleScreenTap,
-    resumeFromSetPrompt,
     saveSetAndContinue,
     skipRest,
     skipExercise,
     goToPreviousStep,
-    restartCurrentStep,
-    jumpToStep,
-    updateEntry,
     finishSession,
     backToWorkouts,
-
-    buildCompletionPayload,
   };
 };

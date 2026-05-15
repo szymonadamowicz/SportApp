@@ -1,5 +1,4 @@
 import {
-  CompleteWorkoutRunDto,
   WorkoutRunEntryInputDto,
   WorkoutRunStart,
   WorkoutRunStep,
@@ -22,7 +21,6 @@ export type WorkoutRunPageVM = {
   phaseProgress: number;
   elapsedSeconds: number;
   isPaused: boolean;
-  showSetPrompt: boolean;
 
   pendingActualReps: string;
   setPendingActualReps: (value: string) => void;
@@ -36,20 +34,10 @@ export type WorkoutRunPageVM = {
 
   startSession: () => Promise<void>;
   togglePause: () => void;
-  handleScreenTap: () => void;
-  resumeFromSetPrompt: () => void;
   saveSetAndContinue: () => void;
   skipRest: () => void;
   skipExercise: () => void;
   goToPreviousStep: () => void;
-  restartCurrentStep: () => void;
-  jumpToStep: (stepIndex: number) => void;
-  updateEntry: (
-    stepIndex: number,
-    patch: { actualReps?: number; metTarget?: boolean },
-  ) => void;
   finishSession: () => Promise<void>;
   backToWorkouts: () => void;
-
-  buildCompletionPayload: () => CompleteWorkoutRunDto;
 };

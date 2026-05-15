@@ -17,7 +17,6 @@ export type WorkoutFormVM = {
   editMode: boolean;
   hasChanges: boolean;
   draft: Record<string, DraftExercise>;
-  enterEdit: () => void;
   handleEditWorkout: () => void;
   handleStartWorkout: () => void;
   startButtonLabel: string;

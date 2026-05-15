@@ -1,19 +1,4 @@
 import { act, renderHook } from "@testing-library/react";
-import { JSDOM } from "jsdom";
-
-// Ensure basic DOM globals when running tests in non-jsdom environments
-if (typeof global.window === "undefined") {
-  const dom = new JSDOM("<!doctype html><html><body></body></html>");
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  global.window = dom.window;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  global.document = dom.window.document;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  global.navigator = dom.window.navigator;
-}
 import { useWorkoutRunPageVM } from "@/components/pagesComponents/WorkoutRunPage/WorkoutRunPageVM";
 
 const getActiveRunMock = jest.fn();
@@ -162,7 +147,6 @@ describe("useWorkoutRunPageVM - session continuity", () => {
     });
 
     act(() => {
-      result.current.handleScreenTap();
       result.current.setPendingActualReps("8");
       result.current.setPendingMetTarget(true);
       result.current.saveSetAndContinue();
@@ -211,7 +195,6 @@ describe("useWorkoutRunPageVM - session continuity", () => {
     });
 
     act(() => {
-      result.current.handleScreenTap();
       result.current.setPendingActualReps("8");
       result.current.setPendingMetTarget(true);
       result.current.saveSetAndContinue();
@@ -250,9 +233,14 @@ describe("useWorkoutRunPageVM - session continuity", () => {
     });
 
     act(() => {
-      result.current.handleScreenTap();
       result.current.saveSetAndContinue();
-      result.current.handleScreenTap();
+    });
+
+    act(() => {
+      result.current.skipRest();
+    });
+
+    act(() => {
       result.current.saveSetAndContinue();
     });
 

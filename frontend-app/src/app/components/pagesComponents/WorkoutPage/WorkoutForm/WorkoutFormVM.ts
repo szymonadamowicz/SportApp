@@ -66,7 +66,6 @@ export const useWorkoutFormVM = (workout: Workout): WorkoutFormVM => {
     setHasChanges(false);
   }, [workout]);
 
-  const enterEdit = () => setEditMode(true);
   const enterExercisesEdit = () => setEditMode(true);
 
   const updateDraft = (id: string, patch: Partial<DraftExercise>) => {
@@ -164,7 +163,6 @@ export const useWorkoutFormVM = (workout: Workout): WorkoutFormVM => {
     handleEditWorkout,
     handleStartWorkout,
     startButtonLabel,
-    enterEdit,
     enterExercisesEdit,
 
     cancelEdit,
