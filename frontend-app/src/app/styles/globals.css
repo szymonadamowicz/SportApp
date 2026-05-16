@@ -347,27 +347,27 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   }
 
   .rf-page-sequence > * {
-    animation: pageItemIn 0.46s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: pageItemIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .rf-page-sequence > *:nth-child(1) {
-    animation-delay: 0.02s;
+    animation-delay: 0s;
   }
 
   .rf-page-sequence > *:nth-child(2) {
-    animation-delay: 0.08s;
+    animation-delay: 0.03s;
   }
 
   .rf-page-sequence > *:nth-child(3) {
-    animation-delay: 0.14s;
+    animation-delay: 0.06s;
   }
 
   .rf-page-sequence > *:nth-child(4) {
-    animation-delay: 0.2s;
+    animation-delay: 0.09s;
   }
 
   .rf-animate-panel {
-    animation: panelIn 0.44s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: panelIn 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .rf-animate-item {
@@ -403,7 +403,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   }
 
   .rf-hero-reveal {
-    animation: heroIn 0.58s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: heroIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .rf-hero-reveal::after {
