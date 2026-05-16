@@ -16,7 +16,7 @@ import { useNow } from "@/hooks/helperHooks/useNow";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export const useWorkoutsPageVM = () => {
-  const { allWorkouts: workouts } = useWorkouts();
+  const { allWorkouts: workouts, isLoading, isError } = useWorkouts();
   const now = useNow();
 
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<
@@ -123,5 +123,7 @@ export const useWorkoutsPageVM = () => {
     isCreateModalOpen,
 
     selectedEditWorkoutId,
+    isLoading,
+    isError,
   };
 };

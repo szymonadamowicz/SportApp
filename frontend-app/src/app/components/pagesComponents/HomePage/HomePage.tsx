@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingSpinner } from "@/components/Loading/LoadingSpinner";
 import { mapWorkoutToListItemVM } from "@/helpers/mappers/mapWorkoutToListItemVm";
 import InfoPanel from "../../InfoPanel/InfoPanel";
 import { WorkoutListItem } from "../WorkoutPage/sections/WorkoutListItem";
@@ -12,6 +13,10 @@ import EmptyState from "@/components/EmptyState/EmptyState";
 
 export default function HomePage() {
   const vm = useHomePageVM();
+
+  if (vm.isLoading) {
+    return <LoadingSpinner label="Loading dashboard..." />;
+  }
 
   return (
     <div className="relative">

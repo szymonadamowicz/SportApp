@@ -12,6 +12,7 @@ export const useProgressAchievements = () => {
 
   return {
     achievements,
+    allProgress: all,
     isLoading: isLoadingAll || isLoadingWeek,
     isError: isErrorAll || isErrorWeek,
   };

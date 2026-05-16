@@ -30,6 +30,7 @@ export interface HomePageVM {
   };
 
   goTo: (path: string) => void;
+  isLoading: boolean;
 }
 
 export type HighlightsItemsProps = {

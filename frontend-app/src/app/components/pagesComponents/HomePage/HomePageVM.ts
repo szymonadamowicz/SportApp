@@ -9,7 +9,6 @@ import { useHeroVM } from "@/helpers/viewModels/HomePageHeroVM";
 import { useProgressAchievements } from "@/hooks/apiHooks/progress/useProgressAchievements";
 import { getSelectedAchievementsProgress } from "@/helpers/utils/selectors/progress/progressSelector";
 import { useWeeklyStats } from "@/hooks/apiHooks/progress/useProgressWeeklyStats";
-import { useProgress } from "@/hooks/apiHooks/progress/useProgress";
 import { Highlights } from "@/types/workout/workout";
 import { HomePageVM } from "@/types/pages/homePage";
 import { tipsFixture } from "@/mocks/fixtures/workouts.fixture";
@@ -40,10 +39,14 @@ const buildHighlights = (
 export const useHomePageVM = (): HomePageVM => {
   const router = useRouter();
   const now = useNow();
-  const { allWorkouts: workouts } = useWorkouts();
+  const { allWorkouts: workouts, isLoading: isLoadingWorkouts } =
+    useWorkouts();
 
-  const { achievements: progressAchievements } = useProgressAchievements();
-  const { progress: allProgress } = useProgress("all");
+  const {
+    achievements: progressAchievements,
+    allProgress,
+    isLoading: isLoadingProgress,
+  } = useProgressAchievements();
   const { completed, planned } = useWeeklyStats();
 
   const todayItems = getTodayUpcomingWorkouts(workouts, now);
@@ -79,5 +82,6 @@ export const useHomePageVM = (): HomePageVM => {
     },
 
     goTo: (path: string) => router.push(path),
+    isLoading: isLoadingWorkouts || isLoadingProgress,
   };
 };

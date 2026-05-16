@@ -1,6 +1,7 @@
 "use client";
 
 import InfoPanel from "@/components/InfoPanel/InfoPanel";
+import { LoadingSpinner } from "@/components/Loading/LoadingSpinner";
 import { useProgressPageVM } from "./ProgressPageVM";
 import { PRListItem } from "./sections/ProgressPRListItem";
 import { ProgressStatCard } from "./sections/ProgressStatCard";
@@ -10,6 +11,10 @@ import EmptyState from "@/components/EmptyState/EmptyState";
 
 export default function ProgressPage() {
   const vm = useProgressPageVM();
+
+  if (vm.isLoading) {
+    return <LoadingSpinner label="Loading progress..." />;
+  }
 
   return (
     <div className="space-y-8">

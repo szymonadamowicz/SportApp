@@ -433,6 +433,14 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     animation: modalIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
+  .rf-loading-state {
+    animation: panelIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .rf-loading-state span {
+    animation: spin 0.85s linear infinite;
+  }
+
   .dropdown-panel {
     background: linear-gradient(
       180deg,
@@ -556,6 +564,12 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 

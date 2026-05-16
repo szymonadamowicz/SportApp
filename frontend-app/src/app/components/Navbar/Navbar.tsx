@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useRememberedRoute } from "@/helpers/utils/navigation/navigationHelper";
 
@@ -14,7 +13,6 @@ const navItems = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const router = useRouter();
   const getHref = useRememberedRoute();
 
   return (
@@ -39,8 +37,8 @@ export default function Navbar() {
             const href = getHref(item.href);
             return (
               <li key={item.href} className="relative">
-                <button
-                  onClick={() => router.push(href)}
+                <Link
+                  href={href}
                   className={`
                     text-lg font-medium transition duration-300 cursor-pointer
                     ${
@@ -51,7 +49,7 @@ export default function Navbar() {
                   `}
                 >
                   {item.label}
-                </button>
+                </Link>
 
                 {active && (
                   <motion.div

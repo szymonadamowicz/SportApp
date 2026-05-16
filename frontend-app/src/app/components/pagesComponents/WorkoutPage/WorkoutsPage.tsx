@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingSpinner } from "@/components/Loading/LoadingSpinner";
 import { useWorkoutsPageVM } from "./WorkoutsPageVM";
 import { WorkoutListSection } from "./sections/WorkoutListSection";
 import WorkoutForm from "./WorkoutForm/WorkoutForm";
@@ -10,6 +11,10 @@ import { CreateWorkoutModal } from "./WorkoutCreate/sections/WorkoutCreateModal"
 
 export default function WorkoutsPage() {
   const vm = useWorkoutsPageVM();
+
+  if (vm.isLoading) {
+    return <LoadingSpinner label="Loading workouts..." />;
+  }
 
   return (
     <>
