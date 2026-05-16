@@ -153,11 +153,22 @@ export const useProgressPageVM = () => {
           },
         ];
 
-  const statsCards: ProgressStatCardProps[] = stats.map((stat) => ({
+  const kpiStats = stats.filter((stat) => stat.id !== "streak");
+  const streakStat = stats.find((stat) => stat.id === "streak");
+
+  const statsCards: ProgressStatCardProps[] = kpiStats.map((stat) => ({
     label: stat.title,
     value: showWeek ? (stat.valueWeek ?? "-") : stat.value,
     subLabel: showWeek ? stat.subLabelWeek : stat.subLabel,
   }));
+
+  const streakCard: ProgressStatCardProps | null = streakStat
+    ? {
+        label: streakStat.title,
+        value: showWeek ? (streakStat.valueWeek ?? "-") : streakStat.value,
+        subLabel: showWeek ? streakStat.subLabelWeek : streakStat.subLabel,
+      }
+    : null;
 
   const prsItems: ProgressPRListItemProps[] = prs.map((pr) => ({
     name: pr.title,
@@ -199,6 +210,7 @@ export const useProgressPageVM = () => {
 
   return {
     statsCards,
+    streakCard,
     prsItems,
     showStatsEmpty: stats.length === 0,
     showPrsEmpty,

@@ -8,6 +8,7 @@ import { ProgressLastSessionFeedback } from "./sections/ProgressLastSessionFeedb
 import { ProgressPRPanel } from "./sections/ProgressPRPanel";
 import { ProgressQualityTipItem } from "./sections/ProgressQualityTipItem";
 import { ProgressStatCard } from "./sections/ProgressStatCard";
+import { ProgressStreakSummary } from "./sections/ProgressStreakSummary";
 
 export default function ProgressPage() {
   const vm = useProgressPageVM();
@@ -42,6 +43,14 @@ export default function ProgressPage() {
               subLabel={stat.subLabel}
             />
           ))
+        )}
+
+        {vm.streakCard && (
+          <ProgressStreakSummary
+            label={vm.streakCard.label}
+            value={vm.streakCard.value}
+            subLabel={vm.streakCard.subLabel}
+          />
         )}
       </InfoPanel>
 
