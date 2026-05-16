@@ -1,13 +1,13 @@
 "use client";
 
+import EmptyState from "@/components/EmptyState/EmptyState";
 import InfoPanel from "@/components/InfoPanel/InfoPanel";
 import { LoadingSpinner } from "@/components/Loading/LoadingSpinner";
 import { useProgressPageVM } from "./ProgressPageVM";
-import { PRListItem } from "./sections/ProgressPRListItem";
-import { ProgressStatCard } from "./sections/ProgressStatCard";
-import { ProgressQualityTipItem } from "./sections/ProgressQualityTipItem";
 import { ProgressLastSessionFeedback } from "./sections/ProgressLastSessionFeedback";
-import EmptyState from "@/components/EmptyState/EmptyState";
+import { ProgressPRPanel } from "./sections/ProgressPRPanel";
+import { ProgressQualityTipItem } from "./sections/ProgressQualityTipItem";
+import { ProgressStatCard } from "./sections/ProgressStatCard";
 
 export default function ProgressPage() {
   const vm = useProgressPageVM();
@@ -29,7 +29,7 @@ export default function ProgressPage() {
       >
         {vm.showStatsEmpty ? (
           <EmptyState
-            icon="📈"
+            icon="^"
             title="No progress data yet"
             description="Complete your first workout to start tracking stats and PRs."
           />
@@ -45,25 +45,12 @@ export default function ProgressPage() {
         )}
       </InfoPanel>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-        <InfoPanel title="PRs & Benchmarks">
-          {vm.showPrsEmpty ? (
-            <EmptyState
-              icon="🏆"
-              title="No PRs yet"
-              description="Once you complete workouts, your best sets will show up here."
-            />
-          ) : (
-            vm.prsItems.map((pr) => (
-              <PRListItem
-                key={pr.name}
-                name={pr.name}
-                value={pr.value}
-                diff={pr.diff}
-              />
-            ))
-          )}
-        </InfoPanel>
+      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
+        <ProgressPRPanel
+          items={vm.prsItems}
+          isEmpty={vm.showPrsEmpty}
+          pageKey={vm.scopeLabel}
+        />
 
         {vm.lastSessionView.kind === "available" && (
           <ProgressLastSessionFeedback
@@ -87,7 +74,7 @@ export default function ProgressPage() {
 
         {vm.lastSessionView.kind === "none" && (
           <EmptyState
-            icon={vm.lastSessionView.empty.icon}
+            icon="!"
             title={vm.lastSessionView.empty.title}
             description={vm.lastSessionView.empty.description}
           />
