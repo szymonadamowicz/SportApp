@@ -1,6 +1,7 @@
 "use client";
 
 import { useCompleteWorkoutRun } from "@/hooks/apiHooks/workoutRun/useCompleteWorkoutRun";
+import { workoutRunKeys } from "@/api/keys/workoutRun.keys";
 import { useStartWorkoutRun } from "@/hooks/apiHooks/workoutRun/useStartWorkoutRun";
 import { useSaveWorkoutRunProgress } from "@/hooks/apiHooks/workoutRun/useSaveWorkoutRunProgress";
 import { useActiveWorkoutRun } from "@/hooks/apiHooks/workoutRun/useActiveWorkoutRun";
@@ -10,12 +11,14 @@ import {
 } from "@/types/pages/workoutRunPage";
 import {
   CompleteWorkoutRunDto,
+  SaveWorkoutRunProgressDto,
   WorkoutRunEntryInputDto,
   WorkoutRunStart,
   WorkoutRunStep,
   WorkoutRunSummary,
 } from "@/types/workout/workoutRun";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const normalizeRepsInput = (value: string): string => {
@@ -34,8 +37,55 @@ const clampProgress = (value: number): number => {
   return Math.max(0, Math.min(1, value));
 };
 
+const upsertEntries = (
+  entries: WorkoutRunEntryInputDto[],
+  entry: WorkoutRunEntryInputDto,
+): WorkoutRunEntryInputDto[] => {
+  const index = entries.findIndex((item) => item.stepIndex === entry.stepIndex);
+  const next = [...entries];
+
+  if (index >= 0) {
+    next[index] = entry;
+  } else {
+    next.push(entry);
+  }
+
+  return next.sort((a, b) => a.stepIndex - b.stepIndex);
+};
+
+const getRestoredRemainingSeconds = (
+  run: WorkoutRunStart,
+  phase: WorkoutRunPhase,
+  fallbackSeconds: number,
+): number => {
+  const storedSeconds =
+    run.remainingSeconds ?? (phase === "summary" ? 0 : fallbackSeconds);
+
+  if (phase === "summary" || run.isPaused || !run.lastProgressAt) {
+    return storedSeconds;
+  }
+
+  const elapsedSinceLastProgress = Math.floor(
+    Math.max(0, Date.now() - run.lastProgressAt.getTime()) / 1000,
+  );
+
+  return storedSeconds - elapsedSinceLastProgress;
+};
+
+type ProgressStateOverride = Partial<
+  Pick<
+    SaveWorkoutRunProgressDto,
+    | "activePhase"
+    | "currentStepIndex"
+    | "remainingSeconds"
+    | "phaseDurationSec"
+    | "isPaused"
+  >
+>;
+
 export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const startMutation = useStartWorkoutRun();
   const completeMutation = useCompleteWorkoutRun();
@@ -69,48 +119,100 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
   const autoSaveTimerRef = useRef<number | null>(null);
   const autoSaveInFlightRef = useRef<Promise<void> | null>(null);
   const isCompletingRef = useRef(false);
+  const phaseRef = useRef<WorkoutRunPhase>("exercise");
+  const currentStepIndexRef = useRef(0);
+  const phaseDurationRef = useRef(0);
+  const isPausedRef = useRef(false);
+  const entriesRef = useRef<WorkoutRunEntryInputDto[]>([]);
+  const notesRef = useRef("");
 
   useEffect(() => {
     remainingMsRef.current = remainingMs;
   }, [remainingMs]);
 
   useEffect(() => {
-    if (!activeRun || hasRestoredSession) return;
+    phaseRef.current = phase;
+  }, [phase]);
 
-    const normalizedActive = {
-      ...activeRun,
-      steps: [...(activeRun.steps ?? [])].sort(
-        (a, b) => a.stepIndex - b.stepIndex,
-      ),
+  useEffect(() => {
+    currentStepIndexRef.current = currentStepIndex;
+  }, [currentStepIndex]);
+
+  useEffect(() => {
+    phaseDurationRef.current = phaseDuration;
+  }, [phaseDuration]);
+
+  useEffect(() => {
+    isPausedRef.current = isPaused;
+  }, [isPaused]);
+
+  useEffect(() => {
+    entriesRef.current = entries;
+  }, [entries]);
+
+  useEffect(() => {
+    notesRef.current = notes;
+  }, [notes]);
+
+  const restoreSessionState = useCallback((run: WorkoutRunStart) => {
+    const normalizedRun = {
+      ...run,
+      steps: [...(run.steps ?? [])].sort((a, b) => a.stepIndex - b.stepIndex),
     };
-    setSession(normalizedActive);
-    setEntries(normalizedActive.entries ?? []);
-    setCurrentStepIndex(normalizedActive.nextStepIndex ?? 0);
-    setNotes(normalizedActive.notes ?? "");
-    setElapsedMs((normalizedActive.durationSec ?? 0) * 1000);
+    const steps = normalizedRun.steps;
+    const requestedStepIndex =
+      Number.isFinite(normalizedRun.currentStepIndex)
+        ? (normalizedRun.currentStepIndex ?? 0)
+        : (normalizedRun.nextStepIndex ?? 0);
+    const safeStepIndex =
+      steps.length === 0
+        ? 0
+        : Math.max(0, Math.min(requestedStepIndex, steps.length - 1));
+    const restoredPhase =
+      normalizedRun.activePhase ??
+      ((normalizedRun.nextStepIndex ?? 0) >= steps.length
+        ? "summary"
+        : "exercise");
+    const currentRestoredStep = steps[safeStepIndex];
+    const fallbackDuration =
+      restoredPhase === "rest"
+        ? Math.max(5, currentRestoredStep?.restSeconds ?? 0)
+        : Math.max(1, currentRestoredStep?.exerciseSeconds ?? 0);
+    const durationSec =
+      normalizedRun.phaseDurationSec ?? (restoredPhase === "summary" ? 0 : fallbackDuration);
+    const remainingSec =
+      getRestoredRemainingSeconds(normalizedRun, restoredPhase, durationSec);
+    const restoredRemainingMs = remainingSec * 1000;
+    const restoredPaused = restoredPhase === "summary" ? true : Boolean(normalizedRun.isPaused);
+
+    setSession(normalizedRun);
+    entriesRef.current = normalizedRun.entries ?? [];
+    setEntries(normalizedRun.entries ?? []);
+    setCurrentStepIndex(safeStepIndex);
+    setNotes(normalizedRun.notes ?? "");
+    setElapsedMs((normalizedRun.durationSec ?? 0) * 1000);
     elapsedTickRef.current = Date.now();
     setStatus("running");
-    setPhase("exercise");
-    setHasRestoredSession(true);
+    setSummary(null);
+    setPhase(restoredPhase);
+    setPhaseDuration(durationSec);
+    setRemainingMs(restoredRemainingMs);
+    setSecondsLeft(toSecondsLeft(restoredRemainingMs));
+    setIsPaused(restoredPaused);
+    setPendingActualReps(String(currentRestoredStep?.expectedReps ?? ""));
+    setPendingMetTarget(true);
+    phaseEndAtRef.current =
+      restoredPaused || restoredPhase === "summary"
+        ? null
+        : Date.now() + restoredRemainingMs;
+  }, []);
 
-    if (
-      normalizedActive.steps.length > 0 &&
-      (normalizedActive.nextStepIndex ?? 0) < normalizedActive.steps.length
-    ) {
-      const nextStep =
-        normalizedActive.steps[normalizedActive.nextStepIndex ?? 0];
-      if (nextStep) {
-        const exerciseSeconds = Math.max(1, nextStep.exerciseSeconds);
-        const durationMs = exerciseSeconds * 1000;
-        setPhaseDuration(exerciseSeconds);
-        setRemainingMs(durationMs);
-        setSecondsLeft(toSecondsLeft(durationMs));
-        setPendingActualReps(String(nextStep.expectedReps));
-        setPendingMetTarget(true);
-        phaseEndAtRef.current = Date.now() + durationMs;
-      }
-    }
-  }, [activeRun, hasRestoredSession]);
+  useEffect(() => {
+    if (!activeRun || hasRestoredSession) return;
+
+    restoreSessionState(activeRun);
+    setHasRestoredSession(true);
+  }, [activeRun, hasRestoredSession, restoreSessionState]);
 
   const currentStep = useMemo(() => {
     if (!session) return null;
@@ -125,21 +227,7 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
   }, [phaseDuration, remainingMs]);
 
   const upsertEntry = useCallback((entry: WorkoutRunEntryInputDto) => {
-    setEntries((prev) => {
-      const index = prev.findIndex(
-        (item) => item.stepIndex === entry.stepIndex,
-      );
-      const next = [...prev];
-
-      if (index >= 0) {
-        next[index] = entry;
-      } else {
-        next.push(entry);
-      }
-
-      next.sort((a, b) => a.stepIndex - b.stepIndex);
-      return next;
-    });
+    setEntries((prev) => upsertEntries(prev, entry));
   }, []);
 
   const getElapsedExerciseSeconds = useCallback((step: WorkoutRunStep) => {
@@ -195,6 +283,103 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     enterExercisePhase(session.steps[nextStepIndex]);
   }, [session, currentStepIndex, enterExercisePhase]);
 
+  const buildProgressPayload = useCallback(
+    (
+      entriesOverride: WorkoutRunEntryInputDto[] = entriesRef.current,
+      stateOverride: ProgressStateOverride = {},
+    ): SaveWorkoutRunProgressDto => {
+      const durationSec = session
+        ? Math.max(
+            1,
+            Math.round((Date.now() - session.startedAt.getTime()) / 1000),
+          )
+        : 0;
+
+      return {
+        durationSec,
+        notes: notesRef.current.trim() || undefined,
+        entries: entriesOverride,
+        activePhase: stateOverride.activePhase ?? phaseRef.current,
+        currentStepIndex:
+          stateOverride.currentStepIndex ?? currentStepIndexRef.current,
+        remainingSeconds:
+          stateOverride.remainingSeconds ?? toSecondsLeft(remainingMsRef.current),
+        phaseDurationSec:
+          stateOverride.phaseDurationSec ?? phaseDurationRef.current,
+        isPaused: stateOverride.isPaused ?? isPausedRef.current,
+      };
+    },
+    [session],
+  );
+
+  const syncActiveRunCache = useCallback(
+    (payload: SaveWorkoutRunProgressDto) => {
+      if (!session) return;
+
+      const optimisticRun: WorkoutRunStart = {
+        ...session,
+        activePhase: payload.activePhase,
+        currentStepIndex: payload.currentStepIndex,
+        remainingSeconds: payload.remainingSeconds,
+        phaseDurationSec: payload.phaseDurationSec,
+        isPaused: Boolean(payload.isPaused),
+        durationSec: payload.durationSec,
+        notes: payload.notes,
+        entries: payload.entries.map((entry) => ({
+          ...entry,
+          completedAt: entry.completedAt ?? new Date().toISOString(),
+        })),
+        lastProgressAt: new Date(),
+      };
+
+      queryClient.setQueryData(
+        workoutRunKeys.active(session.workoutId),
+        optimisticRun,
+      );
+      queryClient.setQueryData(workoutRunKeys.latestActive(), optimisticRun);
+    },
+    [queryClient, session],
+  );
+
+  const persistProgress = useCallback(
+    async (
+      entriesOverride: WorkoutRunEntryInputDto[] = entriesRef.current,
+      stateOverride?: ProgressStateOverride,
+    ) => {
+      if (
+        !session ||
+        session.runId.length === 0 ||
+        isCompletingRef.current
+      ) {
+        return;
+      }
+
+      const payload = buildProgressPayload(entriesOverride, stateOverride);
+      syncActiveRunCache(payload);
+
+      const savePromise = progressMutation
+        .mutateAsync({
+          runId: session.runId,
+          payload,
+        })
+        .then(
+          () => undefined,
+          () => undefined,
+        );
+
+      autoSaveInFlightRef.current = savePromise;
+
+      try {
+        await savePromise;
+      } finally {
+        if (autoSaveInFlightRef.current === savePromise) {
+          autoSaveInFlightRef.current = null;
+        }
+      }
+    },
+    [buildProgressPayload, progressMutation, session, syncActiveRunCache],
+  );
+
   useEffect(() => {
     if (!session) return;
     if (phase === "summary") return;
@@ -237,23 +422,21 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
           (a, b) => a.stepIndex - b.stepIndex,
         ),
       };
+
+      if (normalizedStarted.isResumed) {
+        restoreSessionState(normalizedStarted);
+        setHasRestoredSession(true);
+        return;
+      }
+
       setSession(normalizedStarted);
       setElapsedMs((normalizedStarted.durationSec ?? 0) * 1000);
       elapsedTickRef.current = Date.now();
 
-      if (
-        normalizedStarted.isResumed &&
-        normalizedStarted.entries &&
-        normalizedStarted.entries.length > 0
-      ) {
-        setEntries(normalizedStarted.entries);
-        setCurrentStepIndex(normalizedStarted.nextStepIndex ?? 0);
-        setNotes(normalizedStarted.notes ?? "");
-      } else {
-        setEntries([]);
-        setCurrentStepIndex(0);
-        setNotes("");
-      }
+      entriesRef.current = [];
+      setEntries([]);
+      setCurrentStepIndex(0);
+      setNotes("");
 
       setSummary(null);
       setIsPaused(false);
@@ -279,7 +462,13 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
       setStatus("error");
       setErrorMessage("Unable to start workout session.");
     }
-  }, [status, startMutation, workoutId, enterExercisePhase]);
+  }, [
+    status,
+    startMutation,
+    workoutId,
+    enterExercisePhase,
+    restoreSessionState,
+  ]);
 
   const saveSetAndContinue = useCallback(() => {
     if (!currentStep || !session) return;
@@ -300,10 +489,19 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
       completedAt: new Date().toISOString(),
     };
 
+    const nextEntries = upsertEntries(entriesRef.current, entry);
+    entriesRef.current = nextEntries;
     upsertEntry(entry);
 
     const isLastStep = currentStepIndex >= session.steps.length - 1;
     if (isLastStep) {
+      persistProgress(nextEntries, {
+        activePhase: "summary",
+        currentStepIndex,
+        remainingSeconds: 0,
+        phaseDurationSec: 0,
+        isPaused: true,
+      }).catch(() => {});
       setPhase("summary");
       setPhaseDuration(0);
       setSecondsLeft(0);
@@ -313,6 +511,13 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
       return;
     }
 
+    persistProgress(nextEntries, {
+      activePhase: "rest",
+      currentStepIndex,
+      remainingSeconds: Math.max(5, currentStep.restSeconds),
+      phaseDurationSec: Math.max(5, currentStep.restSeconds),
+      isPaused: false,
+    }).catch(() => {});
     enterRestPhase(currentStep.restSeconds);
   }, [
     currentStep,
@@ -322,6 +527,7 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     currentStepIndex,
     enterRestPhase,
     getElapsedExerciseSeconds,
+    persistProgress,
     upsertEntry,
   ]);
 
@@ -343,10 +549,19 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
       completedAt: new Date().toISOString(),
     };
 
+    const nextEntries = upsertEntries(entriesRef.current, entry);
+    entriesRef.current = nextEntries;
     upsertEntry(entry);
 
     const isLastStep = currentStepIndex >= session.steps.length - 1;
     if (isLastStep) {
+      persistProgress(nextEntries, {
+        activePhase: "summary",
+        currentStepIndex,
+        remainingSeconds: 0,
+        phaseDurationSec: 0,
+        isPaused: true,
+      }).catch(() => {});
       setPhase("summary");
       setPhaseDuration(0);
       setSecondsLeft(0);
@@ -356,6 +571,13 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
       return;
     }
 
+    persistProgress(nextEntries, {
+      activePhase: "rest",
+      currentStepIndex,
+      remainingSeconds: Math.max(5, currentStep.restSeconds),
+      phaseDurationSec: Math.max(5, currentStep.restSeconds),
+      isPaused: false,
+    }).catch(() => {});
     enterRestPhase(currentStep.restSeconds);
   }, [
     session,
@@ -366,12 +588,30 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     upsertEntry,
     currentStepIndex,
     enterRestPhase,
+    persistProgress,
   ]);
 
   const skipRest = useCallback(() => {
     if (phase !== "rest") return;
+    const nextStepIndex = currentStepIndex + 1;
+    const nextStep = session?.steps[nextStepIndex];
+    if (nextStep) {
+      persistProgress(entriesRef.current, {
+        activePhase: "exercise",
+        currentStepIndex: nextStepIndex,
+        remainingSeconds: Math.max(1, nextStep.exerciseSeconds),
+        phaseDurationSec: Math.max(1, nextStep.exerciseSeconds),
+        isPaused: false,
+      }).catch(() => {});
+    }
     moveToNextStep();
-  }, [phase, moveToNextStep]);
+  }, [
+    phase,
+    currentStepIndex,
+    session,
+    moveToNextStep,
+    persistProgress,
+  ]);
 
   const goToPreviousStep = useCallback(() => {
     if (!session || session.steps.length === 0) return;
@@ -383,8 +623,15 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     setCurrentStepIndex(previousStepIndex);
     setStatus("running");
     setSummary(null);
+    persistProgress(entriesRef.current, {
+      activePhase: "exercise",
+      currentStepIndex: previousStepIndex,
+      remainingSeconds: Math.max(1, previousStep.exerciseSeconds),
+      phaseDurationSec: Math.max(1, previousStep.exerciseSeconds),
+      isPaused: false,
+    }).catch(() => {});
     enterExercisePhase(previousStep);
-  }, [session, currentStepIndex, enterExercisePhase]);
+  }, [session, currentStepIndex, enterExercisePhase, persistProgress]);
 
   const buildCompletionPayload = useCallback(
     (entriesOverride?: WorkoutRunEntryInputDto[]): CompleteWorkoutRunDto => {
@@ -499,8 +746,12 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
   const pauseTimer = useCallback(() => {
     if (phase === "summary") return;
     phaseEndAtRef.current = null;
+    persistProgress(entriesRef.current, {
+      isPaused: true,
+      remainingSeconds: toSecondsLeft(remainingMsRef.current),
+    }).catch(() => {});
     setIsPaused(true);
-  }, [phase]);
+  }, [phase, persistProgress]);
 
   const resumeTimer = useCallback(() => {
     if (phase === "summary") return;
@@ -508,8 +759,12 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     const ms = remainingMsRef.current;
     phaseEndAtRef.current = Date.now() + ms;
     elapsedTickRef.current = Date.now();
+    persistProgress(entriesRef.current, {
+      isPaused: false,
+      remainingSeconds: toSecondsLeft(ms),
+    }).catch(() => {});
     setIsPaused(false);
-  }, [phase]);
+  }, [phase, persistProgress]);
 
   const togglePause = useCallback(() => {
     if (phase === "summary") return;
@@ -523,43 +778,12 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
   }, [phase, isPaused, pauseTimer, resumeTimer]);
 
   const autosaveProgress = useCallback(async () => {
-    if (
-      !session ||
-      session.runId.length === 0 ||
-      status !== "running" ||
-      entries.length === 0 ||
-      isCompletingRef.current
-    ) {
+    if (!session || status !== "running" || isCompletingRef.current) {
       return;
     }
 
-    const savePromise = progressMutation
-      .mutateAsync({
-        runId: session.runId,
-        payload: {
-          durationSec: Math.max(
-            1,
-            Math.round((Date.now() - session.startedAt.getTime()) / 1000),
-          ),
-          notes: notes.trim() || undefined,
-          entries,
-        },
-      })
-      .then(
-        () => undefined,
-        () => undefined,
-      );
-
-    autoSaveInFlightRef.current = savePromise;
-
-    try {
-      await savePromise;
-    } finally {
-      if (autoSaveInFlightRef.current === savePromise) {
-        autoSaveInFlightRef.current = null;
-      }
-    }
-  }, [session, status, entries, notes, progressMutation]);
+    await persistProgress(entriesRef.current);
+  }, [session, status, persistProgress]);
 
   useEffect(() => {
     if (!session || status !== "running" || isPaused || phase === "summary") {
@@ -592,13 +816,35 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
 
     autoSaveTimerRef.current = window.setInterval(() => {
       autosaveProgress();
-    }, 30_000);
+    }, 10_000);
 
     return () => {
       if (autoSaveTimerRef.current) {
         window.clearInterval(autoSaveTimerRef.current);
         autoSaveTimerRef.current = null;
       }
+    };
+  }, [autosaveProgress, session, status]);
+
+  useEffect(() => {
+    if (!session || status !== "running") return;
+
+    const saveBeforeBackground = () => {
+      autosaveProgress().catch(() => {});
+    };
+
+    const saveWhenHidden = () => {
+      if (document.visibilityState === "hidden") {
+        saveBeforeBackground();
+      }
+    };
+
+    window.addEventListener("pagehide", saveBeforeBackground);
+    document.addEventListener("visibilitychange", saveWhenHidden);
+
+    return () => {
+      window.removeEventListener("pagehide", saveBeforeBackground);
+      document.removeEventListener("visibilitychange", saveWhenHidden);
     };
   }, [autosaveProgress, session, status]);
 

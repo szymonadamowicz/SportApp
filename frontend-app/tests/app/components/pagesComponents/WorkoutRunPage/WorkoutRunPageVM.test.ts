@@ -5,6 +5,15 @@ const startMutateAsync = jest.fn();
 const completeMutateAsync = jest.fn();
 const saveProgressMock = jest.fn();
 const pushMock = jest.fn();
+const mockSetQueryData = jest.fn();
+
+jest.mock("@tanstack/react-query", () => {
+  const actual = jest.requireActual("@tanstack/react-query");
+  return {
+    ...actual,
+    useQueryClient: () => ({ setQueryData: mockSetQueryData }),
+  };
+});
 
 jest.mock("@/hooks/apiHooks/workoutRun/useActiveWorkoutRun", () => ({
   useActiveWorkoutRun: () => ({ activeRun: null, isLoading: false }),

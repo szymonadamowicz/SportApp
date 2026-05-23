@@ -11,6 +11,10 @@ export const workoutRunMock = {
     return mockWorkoutRunService.getActiveRun(workoutId);
   },
 
+  getLatestActiveRun(): Promise<WorkoutRunStartDto | null> {
+    return mockWorkoutRunService.getLatestActiveRun();
+  },
+
   startRun(workoutId: string): Promise<WorkoutRunStartDto> {
     return mockWorkoutRunService.startRun(workoutId);
   },
@@ -27,5 +31,9 @@ export const workoutRunMock = {
     payload: CompleteWorkoutRunDto,
   ): Promise<WorkoutRunSummaryDto> {
     return mockWorkoutRunService.completeRun(runId, payload);
+  },
+
+  cancelRun(runId: string): Promise<void> {
+    return mockWorkoutRunService.cancelRun(runId);
   },
 };

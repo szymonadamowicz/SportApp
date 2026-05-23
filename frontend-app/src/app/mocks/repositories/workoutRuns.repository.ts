@@ -1,6 +1,7 @@
 import { deepClone } from "@/mocks/runtime/clone";
 import {
   CompleteWorkoutRunDto,
+  SaveWorkoutRunProgressDto,
   WorkoutRunStartDto,
   WorkoutRunSummaryDto,
 } from "@/types/workout/workoutRun";
@@ -17,6 +18,21 @@ type WorkoutRunEntryRecord = CompleteWorkoutRunDto["entries"][number] & {
 };
 
 let runsState: WorkoutRunRecord[] = [];
+
+const mergeEntries = (
+  currentEntries: WorkoutRunRecord["entries"],
+  incomingEntries: WorkoutRunRecord["entries"],
+): WorkoutRunRecord["entries"] => {
+  const byStepIndex = new Map(
+    currentEntries.map((entry) => [entry.stepIndex, entry]),
+  );
+
+  for (const entry of incomingEntries) {
+    byStepIndex.set(entry.stepIndex, entry);
+  }
+
+  return [...byStepIndex.values()].sort((a, b) => a.stepIndex - b.stepIndex);
+};
 
 const getNextStepIndex = (run: WorkoutRunRecord): number => {
   const completedIndexes = new Set(run.entries.map((entry) => entry.stepIndex));
@@ -42,6 +58,12 @@ const toStartDto = (
     nextStepIndex: getNextStepIndex(run),
     durationSec: run.durationSec,
     notes: run.notes,
+    activePhase: run.activePhase ?? "exercise",
+    currentStepIndex: run.currentStepIndex ?? getNextStepIndex(run),
+    remainingSeconds: run.remainingSeconds,
+    phaseDurationSec: run.phaseDurationSec,
+    isPaused: Boolean(run.isPaused),
+    lastProgressAt: run.lastProgressAt,
     entries: deepClone(run.entries).map(
       (entry): WorkoutRunEntryRecord => ({
         ...entry,
@@ -66,6 +88,12 @@ export const workoutRunsRepository = {
       ...run,
       isResumed: false,
       nextStepIndex: 0,
+      activePhase: "exercise",
+      currentStepIndex: 0,
+      remainingSeconds: undefined,
+      phaseDurationSec: undefined,
+      isPaused: false,
+      lastProgressAt: undefined,
       entries: deepClone(run.entries),
     };
 
@@ -85,15 +113,38 @@ export const workoutRunsRepository = {
     return deepClone(toStartDto(run, true));
   },
 
+  getLatestActive(): WorkoutRunStartDto | null {
+    const run = runsState
+      .filter((entry) => !entry.finishedAt)
+      .sort(
+        (a, b) =>
+          new Date(b.lastProgressAt ?? b.startedAt).getTime() -
+          new Date(a.lastProgressAt ?? a.startedAt).getTime(),
+      )[0];
+
+    if (!run) {
+      return null;
+    }
+
+    return deepClone(toStartDto(run, true));
+  },
+
   saveProgress(
     runId: string,
-    payload: CompleteWorkoutRunDto,
+    payload: SaveWorkoutRunProgressDto,
   ): WorkoutRunStartDto {
     const run = requireRun(runId);
+    const now = new Date().toISOString();
 
     run.durationSec = payload.durationSec;
     run.notes = payload.notes;
-    run.entries = deepClone(payload.entries);
+    run.entries = mergeEntries(run.entries, deepClone(payload.entries));
+    run.activePhase = payload.activePhase ?? run.activePhase ?? "exercise";
+    run.currentStepIndex = payload.currentStepIndex ?? getNextStepIndex(run);
+    run.remainingSeconds = payload.remainingSeconds;
+    run.phaseDurationSec = payload.phaseDurationSec;
+    run.isPaused = payload.isPaused ?? run.isPaused ?? false;
+    run.lastProgressAt = now;
 
     return deepClone(toStartDto(run, true));
   },
@@ -109,6 +160,11 @@ export const workoutRunsRepository = {
     run.finishedAt = finishedAt;
     run.durationSec = payload.durationSec;
     run.notes = payload.notes;
+    run.activePhase = "summary";
+    run.remainingSeconds = 0;
+    run.phaseDurationSec = 0;
+    run.isPaused = true;
+    run.lastProgressAt = finishedAt;
     run.entries = deepClone(payload.entries);
 
     const totalSets = run.entries.length;
@@ -137,6 +193,24 @@ export const workoutRunsRepository = {
       actualRepsTotal,
       completionRate,
     };
+  },
+
+  cancel(runId: string): void {
+    const run = requireRun(runId);
+    const finishedAt = new Date().toISOString();
+
+    run.finishedAt = finishedAt;
+    run.durationSec = Math.max(
+      run.durationSec ?? 0,
+      Math.floor(
+        Math.max(0, Date.now() - new Date(run.startedAt).getTime()) / 1000,
+      ),
+    );
+    run.activePhase = "summary";
+    run.remainingSeconds = 0;
+    run.phaseDurationSec = 0;
+    run.isPaused = true;
+    run.lastProgressAt = finishedAt;
   },
 
   __reset(): void {

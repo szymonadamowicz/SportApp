@@ -25,6 +25,7 @@ export const useCompleteWorkoutRun = () => {
     },
     onSuccess: (summary) => {
       queryClient.setQueryData(workoutRunKeys.active(summary.workoutId), null);
+      queryClient.setQueryData(workoutRunKeys.latestActive(), null);
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: workoutsKeys.all });

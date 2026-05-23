@@ -38,6 +38,7 @@ export function InfoPanelHeader({
             onClick={secondaryButton.onClick}
             className="
               rf-btn-secondary
+              rf-action-button
               rounded-lg
               px-4 py-2
               text-sm font-semibold
@@ -57,6 +58,7 @@ export function InfoPanelHeader({
             onClick={showButton.onClick}
             className="
               rf-btn-primary
+              rf-action-button
               rounded-lg
               px-4 py-2
               text-sm font-semibold

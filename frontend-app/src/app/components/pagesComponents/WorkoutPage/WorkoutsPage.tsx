@@ -8,6 +8,12 @@ import { WorkoutHistory } from "./WorkoutHistory/WorkoutHistory";
 
 import { CreateWorkout } from "./WorkoutCreate/CreateWorkout";
 import { CreateWorkoutModal } from "./WorkoutCreate/sections/WorkoutCreateModal";
+import { AnimatePresence, motion } from "framer-motion";
+
+const sectionTransition = {
+  duration: 0.24,
+  ease: [0.22, 1, 0.36, 1],
+} as const;
 
 export default function WorkoutsPage() {
   const vm = useWorkoutsPageVM();
@@ -19,34 +25,62 @@ export default function WorkoutsPage() {
   return (
     <>
       <div className="space-y-6">
-        {vm.selectedWorkout ? (
-          <WorkoutForm
-            workout={vm.selectedWorkout}
-            onClose={vm.closeSelectedWorkout}
-          />
-        ) : (
-          <CreateWorkout onCreate={vm.openModal} />
-        )}
+        <AnimatePresence mode="popLayout" initial={false}>
+          {vm.selectedWorkout ? (
+            <motion.div
+              key={`workout-${vm.selectedWorkout.id}`}
+              layout
+              initial={{ opacity: 0, y: 14, scale: 0.985 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.985 }}
+              transition={sectionTransition}
+            >
+              <WorkoutForm
+                workout={vm.selectedWorkout}
+                onClose={vm.closeSelectedWorkout}
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="create-workout"
+              layout
+              initial={{ opacity: 0, y: 14, scale: 0.985 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.985 }}
+              transition={sectionTransition}
+            >
+              <CreateWorkout onCreate={vm.openModal} />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        <WorkoutListSection
-          title={`Trainings Left ${vm.seeAll ? "" : "This Week"}`}
-          item={vm.visibleWorkoutItems}
-          listState={vm.listState}
-          selectedId={vm.selectedWorkoutId}
-          seeAllLabel={
-            vm.seeAll ? "See trainings left for this week" : "See all trainings"
-          }
-          onToggleSeeAll={vm.toggleSeeAll}
-          onSelect={vm.setSelectWorkout}
-        />
+        <motion.div layout transition={sectionTransition}>
+          <WorkoutListSection
+            title={`Trainings Left ${vm.seeAll ? "" : "This Week"}`}
+            item={vm.visibleWorkoutItems}
+            listState={vm.listState}
+            selectedId={vm.selectedWorkoutId}
+            seeAllLabel={
+              vm.seeAll
+                ? "See trainings left for this week"
+                : "See all trainings left"
+            }
+            onToggleSeeAll={vm.toggleSeeAll}
+            onSelect={vm.setSelectWorkout}
+          />
+        </motion.div>
       </div>
 
-      <div className="space-y-6 mt-6">
+      <motion.div
+        className="space-y-6 mt-6"
+        layout
+        transition={sectionTransition}
+      >
         <WorkoutHistory
           onSelect={vm.setSelectWorkout}
           selectedId={vm.selectedWorkoutId}
         />
-      </div>
+      </motion.div>
 
       <CreateWorkoutModal
         open={vm.isCreateModalOpen}

@@ -53,6 +53,11 @@ export const mockWorkoutRunService = {
     return workoutRunsRepository.getActive(workoutId);
   },
 
+  async getLatestActiveRun(): Promise<WorkoutRunStartDto | null> {
+    await mockDelay(90);
+    return workoutRunsRepository.getLatestActive();
+  },
+
   async startRun(workoutId: string): Promise<WorkoutRunStartDto> {
     await mockDelay(120);
 
@@ -73,6 +78,12 @@ export const mockWorkoutRunService = {
       startedAt: new Date().toISOString(),
       isResumed: false,
       nextStepIndex: 0,
+      activePhase: "exercise",
+      currentStepIndex: 0,
+      remainingSeconds: undefined,
+      phaseDurationSec: undefined,
+      isPaused: false,
+      lastProgressAt: undefined,
       durationSec: 0,
       notes: "",
       entries: [],
@@ -103,5 +114,10 @@ export const mockWorkoutRunService = {
     });
 
     return summary;
+  },
+
+  async cancelRun(runId: string): Promise<void> {
+    await mockDelay(90);
+    workoutRunsRepository.cancel(runId);
   },
 };

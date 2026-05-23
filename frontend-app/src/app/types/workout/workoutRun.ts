@@ -23,6 +23,8 @@ export type WorkoutRunEntryDto = {
   completedAt: string;
 };
 
+export type WorkoutRunPhaseDto = "exercise" | "rest" | "summary";
+
 export type WorkoutRunStartDto = {
   runId: string;
   workoutId: string;
@@ -30,6 +32,12 @@ export type WorkoutRunStartDto = {
   startedAt: string;
   isResumed: boolean;
   nextStepIndex: number;
+  activePhase?: WorkoutRunPhaseDto;
+  currentStepIndex?: number;
+  remainingSeconds?: number;
+  phaseDurationSec?: number;
+  isPaused?: boolean;
+  lastProgressAt?: string;
   durationSec?: number;
   notes?: string;
   entries: WorkoutRunEntryDto[];
@@ -55,7 +63,13 @@ export type CompleteWorkoutRunDto = {
   entries: WorkoutRunEntryInputDto[];
 };
 
-export type SaveWorkoutRunProgressDto = CompleteWorkoutRunDto;
+export type SaveWorkoutRunProgressDto = CompleteWorkoutRunDto & {
+  activePhase?: WorkoutRunPhaseDto;
+  currentStepIndex?: number;
+  remainingSeconds?: number;
+  phaseDurationSec?: number;
+  isPaused?: boolean;
+};
 
 export type WorkoutRunSummaryDto = {
   runId: string;
@@ -70,8 +84,12 @@ export type WorkoutRunSummaryDto = {
 
 export type WorkoutRunStep = WorkoutRunStepDto;
 
-export type WorkoutRunStart = Omit<WorkoutRunStartDto, "startedAt"> & {
+export type WorkoutRunStart = Omit<
+  WorkoutRunStartDto,
+  "startedAt" | "lastProgressAt"
+> & {
   startedAt: Date;
+  lastProgressAt?: Date;
 };
 
 export type WorkoutRunSummary = Omit<WorkoutRunSummaryDto, "finishedAt"> & {

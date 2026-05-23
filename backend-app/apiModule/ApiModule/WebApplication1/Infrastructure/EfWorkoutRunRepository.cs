@@ -21,12 +21,14 @@ public sealed class EfWorkoutRunRepository : IWorkoutRunRepository
     public Task<WorkoutRun?> GetByIdForOwnerAsync(Guid runId, Guid ownerUserId, CancellationToken ct)
         => _db.Set<WorkoutRun>()
             .Include(r => r.Workout)
+                .ThenInclude(w => w.Exercises)
             .Include(r => r.Entries)
             .FirstOrDefaultAsync(r => r.Id == runId && r.OwnerUserId == ownerUserId, ct);
 
     public Task<WorkoutRun?> GetActiveByWorkoutForOwnerAsync(Guid workoutId, Guid ownerUserId, CancellationToken ct)
         => _db.Set<WorkoutRun>()
             .Include(r => r.Workout)
+                .ThenInclude(w => w.Exercises)
             .Include(r => r.Entries)
             .Where(r =>
                 r.WorkoutId == workoutId &&
@@ -35,8 +37,44 @@ public sealed class EfWorkoutRunRepository : IWorkoutRunRepository
             .OrderByDescending(r => r.StartedAt)
             .FirstOrDefaultAsync(ct);
 
+    public Task<WorkoutRun?> GetLatestActiveForOwnerAsync(Guid ownerUserId, CancellationToken ct)
+        => _db.Set<WorkoutRun>()
+            .Include(r => r.Workout)
+                .ThenInclude(w => w.Exercises)
+            .Include(r => r.Entries)
+            .Where(r => r.OwnerUserId == ownerUserId && r.FinishedAt == null)
+            .OrderByDescending(r => r.LastProgressAt ?? r.StartedAt)
+            .FirstOrDefaultAsync(ct);
+
     public async Task UpdateAsync(WorkoutRun run, CancellationToken ct)
     {
+        await _db.SaveChangesAsync(ct);
+    }
+
+    public async Task ReplaceEntriesAndUpdateAsync(
+        WorkoutRun run,
+        IReadOnlyCollection<WorkoutRunEntry> entries,
+        CancellationToken ct)
+    {
+        var trackedEntries = _db.ChangeTracker
+            .Entries<WorkoutRunEntry>()
+            .Where(entry => entry.Entity.WorkoutRunId == run.Id)
+            .ToList();
+
+        foreach (var trackedEntry in trackedEntries)
+        {
+            trackedEntry.State = EntityState.Detached;
+        }
+
+        await _db.Set<WorkoutRunEntry>()
+            .Where(entry => entry.WorkoutRunId == run.Id)
+            .ExecuteDeleteAsync(ct);
+
+        if (entries.Count > 0)
+        {
+            _db.Set<WorkoutRunEntry>().AddRange(entries);
+        }
+
         await _db.SaveChangesAsync(ct);
     }
 }

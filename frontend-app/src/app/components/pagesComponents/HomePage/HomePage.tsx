@@ -22,10 +22,14 @@ export default function HomePage() {
     <div className="relative">
       <Hero
         hero={vm.hero}
+        activeRun={vm.activeRun}
+        activeElapsedSeconds={vm.activeElapsedSeconds}
         completedCount={vm.statsWeekly.completedCount}
         upcomingCount={vm.statsWeekly.plannedCount}
         onPrimaryAction={() =>
-          vm.hero.kind === "rest"
+          vm.activeRun
+            ? vm.goTo(`/workout-run/${vm.activeRun.workoutId}`)
+            : vm.hero.kind === "rest"
             ? vm.goTo("/workouts?modal=open")
             : vm.goTo(`/workout-run/${vm.hero.workout.id}`)
         }

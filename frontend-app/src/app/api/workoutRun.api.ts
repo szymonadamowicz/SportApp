@@ -14,6 +14,9 @@ export const getActiveWorkoutRunApi = (
   workoutId: string,
 ): Promise<WorkoutRunStartDto | null> => impl.getActiveRun(workoutId);
 
+export const getLatestActiveWorkoutRunApi =
+  (): Promise<WorkoutRunStartDto | null> => impl.getLatestActiveRun();
+
 export const startWorkoutRunApi = (
   workoutId: string,
 ): Promise<WorkoutRunStartDto> => impl.startRun(workoutId);
@@ -27,3 +30,6 @@ export const completeWorkoutRunApi = (
   runId: string,
   payload: CompleteWorkoutRunDto,
 ): Promise<WorkoutRunSummaryDto> => impl.completeRun(runId, payload);
+
+export const cancelWorkoutRunApi = (runId: string): Promise<void> =>
+  impl.cancelRun(runId);

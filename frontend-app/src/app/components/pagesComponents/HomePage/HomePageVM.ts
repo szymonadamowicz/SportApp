@@ -9,9 +9,11 @@ import { useHeroVM } from "@/helpers/viewModels/HomePageHeroVM";
 import { useProgressAchievements } from "@/hooks/apiHooks/progress/useProgressAchievements";
 import { getSelectedAchievementsProgress } from "@/helpers/utils/selectors/progress/progressSelector";
 import { useWeeklyStats } from "@/hooks/apiHooks/progress/useProgressWeeklyStats";
+import { useLatestActiveWorkoutRun } from "@/hooks/apiHooks/workoutRun/useActiveWorkoutRun";
 import { Highlights } from "@/types/workout/workout";
 import { HomePageVM } from "@/types/pages/homePage";
 import { tipsFixture } from "@/mocks/fixtures/workouts.fixture";
+import { WorkoutRunStart } from "@/types/workout/workoutRun";
 
 const buildHighlights = (
   streakDays: number,
@@ -36,9 +38,23 @@ const buildHighlights = (
   return items;
 };
 
+const getActiveElapsedSeconds = (
+  activeRun: WorkoutRunStart | null,
+  now: Date,
+): number => {
+  if (!activeRun) return 0;
+
+  return Math.max(
+    activeRun.durationSec ?? 0,
+    Math.floor(
+      Math.max(0, now.getTime() - activeRun.startedAt.getTime()) / 1000,
+    ),
+  );
+};
+
 export const useHomePageVM = (): HomePageVM => {
   const router = useRouter();
-  const now = useNow();
+  const now = useNow(1_000);
   const { allWorkouts: workouts, isLoading: isLoadingWorkouts } =
     useWorkouts();
 
@@ -48,6 +64,7 @@ export const useHomePageVM = (): HomePageVM => {
     isLoading: isLoadingProgress,
   } = useProgressAchievements();
   const { completed, planned } = useWeeklyStats();
+  const { activeRun } = useLatestActiveWorkoutRun();
 
   const todayItems = getTodayUpcomingWorkouts(workouts, now);
   const missedToday = getTodayMissedWorkouts(workouts, now);
@@ -62,6 +79,8 @@ export const useHomePageVM = (): HomePageVM => {
 
   return {
     hero,
+    activeRun,
+    activeElapsedSeconds: getActiveElapsedSeconds(activeRun, now),
     now,
 
     statsWeekly: {

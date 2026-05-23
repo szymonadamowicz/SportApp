@@ -13,6 +13,7 @@ export function CreateWorkout({ onCreate }: CreateWorkoutProps) {
       <button
         onClick={onCreate}
         className="
+          rf-action-button
           group w-full
           rounded-lg border-2 border-dashed border-accentBlue/30
           bg-bgHighlight/40 px-6 py-8

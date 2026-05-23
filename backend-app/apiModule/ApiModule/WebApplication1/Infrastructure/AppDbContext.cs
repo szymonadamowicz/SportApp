@@ -71,6 +71,16 @@ public sealed class AppDbContext : DbContext
             entity.Property(run => run.Notes)
                 .HasMaxLength(1000);
 
+            entity.Property(run => run.ActivePhase)
+                .IsRequired()
+                .HasMaxLength(20);
+
+            entity.Property(run => run.CurrentStepIndex)
+                .IsRequired();
+
+            entity.Property(run => run.IsPaused)
+                .IsRequired();
+
             entity.HasMany(run => run.Entries)
                 .WithOne(entry => entry.WorkoutRun)
                 .HasForeignKey(entry => entry.WorkoutRunId)

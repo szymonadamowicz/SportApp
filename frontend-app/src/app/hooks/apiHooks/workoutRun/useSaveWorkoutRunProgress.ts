@@ -23,6 +23,7 @@ export const useSaveWorkoutRunProgress = () => {
     },
     onSuccess: (run) => {
       queryClient.setQueryData(workoutRunKeys.active(run.workoutId), run);
+      queryClient.setQueryData(workoutRunKeys.latestActive(), run);
     },
   });
 };

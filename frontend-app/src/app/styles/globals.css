@@ -76,6 +76,15 @@ body {
   color: var(--text-primary);
 }
 
+html {
+  overflow-x: clip;
+  scrollbar-gutter: stable;
+}
+
+body {
+  overflow-x: clip;
+}
+
 input[type="date"]::-webkit-calendar-picker-indicator,
 input[type="time"]::-webkit-calendar-picker-indicator {
   filter: invert(1) brightness(0.8) sepia(1) saturate(5) hue-rotate(90deg);
@@ -156,9 +165,10 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   .rf-hover-lift,
   .card-hover {
     transition:
-      transform 0.25s ease,
+      transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
       box-shadow 0.25s ease,
-      border-color 0.25s ease;
+      border-color 0.25s ease,
+      background-color 0.25s ease;
     will-change: transform;
   }
 
@@ -216,12 +226,32 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   }
 
   .rf-btn-primary {
+    position: relative;
+    overflow: hidden;
     color: #062015;
     background: linear-gradient(135deg, #34d399, #5eead4);
     border: 1px solid transparent;
     box-shadow: 0 12px 34px rgba(52, 211, 153, 0.28);
-    transition: all 0.2s ease;
+    transition:
+      transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.2s ease,
+      filter 0.2s ease;
     will-change: transform, box-shadow;
+  }
+
+  .rf-btn-primary::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      110deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.22) 48%,
+      transparent 62%
+    );
+    opacity: 0;
+    transform: translateX(-120%);
   }
 
   .rf-btn-primary:hover {
@@ -230,21 +260,32 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     transform: translateY(-1px);
   }
 
+  .rf-btn-primary:hover::after {
+    animation: buttonSheen 0.75s ease-out both;
+  }
+
   .rf-btn-primary:active {
     transform: translateY(0) scale(0.98);
   }
 
   .rf-btn-secondary {
+    position: relative;
+    overflow: hidden;
     color: var(--text-primary);
     background: rgba(56, 189, 248, 0.1);
     border: 1px solid rgba(56, 189, 248, 0.34);
-    transition: all 0.2s ease;
+    transition:
+      transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
     will-change: transform, background-color, border-color;
   }
 
   .rf-btn-secondary:hover {
     background: rgba(56, 189, 248, 0.16);
     border-color: rgba(56, 189, 248, 0.5);
+    box-shadow: 0 12px 30px rgba(56, 189, 248, 0.12);
     transform: translateY(-1px);
   }
 
@@ -253,16 +294,23 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   }
 
   .rf-btn-danger {
+    position: relative;
+    overflow: hidden;
     color: #fca5a5;
     background: rgba(248, 113, 113, 0.1);
     border: 1px solid rgba(248, 113, 113, 0.32);
-    transition: all 0.2s ease;
+    transition:
+      transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
     will-change: transform, background-color, border-color;
   }
 
   .rf-btn-danger:hover {
     background: rgba(248, 113, 113, 0.16);
     border-color: rgba(248, 113, 113, 0.48);
+    box-shadow: 0 12px 30px rgba(248, 113, 113, 0.11);
     transform: translateY(-1px);
   }
 
@@ -290,6 +338,35 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     outline: none;
     border-color: var(--accent-blue);
     box-shadow: 0 0 0 2px var(--focus-ring);
+  }
+
+  .rf-action-button,
+  .rf-soft-button,
+  .rf-icon-button {
+    transition:
+      transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.18s ease,
+      background-color 0.18s ease,
+      color 0.18s ease,
+      box-shadow 0.18s ease,
+      filter 0.18s ease;
+    will-change: transform;
+  }
+
+  .rf-action-button:hover,
+  .rf-soft-button:hover,
+  .rf-icon-button:hover {
+    transform: translateY(-1px);
+  }
+
+  .rf-action-button:active,
+  .rf-soft-button:active,
+  .rf-icon-button:active {
+    transform: translateY(0) scale(0.985);
+  }
+
+  .rf-selection-pop {
+    animation: selectionPop 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .rf-icon-chip {
@@ -534,6 +611,32 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   100% {
     opacity: 0;
     transform: translateX(120%);
+  }
+}
+
+@keyframes buttonSheen {
+  0% {
+    opacity: 0;
+    transform: translateX(-120%);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(120%);
+  }
+}
+
+@keyframes selectionPop {
+  0% {
+    filter: brightness(1);
+  }
+  45% {
+    filter: brightness(1.08);
+  }
+  100% {
+    filter: brightness(1);
   }
 }
 

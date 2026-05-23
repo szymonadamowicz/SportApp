@@ -62,6 +62,82 @@ describe("mock workout run service - progress persistence", () => {
     expect(updated.entries).toHaveLength(1);
   });
 
+  it("persists active phase and timer state", async () => {
+    const workout = workoutsRepository.list()[0];
+    const run = await mockWorkoutRunService.startRun(workout.id);
+
+    const updated = await mockWorkoutRunService.saveProgress(run.runId, {
+      durationSec: 20,
+      activePhase: "rest",
+      currentStepIndex: 0,
+      remainingSeconds: 42,
+      phaseDurationSec: 60,
+      isPaused: true,
+      entries: [],
+    });
+
+    expect(updated.activePhase).toBe("rest");
+    expect(updated.currentStepIndex).toBe(0);
+    expect(updated.remainingSeconds).toBe(42);
+    expect(updated.phaseDurationSec).toBe(60);
+    expect(updated.isPaused).toBe(true);
+  });
+
+  it("keeps existing history when a timer checkpoint has no new entries", async () => {
+    const workout = workoutsRepository.list()[0];
+    const run = await mockWorkoutRunService.startRun(workout.id);
+    const firstStep = run.steps[0];
+
+    await mockWorkoutRunService.saveProgress(run.runId, {
+      durationSec: 35,
+      entries: [
+        {
+          stepIndex: firstStep.stepIndex,
+          exerciseId: firstStep.exerciseId,
+          exerciseName: firstStep.exerciseName,
+          setNumber: firstStep.setNumber,
+          expectedReps: firstStep.expectedReps,
+          actualReps: firstStep.expectedReps,
+          metTarget: true,
+          exerciseDurationSec: firstStep.exerciseSeconds,
+          restDurationSec: firstStep.restSeconds,
+          completedAt: new Date().toISOString(),
+        },
+      ],
+    });
+
+    const checkpoint = await mockWorkoutRunService.saveProgress(run.runId, {
+      durationSec: 45,
+      activePhase: "rest",
+      currentStepIndex: firstStep.stepIndex,
+      remainingSeconds: 30,
+      phaseDurationSec: firstStep.restSeconds,
+      entries: [],
+    });
+
+    expect(checkpoint.entries).toHaveLength(1);
+    expect(checkpoint.entries[0].stepIndex).toBe(firstStep.stepIndex);
+  });
+
+  it("returns the latest active workout run", async () => {
+    const workout = workoutsRepository.list()[0];
+    const run = await mockWorkoutRunService.startRun(workout.id);
+
+    await mockWorkoutRunService.saveProgress(run.runId, {
+      durationSec: 15,
+      activePhase: "exercise",
+      currentStepIndex: 0,
+      remainingSeconds: 20,
+      phaseDurationSec: 40,
+      entries: [],
+    });
+
+    const latest = await mockWorkoutRunService.getLatestActiveRun();
+
+    expect(latest?.runId).toBe(run.runId);
+    expect(latest?.remainingSeconds).toBe(20);
+  });
+
   it("resume-aware start returns entries and next step when run is already active", async () => {
     const workout = workoutsRepository.list()[0];
     const run = await mockWorkoutRunService.startRun(workout.id);
