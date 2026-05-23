@@ -26,8 +26,8 @@ export function WorkoutRunSetConsole({
     vm.phase === "rest" ? "Start next set" : "Skip current set";
 
   return (
-    <section className="rf-animate-panel rounded-xl border border-borderSoft bg-bgCard/80 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)] md:p-5">
-      <div className="flex items-center justify-between gap-3">
+    <section className="rf-animate-panel rounded-2xl border border-borderSoft bg-bgCard/80 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)] md:rounded-xl md:p-5">
+      <div className="flex items-start justify-between gap-3 sm:items-center">
         <div>
           <p className="text-xs uppercase tracking-[0.18em] text-textMuted">
             Set console
@@ -52,7 +52,7 @@ export function WorkoutRunSetConsole({
         </span>
       </div>
 
-      <div className="mt-4 rounded-lg border border-borderSoft bg-bgHighlight/25 p-4">
+      <div className="mt-4 rounded-2xl border border-borderSoft bg-bgHighlight/25 p-3 sm:p-4 md:rounded-lg">
         {vm.phase === "exercise" && vm.currentStep && (
           <div className="space-y-4">
             <div className="grid gap-3 md:grid-cols-3">
@@ -89,20 +89,20 @@ export function WorkoutRunSetConsole({
               >
                 Actual reps
               </label>
-              <div className="mt-2 flex gap-2">
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row">
                 <input
                   id="actual-reps"
                   type="number"
                   value={vm.pendingActualReps}
                   onChange={(e) => vm.setPendingActualReps(e.target.value)}
-                  className="rf-input-surface min-h-11 flex-1 rounded-lg px-3 py-2 text-sm"
+                  className="rf-input-surface min-h-11 flex-1 rounded-xl px-3 py-2 text-sm md:rounded-lg"
                   placeholder={`Target: ${vm.currentStep.expectedReps}`}
                   min="0"
                 />
                 <button
                   type="button"
                   onClick={vm.saveSetAndContinue}
-                  className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-accent/30 bg-accent/15 px-4 py-2 text-sm font-semibold text-accent transition hover:bg-accent/20"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-accent/30 bg-accent/15 px-4 py-2 text-sm font-semibold text-accent transition hover:bg-accent/20 md:rounded-lg"
                 >
                   <CheckCircle2 size={16} />
                   Done
@@ -148,7 +148,7 @@ export function WorkoutRunSetConsole({
             <button
               type="button"
               onClick={vm.skipRest}
-              className="inline-flex items-center gap-2 rounded-full border border-accentBlue/40 bg-accentBlue/10 px-4 py-2 text-sm font-semibold text-accentBlue transition hover:bg-accentBlue/20"
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-accentBlue/40 bg-accentBlue/10 px-4 py-2 text-sm font-semibold text-accentBlue transition hover:bg-accentBlue/20 sm:w-auto"
             >
               <PlayCircle size={16} />
               Start next set
@@ -164,12 +164,12 @@ export function WorkoutRunSetConsole({
         )}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-3">
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <button
           type="button"
           onClick={vm.goToPreviousStep}
           className={clsx(
-            "inline-flex items-center gap-2 rounded-full border border-borderSoft px-4 py-2 text-sm text-textPrimary transition",
+            "inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-borderSoft px-4 py-2 text-sm text-textPrimary transition",
             previousDisabled
               ? "cursor-not-allowed opacity-45"
               : "cursor-pointer hover:border-borderStrong hover:bg-bgHighlight/30",
@@ -184,7 +184,7 @@ export function WorkoutRunSetConsole({
           type="button"
           onClick={skipCurrentSection}
           className={clsx(
-            "inline-flex items-center gap-2 rounded-full border border-borderSoft px-4 py-2 text-sm text-textPrimary transition",
+            "inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-borderSoft px-4 py-2 text-sm text-textPrimary transition",
             skipCurrentDisabled
               ? "cursor-not-allowed opacity-50"
               : "cursor-pointer hover:border-borderStrong hover:bg-bgHighlight/30",

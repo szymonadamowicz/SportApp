@@ -16,6 +16,11 @@ const WIDTH = 304;
 const HEIGHT = 118;
 const EDGE_GAP = 16;
 
+const getBottomReservedSpace = () => {
+  if (typeof window === "undefined") return EDGE_GAP;
+  return window.innerWidth < 768 ? 96 : EDGE_GAP;
+};
+
 const formatTimer = (seconds: number): string => {
   const sign = seconds < 0 ? "+" : "";
   const absolute = Math.abs(seconds);
@@ -43,7 +48,7 @@ const clampPosition = (position: FloatingPosition): FloatingPosition => {
     ),
     y: Math.min(
       Math.max(EDGE_GAP, position.y),
-      Math.max(EDGE_GAP, window.innerHeight - HEIGHT - EDGE_GAP),
+      Math.max(EDGE_GAP, window.innerHeight - HEIGHT - getBottomReservedSpace()),
     ),
   };
 };
@@ -65,7 +70,7 @@ const getInitialPosition = (): FloatingPosition => {
 
   return clampPosition({
     x: window.innerWidth - WIDTH - 24,
-    y: window.innerHeight - HEIGHT - 24,
+    y: window.innerHeight - HEIGHT - getBottomReservedSpace(),
   });
 };
 
@@ -93,6 +98,17 @@ export function ActiveWorkoutFloatingTimer() {
     const initialPosition = getInitialPosition();
     positionRef.current = initialPosition;
     setPosition(initialPosition);
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const nextPosition = clampPosition(positionRef.current);
+      positionRef.current = nextPosition;
+      setPosition(nextPosition);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
@@ -209,7 +225,7 @@ export function ActiveWorkoutFloatingTimer() {
 
   return (
     <div
-      className="fixed z-[70] w-[19rem] cursor-grab select-none overflow-hidden rounded-lg border border-cyan-300/35 bg-slate-950/92 text-white shadow-[0_22px_80px_rgba(0,0,0,0.38)] backdrop-blur-md active:cursor-grabbing"
+      className="fixed z-[70] w-[min(calc(100vw-2rem),19rem)] cursor-grab select-none overflow-hidden rounded-2xl border border-cyan-300/35 bg-slate-950/92 text-white shadow-[0_22px_80px_rgba(0,0,0,0.38)] backdrop-blur-md active:cursor-grabbing"
       style={{ left: position.x, top: position.y }}
       onClick={openWorkout}
       onPointerDown={handlePointerDown}
@@ -226,7 +242,7 @@ export function ActiveWorkoutFloatingTimer() {
     >
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-cyan-300 via-emerald-300 to-lime-300" />
       <div className="flex items-start gap-3 p-4">
-        <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-cyan-300/35 bg-cyan-300/10 text-cyan-100">
+        <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-300/35 bg-cyan-300/10 text-cyan-100">
           {activeRun.activePhase === "rest" ? (
             <Timer size={20} />
           ) : (
@@ -254,7 +270,7 @@ export function ActiveWorkoutFloatingTimer() {
 
         <button
           type="button"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/15 bg-white/5 text-slate-200 transition hover:border-rose-300/60 hover:bg-rose-400/15 hover:text-white"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-slate-200 transition hover:border-rose-300/60 hover:bg-rose-400/15 hover:text-white"
           aria-label="Hide active workout timer"
           onClick={(event) => {
             event.stopPropagation();

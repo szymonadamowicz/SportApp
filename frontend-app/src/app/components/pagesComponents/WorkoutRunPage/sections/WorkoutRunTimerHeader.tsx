@@ -32,14 +32,14 @@ export function WorkoutRunTimerHeader({
   const isTimerOver = vm.secondsLeft < 0;
 
   return (
-    <section className="rf-animate-panel mb-6 rounded-xl border border-borderSoft bg-[linear-gradient(135deg,rgba(34,49,59,0.96),rgba(11,18,25,0.94))] p-4 shadow-[0_24px_70px_rgba(0,0,0,0.36)] md:p-5">
+    <section className="rf-animate-panel mb-5 rounded-2xl border border-borderSoft bg-[linear-gradient(135deg,rgba(34,49,59,0.96),rgba(11,18,25,0.94))] p-3 shadow-[0_24px_70px_rgba(0,0,0,0.36)] sm:p-4 md:mb-6 md:rounded-xl md:p-5">
       <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
         <button
           type="button"
           onClick={vm.togglePause}
           disabled={vm.phase === "summary"}
           className={clsx(
-            "group rounded-lg border p-5 text-left transition",
+            "group rounded-2xl border p-4 text-left transition sm:p-5 md:rounded-lg",
             vm.phase === "summary"
               ? "cursor-not-allowed border-borderSoft bg-bgCard/60 opacity-80"
               : "cursor-pointer border-borderSoft bg-bgCard/70 hover:border-borderStrong",
@@ -52,7 +52,7 @@ export function WorkoutRunTimerHeader({
                 {getPhaseLabel(vm.phase)}
               </p>
               <p
-                className="mt-2 text-6xl font-semibold tabular-nums tracking-normal md:text-7xl"
+                className="mt-2 text-5xl font-semibold tabular-nums tracking-normal sm:text-6xl md:text-7xl"
                 style={{ color: phaseColor }}
               >
                 {formatClock(vm.secondsLeft)}
@@ -60,7 +60,7 @@ export function WorkoutRunTimerHeader({
             </div>
 
             <span
-              className="inline-flex h-11 w-11 items-center justify-center rounded-lg border"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border md:rounded-lg"
               style={{
                 borderColor: `${phaseColor}66`,
                 backgroundColor: `${phaseColor}1F`,
@@ -90,7 +90,7 @@ export function WorkoutRunTimerHeader({
           </p>
         </button>
 
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2">
           <div className={metricCardClass}>
             <p className="text-[10px] uppercase tracking-[0.16em] text-textMuted">
               {vm.phase === "rest" ? "Up next" : "Current target"}

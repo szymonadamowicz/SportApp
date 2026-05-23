@@ -10,9 +10,9 @@ export function InfoPanelHeader({
   actions,
 }: InfoPanelHeaderProps) {
   return (
-    <div className="flex items-start justify-between gap-4 mb-5">
+    <div className="mb-4 flex flex-col gap-4 sm:mb-5 sm:flex-row sm:items-start sm:justify-between">
       <div className="space-y-1">
-        <h3 className="text-[var(--text-primary)] text-xl md:text-2xl font-semibold">
+        <h3 className="text-lg font-semibold text-[var(--text-primary)] sm:text-xl md:text-2xl">
           {title}
         </h3>
         {desc && (
@@ -22,7 +22,7 @@ export function InfoPanelHeader({
         )}
       </div>
 
-      <div className="flex items-center gap-3 shrink-0 flex-wrap justify-end">
+      <div className="flex w-full shrink-0 flex-wrap items-stretch gap-2 sm:w-auto sm:items-center sm:justify-end sm:gap-3">
         {actions}
 
         {outerButton && (
@@ -40,7 +40,7 @@ export function InfoPanelHeader({
               rf-btn-secondary
               rf-action-button
               rounded-lg
-              px-4 py-2
+              min-h-11 flex-1 px-4 py-2 sm:flex-none
               text-sm font-semibold
               shadow-[0_10px_24px_rgba(0,0,0,0.35)]
               active:scale-[0.99]
@@ -60,7 +60,7 @@ export function InfoPanelHeader({
               rf-btn-primary
               rf-action-button
               rounded-lg
-              px-4 py-2
+              min-h-11 flex-1 px-4 py-2 sm:flex-none
               text-sm font-semibold
               active:scale-[0.99]
               transition

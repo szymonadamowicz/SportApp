@@ -18,7 +18,7 @@ export default function ProgressPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5 md:space-y-8">
       <InfoPanel
         title="Progress"
         layout="row"
@@ -54,7 +54,7 @@ export default function ProgressPage() {
         )}
       </InfoPanel>
 
-      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2 md:gap-6">
         <ProgressPRPanel
           items={vm.prsItems}
           isEmpty={vm.showPrsEmpty}

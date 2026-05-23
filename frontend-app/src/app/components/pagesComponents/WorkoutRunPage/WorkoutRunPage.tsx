@@ -46,9 +46,9 @@ export default function WorkoutRunPage({ workoutId }: { workoutId: string }) {
     : undefined;
 
   return (
-    <div className="min-h-screen text-textPrimary">
-      <div className="mx-auto max-w-7xl px-5 py-6 md:px-8 md:py-8">
-        <div className="mb-6 flex items-center justify-between gap-4">
+    <div className="min-h-dvh text-textPrimary">
+      <div className="mx-auto max-w-7xl px-1 py-4 sm:px-3 md:px-8 md:py-8">
+        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between md:mb-6">
           <div>
             <p className="text-xs uppercase tracking-[0.24em] text-textMuted">
               Workout Run Mode
@@ -64,7 +64,7 @@ export default function WorkoutRunPage({ workoutId }: { workoutId: string }) {
           <button
             type="button"
             onClick={vm.backToWorkouts}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-borderSoft bg-bgCard/70 px-4 py-2 text-sm text-textSecondary transition hover:border-borderStrong hover:text-textPrimary"
+            className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-full border border-borderSoft bg-bgCard/70 px-4 py-2 text-sm text-textSecondary transition hover:border-borderStrong hover:text-textPrimary sm:w-auto"
           >
             <ArrowLeft size={16} />
             Back to workouts

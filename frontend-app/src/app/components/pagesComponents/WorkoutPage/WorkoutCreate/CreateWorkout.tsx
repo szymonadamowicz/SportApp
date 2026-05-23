@@ -15,8 +15,8 @@ export function CreateWorkout({ onCreate }: CreateWorkoutProps) {
         className="
           rf-action-button
           group w-full
-          rounded-lg border-2 border-dashed border-accentBlue/30
-          bg-bgHighlight/40 px-6 py-8
+          rounded-2xl border-2 border-dashed border-accentBlue/30
+          bg-bgHighlight/40 px-4 py-6 sm:px-6 sm:py-8 md:rounded-lg
           text-left transition-all
           hover:border-accentBlue hover:bg-bgHighlight/70
         "

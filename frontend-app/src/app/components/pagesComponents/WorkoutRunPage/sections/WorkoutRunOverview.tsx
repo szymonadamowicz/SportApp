@@ -21,7 +21,7 @@ export function WorkoutRunOverview({
   onRequestFinish,
 }: WorkoutRunOverviewProps) {
   return (
-    <section className="rf-animate-panel rounded-xl border border-borderSoft bg-bgCard/80 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)]">
+    <section className="rf-animate-panel rounded-2xl border border-borderSoft bg-bgCard/80 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)] md:rounded-xl">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-base font-semibold">Overview</h2>
         <span className="rounded-full border border-borderSoft bg-bgHighlight/30 px-3 py-1 text-xs text-textSecondary">
@@ -67,13 +67,13 @@ export function WorkoutRunOverview({
         </div>
       </div>
 
-      <div className="mt-3 rounded-lg border border-borderSoft bg-bgHighlight/20 p-3">
+      <div className="mt-3 rounded-2xl border border-borderSoft bg-bgHighlight/20 p-3 md:rounded-lg">
         <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-textMuted">
           <ClipboardList size={14} />
           History
         </p>
 
-        <div className="mt-2 max-h-48 space-y-1 overflow-y-auto pr-1">
+        <div className="rf-mobile-scroll mt-2 max-h-48 space-y-1 overflow-y-auto pr-1">
           {vm.session?.steps.map((step) => {
             const entry = vm.entries.find(
               (item) => item.stepIndex === step.stepIndex,
@@ -113,7 +113,7 @@ export function WorkoutRunOverview({
       </label>
       <textarea
         id="session-notes"
-        className="rf-input-surface mt-1 min-h-32 w-full rounded-lg px-3 py-2 text-sm"
+        className="rf-input-surface mt-1 min-h-32 w-full rounded-2xl px-3 py-2 text-sm md:rounded-lg"
         placeholder="Notes..."
         value={vm.notes}
         onChange={(event) => vm.setNotes(event.target.value)}
@@ -124,7 +124,7 @@ export function WorkoutRunOverview({
           type="button"
           onClick={onRequestFinish}
           className={clsx(
-            "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold rf-btn-primary",
+            "rf-btn-primary inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold sm:w-auto",
             vm.status === "saving" || vm.status === "completed"
               ? "cursor-not-allowed opacity-50"
               : "cursor-pointer",
@@ -146,7 +146,7 @@ export function WorkoutRunOverview({
           <button
             type="button"
             onClick={vm.backToWorkouts}
-            className="mt-2 cursor-pointer rounded-full border border-borderSoft px-3 py-1.5 text-xs text-textPrimary transition hover:border-borderStrong hover:bg-bgHighlight/30"
+          className="mt-2 min-h-10 w-full cursor-pointer rounded-full border border-borderSoft px-3 py-1.5 text-xs text-textPrimary transition hover:border-borderStrong hover:bg-bgHighlight/30 sm:w-auto"
           >
             Back to workouts
           </button>

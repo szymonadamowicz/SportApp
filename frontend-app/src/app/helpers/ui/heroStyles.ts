@@ -5,7 +5,7 @@ export const getHeroClassName = (hero: HeroState | "active") => {
   const isActive = hero === "active";
 
   return clsx(
-    "rf-surface-panel rf-hover-lift rounded-3xl px-7 py-6 md:px-9 md:py-7",
+    "rf-surface-panel rf-hover-lift rounded-3xl px-5 py-6 sm:px-7 md:px-9 md:py-7",
     {
       "rf-state-upcoming": isActive || (!isActive && hero.kind === "upcoming"),
       "rf-state-missed": !isActive && hero.kind === "missed",

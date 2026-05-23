@@ -10,7 +10,7 @@ export default function WorkoutRunLayout({
 }) {
   return (
     <AuthGate>
-      <main className="min-h-screen">
+      <main className="min-h-dvh">
         <PageTransition>{children}</PageTransition>
       </main>
     </AuthGate>

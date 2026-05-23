@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import clsx from "clsx";
 import {
   panelClass,
@@ -23,6 +24,9 @@ export default function InfoPanel({
   children,
 }: InfoPanelProps) {
   const isGrid = layout === "row";
+  const gridStyle = {
+    "--rf-max-per-row": maxPerRow,
+  } as CSSProperties;
 
   return (
     <section className={panelClass}>
@@ -39,13 +43,7 @@ export default function InfoPanel({
 
       <div
         className={clsx(isGrid ? gridWrapper : columnWrapper)}
-        style={
-          isGrid
-            ? {
-                gridTemplateColumns: `repeat(${maxPerRow}, minmax(0,1fr))`,
-              }
-            : undefined
-        }
+        style={isGrid ? gridStyle : undefined}
       >
         {children}
       </div>

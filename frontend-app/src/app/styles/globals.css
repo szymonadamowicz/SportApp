@@ -38,6 +38,8 @@
   --border-strong: rgba(185, 207, 222, 0.32);
 
   --focus-ring: rgba(56, 189, 248, 0.32);
+  --app-top-bar: calc(4rem + env(safe-area-inset-top));
+  --app-bottom-nav: calc(5rem + env(safe-area-inset-bottom));
 }
 
 @theme {
@@ -77,12 +79,36 @@ body {
 }
 
 html {
+  min-height: 100%;
   overflow-x: clip;
   scrollbar-gutter: stable;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
+  min-height: 100dvh;
   overflow-x: clip;
+  overscroll-behavior-y: none;
+  touch-action: manipulation;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+textarea,
+select {
+  font-size: 16px;
+}
+
+button,
+a {
+  touch-action: manipulation;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator,
@@ -183,6 +209,23 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   .rf-hover-lift:active,
   .card-hover:active {
     transform: translateY(-1px) scale(0.995);
+  }
+
+  .rf-mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    .rf-hover-lift:hover,
+    .card-hover:hover {
+      transform: none;
+    }
+
+    *::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+    }
   }
 
   .rf-text-muted,

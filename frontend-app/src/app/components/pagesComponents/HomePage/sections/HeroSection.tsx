@@ -88,7 +88,7 @@ export default function Hero({
 
       <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0 flex-1 space-y-3">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <p className="text-xs uppercase tracking-[0.16em] text-textSecondary">
               {kicker}
             </p>
@@ -96,11 +96,11 @@ export default function Hero({
             {!hasActiveRun && hero.kind === "missed" && <Tag label="Missed" />}
           </div>
 
-          <h1 className="text-2xl md:text-3xl font-semibold text-textPrimary">
+          <h1 className="text-2xl font-semibold text-textPrimary md:text-3xl">
             {title}
           </h1>
 
-          <p className="text-sm md:text-base text-textSecondary capitalize">
+          <p className="text-sm capitalize text-textSecondary md:text-base">
             {subtitle}
           </p>
 
@@ -161,7 +161,7 @@ export default function Hero({
           <p className="text-xs text-textSecondary">{hint}</p>
 
           {hasActiveRun && activeRun ? (
-            <div className="flex gap-3 overflow-x-auto pb-1 pt-1">
+            <div className="rf-mobile-scroll -mx-1 flex gap-3 overflow-x-auto px-1 pb-1 pt-1">
               {activeRun.steps.slice(0, 5).map((step) => {
                 const isCurrent = step.stepIndex === activeStep?.stepIndex;
 
@@ -195,7 +195,7 @@ export default function Hero({
           ) : (
             hero.kind === "upcoming" &&
             hero.workout && (
-              <div className="flex gap-3 overflow-x-auto pb-1 mt-4">
+              <div className="rf-mobile-scroll -mx-1 mt-4 flex gap-3 overflow-x-auto px-1 pb-1">
                 {hero.workout.exercises.map((ex) => (
                   <div
                     key={ex.id}
@@ -220,10 +220,10 @@ export default function Hero({
           )}
         </div>
 
-        <div className="flex flex-col items-start gap-3 lg:items-end">
+        <div className="flex flex-col items-stretch gap-3 sm:items-start lg:items-end">
           <button
             onClick={onPrimaryAction}
-            className="inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold text-black active:scale-[0.98]"
+            className="inline-flex min-h-12 items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold text-black active:scale-[0.98]"
             style={{
               background: hasActiveRun
                 ? "linear-gradient(135deg, #67e8f9, #4ade80)"
@@ -236,7 +236,7 @@ export default function Hero({
             {primaryLabel}
           </button>
 
-          <p className="text-xs text-textSecondary">
+          <p className="text-center text-xs text-textSecondary sm:text-left">
             {hasActiveRun
               ? `${loggedSets}/${totalSets} sets logged`
               : `${completedCount} done - ${upcomingCount} planned`}

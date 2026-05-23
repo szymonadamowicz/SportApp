@@ -24,7 +24,7 @@ export default function WorkoutsPage() {
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-5 md:space-y-6">
         <AnimatePresence mode="popLayout" initial={false}>
           {vm.selectedWorkout ? (
             <motion.div
@@ -72,7 +72,7 @@ export default function WorkoutsPage() {
       </div>
 
       <motion.div
-        className="space-y-6 mt-6"
+        className="mt-5 space-y-5 md:mt-6 md:space-y-6"
         layout
         transition={sectionTransition}
       >

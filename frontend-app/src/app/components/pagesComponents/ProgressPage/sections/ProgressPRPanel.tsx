@@ -3,7 +3,7 @@
 import EmptyState from "@/components/EmptyState/EmptyState";
 import InfoPanel from "@/components/InfoPanel/InfoPanel";
 import { ProgressPRListItemProps } from "@/types/pages/progressPage";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trophy } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { PRListItem } from "./ProgressPRListItem";
 
@@ -43,7 +43,7 @@ export function ProgressPRPanel({
     <InfoPanel title="PRs & Benchmarks">
       {isEmpty ? (
         <EmptyState
-          icon="T"
+          icon={<Trophy size={28} />}
           title="No PRs yet"
           description="Once you complete workouts, your best sets will show up here."
         />
@@ -59,7 +59,7 @@ export function ProgressPRPanel({
           ))}
 
           {showPagination && (
-            <div className="mt-1 flex items-center justify-between gap-3 rounded-lg border border-borderSoft bg-bgHighlight/25 px-3 py-2">
+            <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-borderSoft bg-bgHighlight/25 px-3 py-2">
               <button
                 type="button"
                 onClick={() => setPage((current) => Math.max(0, current - 1))}

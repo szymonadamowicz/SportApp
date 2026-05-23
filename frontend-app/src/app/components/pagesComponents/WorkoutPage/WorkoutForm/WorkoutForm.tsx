@@ -78,17 +78,17 @@ export default function WorkoutForm({ workout, onClose }: WorkoutFormProps) {
                 onClick: vm.cancelEdit,
               }
         }
-          actions={
+        actions={
             !vm.editMode ? (
               <motion.div
                 layout
-                className="flex flex-wrap items-center justify-end gap-3"
+                className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-3"
                 transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
               >
                 <button
                   type="button"
                   onClick={vm.handleStartWorkout}
-                  className="rf-action-button inline-flex items-center gap-2 rounded-xl bg-[linear-gradient(180deg,#22c55e,#16a34a)] px-4 py-2.5 text-sm font-semibold text-bgMain shadow-[0_10px_24px_rgba(34,197,94,0.26)] transition hover:brightness-95 active:scale-[0.99]"
+                  className="rf-action-button inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(180deg,#22c55e,#16a34a)] px-4 py-2.5 text-sm font-semibold text-bgMain shadow-[0_10px_24px_rgba(34,197,94,0.26)] transition hover:brightness-95 active:scale-[0.99] sm:w-auto"
                 >
                   <ChevronRight size={16} />
                   {vm.startButtonLabel}
@@ -97,7 +97,7 @@ export default function WorkoutForm({ workout, onClose }: WorkoutFormProps) {
                 <button
                   type="button"
                   onClick={handleDelete}
-                  className={`rf-action-button inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition ${
+                  className={`rf-action-button inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition sm:w-auto ${
                     showDeleteConfirm
                       ? "border border-red-500/40 bg-red-500/15 text-red-300"
                       : "border border-red-500/25 bg-red-500/8 text-red-300 hover:bg-red-500/14"
@@ -115,7 +115,7 @@ export default function WorkoutForm({ workout, onClose }: WorkoutFormProps) {
                       layout
                       type="button"
                       onClick={() => setShowDeleteConfirm(false)}
-                      className="rf-action-button inline-flex items-center rounded-xl border border-white/10 px-4 py-2.5 text-sm font-medium text-textSecondary transition hover:bg-white/5"
+                      className="rf-action-button inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-white/10 px-4 py-2.5 text-sm font-medium text-textSecondary transition hover:bg-white/5 sm:w-auto"
                       initial={{ opacity: 0, x: -8, scale: 0.96 }}
                       animate={{ opacity: 1, x: 0, scale: 1 }}
                       exit={{ opacity: 0, x: -8, scale: 0.96 }}
@@ -129,7 +129,7 @@ export default function WorkoutForm({ workout, onClose }: WorkoutFormProps) {
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rf-action-button inline-flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-sm font-medium text-textSecondary transition hover:border-borderStrong hover:bg-white/5 hover:text-textPrimary"
+                  className="rf-action-button inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-sm font-medium text-textSecondary transition hover:border-borderStrong hover:bg-white/5 hover:text-textPrimary sm:w-auto"
                   aria-label="Close workout details"
                   title="Close workout details"
                 >

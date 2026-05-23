@@ -58,9 +58,9 @@ export function WorkoutRunPreStart({
   );
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-      <section className="rf-animate-panel rounded-xl border border-borderSoft bg-[linear-gradient(135deg,rgba(27,43,52,0.96),rgba(14,22,30,0.95))] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.36)] md:p-8">
-        <div className="flex items-center justify-between gap-3">
+    <div className="grid items-start gap-5 lg:grid-cols-[1.15fr_0.85fr] lg:gap-6">
+      <section className="rf-animate-panel rounded-2xl border border-borderSoft bg-[linear-gradient(135deg,rgba(27,43,52,0.96),rgba(14,22,30,0.95))] p-4 shadow-[0_24px_70px_rgba(0,0,0,0.36)] sm:p-6 md:rounded-xl md:p-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.18em] text-textMuted">
             <span>Ready to begin</span>
             {scheduledLabel && (
@@ -76,7 +76,7 @@ export function WorkoutRunPreStart({
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
-            <h2 className="text-3xl font-semibold tracking-normal md:text-4xl">
+            <h2 className="text-2xl font-semibold tracking-normal sm:text-3xl md:text-4xl">
               {title ?? "Start training"}
             </h2>
             <p className="mt-2 text-sm text-textSecondary">
@@ -84,15 +84,15 @@ export function WorkoutRunPreStart({
             </p>
 
             <div className="mt-5 flex flex-wrap gap-2.5 text-sm text-textPrimary">
-              <span className="inline-flex items-center rounded-full border border-accent/25 bg-accent/10 px-3 py-1.5">
+              <span className="inline-flex min-h-10 items-center rounded-full border border-accent/25 bg-accent/10 px-3 py-1.5">
                 <Clock3 size={15} className="mr-2 text-accent" />
                 ~{estimatedMinutes} min
               </span>
-              <span className="inline-flex items-center rounded-full border border-accentBlue/25 bg-accentBlue/10 px-3 py-1.5">
+              <span className="inline-flex min-h-10 items-center rounded-full border border-accentBlue/25 bg-accentBlue/10 px-3 py-1.5">
                 <Dumbbell size={15} className="mr-2 text-accentBlue" />
                 {plannedVolume.toLocaleString()} volume
               </span>
-              <span className="inline-flex items-center rounded-full border border-warning/30 bg-warning/10 px-3 py-1.5">
+              <span className="inline-flex min-h-10 items-center rounded-full border border-warning/30 bg-warning/10 px-3 py-1.5">
                 <ListChecks size={15} className="mr-2 text-warning" />
                 {exercises.length} items
               </span>
@@ -103,7 +103,7 @@ export function WorkoutRunPreStart({
             type="button"
             onClick={onStart}
             className={clsx(
-              "inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition rf-btn-primary",
+              "rf-btn-primary inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition lg:w-auto",
               status === "starting"
                 ? "cursor-not-allowed opacity-50"
                 : "cursor-pointer",
@@ -124,7 +124,7 @@ export function WorkoutRunPreStart({
         {errorMessage && <p className="mt-4 text-sm text-danger">{errorMessage}</p>}
       </section>
 
-      <section className="rf-animate-panel rounded-xl border border-borderSoft bg-bgCard/80 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)] md:p-5">
+      <section className="rf-animate-panel rounded-2xl border border-borderSoft bg-bgCard/80 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)] md:rounded-xl md:p-5">
         <div className="flex items-center justify-between gap-3">
           <p className="text-xs uppercase tracking-[0.18em] text-textMuted">
             Quick view
@@ -143,7 +143,7 @@ export function WorkoutRunPreStart({
             {exercises.slice(0, 4).map((exercise, index) => (
               <div
                 key={exercise.id}
-                className="rounded-lg border border-borderSoft bg-bgHighlight/25 px-4 py-3"
+                className="rounded-2xl border border-borderSoft bg-bgHighlight/25 px-4 py-3 md:rounded-lg"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div>

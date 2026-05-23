@@ -8,8 +8,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthGate>
       <Navbar />
-      <main className="mt-24 flex-1">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+      <main className="flex-1 pt-[calc(4.5rem+env(safe-area-inset-top))] pb-[calc(5.75rem+env(safe-area-inset-bottom))] md:pt-24 md:pb-10">
+        <div className="mx-auto max-w-7xl px-4 sm:px-5 md:px-6">
           <PageTransition>{children}</PageTransition>
         </div>
       </main>

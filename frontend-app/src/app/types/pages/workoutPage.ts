@@ -101,7 +101,7 @@ export type WorkoutHistorySectionProps = {
   title: string;
   items: WorkoutListItemVM[];
   empty?: {
-    icon: string;
+    icon: React.ReactNode;
     title: string;
     description?: string;
   };

@@ -10,6 +10,7 @@ import HighlightItem from "./sections/HighlightItem";
 import TipItem from "./sections/TipItem";
 import WeeklyProgressItem from "./sections/WeeklyProgressItem";
 import EmptyState from "@/components/EmptyState/EmptyState";
+import { CalendarDays } from "lucide-react";
 
 export default function HomePage() {
   const vm = useHomePageVM();
@@ -35,8 +36,8 @@ export default function HomePage() {
         }
       />
 
-      <div className="mt-6 flex flex-col md:flex-row md:items-start md:gap-6">
-        <div className="flex-1 flex flex-col gap-6">
+      <div className="mt-5 flex flex-col gap-5 md:mt-6 md:flex-row md:items-start md:gap-6">
+        <div className="flex flex-1 flex-col gap-5 md:gap-6">
           {vm.today.hasItems ? (
             <InfoPanel
               title="Trainings Today"
@@ -55,7 +56,7 @@ export default function HomePage() {
             </InfoPanel>
           ) : (
             <EmptyState
-              icon="🎉"
+              icon={<CalendarDays size={28} />}
               title="No upcoming workouts"
               description="Nothing scheduled for now."
               missed={vm.today.missedItems.length > 0}
@@ -70,7 +71,7 @@ export default function HomePage() {
           </InfoPanel>
         </div>
 
-        <div className="flex-1 flex flex-col gap-6 mt-6 md:mt-0">
+        <div className="flex flex-1 flex-col gap-5 md:gap-6">
           <InfoPanel
             title="Week progress"
             desc={`sessions ${vm.statsWeekly.completedCount}/${vm.statsWeekly.plannedCount}`}
