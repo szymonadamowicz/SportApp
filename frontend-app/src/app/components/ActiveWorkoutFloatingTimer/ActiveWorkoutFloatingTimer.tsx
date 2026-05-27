@@ -85,6 +85,7 @@ export function ActiveWorkoutFloatingTimer() {
     y: EDGE_GAP,
   });
   const positionRef = useRef(position);
+  const frameRef = useRef<number | null>(null);
   const dragRef = useRef<{
     pointerId: number;
     startX: number;
@@ -114,6 +115,14 @@ export function ActiveWorkoutFloatingTimer() {
   useEffect(() => {
     positionRef.current = position;
   }, [position]);
+
+  useEffect(() => {
+    return () => {
+      if (frameRef.current) {
+        window.cancelAnimationFrame(frameRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const timerId = window.setInterval(() => setNow(Date.now()), 1000);
@@ -208,7 +217,12 @@ export function ActiveWorkoutFloatingTimer() {
       y: drag.originY + deltaY,
     });
     positionRef.current = nextPosition;
-    setPosition(nextPosition);
+
+    if (frameRef.current) return;
+    frameRef.current = window.requestAnimationFrame(() => {
+      frameRef.current = null;
+      setPosition(positionRef.current);
+    });
   };
 
   const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
@@ -216,6 +230,10 @@ export function ActiveWorkoutFloatingTimer() {
     if (!drag || drag.pointerId !== event.pointerId) return;
 
     const nextPosition = clampPosition(positionRef.current);
+    if (frameRef.current) {
+      window.cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+    }
     persistPosition(nextPosition);
     setPosition(nextPosition);
     window.setTimeout(() => {
@@ -225,12 +243,13 @@ export function ActiveWorkoutFloatingTimer() {
 
   return (
     <div
-      className="fixed z-[70] w-[min(calc(100vw-2rem),19rem)] cursor-grab select-none overflow-hidden rounded-2xl border border-cyan-300/35 bg-slate-950/92 text-white shadow-[0_22px_80px_rgba(0,0,0,0.38)] backdrop-blur-md active:cursor-grabbing"
-      style={{ left: position.x, top: position.y }}
+      className="fixed left-0 top-0 z-[70] w-[min(calc(100vw-2rem),19rem)] cursor-grab touch-none select-none overflow-hidden rounded-2xl border border-cyan-300/35 bg-slate-950/92 text-white shadow-[0_22px_80px_rgba(0,0,0,0.38)] backdrop-blur-md will-change-transform active:cursor-grabbing"
+      style={{ transform: `translate3d(${position.x}px, ${position.y}px, 0)` }}
       onClick={openWorkout}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
       role="button"
       tabIndex={0}
       onKeyDown={(event) => {

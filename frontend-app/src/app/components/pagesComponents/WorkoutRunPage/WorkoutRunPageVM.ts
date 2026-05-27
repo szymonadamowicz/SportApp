@@ -380,6 +380,19 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     [buildProgressPayload, progressMutation, session, syncActiveRunCache],
   );
 
+  const syncRuntimeProgressCache = useCallback(
+    (stateOverride: ProgressStateOverride = {}) => {
+      if (!session || status !== "running" || isCompletingRef.current) {
+        return;
+      }
+
+      syncActiveRunCache(
+        buildProgressPayload(entriesRef.current, stateOverride),
+      );
+    },
+    [buildProgressPayload, session, status, syncActiveRunCache],
+  );
+
   useEffect(() => {
     if (!session) return;
     if (phase === "summary") return;
@@ -405,6 +418,22 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
       window.clearInterval(timerId);
     };
   }, [session, phase, isPaused]);
+
+  useEffect(() => {
+    if (!session || status !== "running" || isCompletingRef.current) {
+      return;
+    }
+
+    syncRuntimeProgressCache();
+
+    const cacheTimerId = window.setInterval(() => {
+      syncRuntimeProgressCache();
+    }, 1000);
+
+    return () => {
+      window.clearInterval(cacheTimerId);
+    };
+  }, [session, status, syncRuntimeProgressCache]);
 
   const startSession = useCallback(async () => {
     if (status === "starting" || status === "running" || status === "saving") {
@@ -849,9 +878,10 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
   }, [autosaveProgress, session, status]);
 
   const backToWorkouts = useCallback(() => {
+    syncRuntimeProgressCache();
     autosaveProgress().catch(() => {});
     router.push("/workouts");
-  }, [router, autosaveProgress]);
+  }, [router, autosaveProgress, syncRuntimeProgressCache]);
 
   return {
     workoutId,
