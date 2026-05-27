@@ -10,6 +10,7 @@ import { WorkoutRunOverview } from "./sections/WorkoutRunOverview";
 import { WorkoutRunPreStart } from "./sections/WorkoutRunPreStart";
 import { WorkoutRunSetConsole } from "./sections/WorkoutRunSetConsole";
 import { WorkoutRunTimerHeader } from "./sections/WorkoutRunTimerHeader";
+import { WorkoutRunFormAnalysisPanel } from "./sections/WorkoutRunFormAnalysisPanel";
 import { getPhaseColor } from "./workoutRunDisplay";
 
 export default function WorkoutRunPage({ workoutId }: { workoutId: string }) {
@@ -97,20 +98,26 @@ export default function WorkoutRunPage({ workoutId }: { workoutId: string }) {
         )}
 
         {vm.session && (
-          <div className="grid items-start gap-6 lg:grid-cols-[1fr_0.95fr]">
-            <WorkoutRunSetConsole
-              vm={vm}
-              phaseColor={phaseColor}
-              nextStep={nextStep}
-            />
+          <div className="space-y-6">
+            <div className="grid items-start gap-6 lg:grid-cols-[1fr_0.95fr]">
+              <WorkoutRunSetConsole
+                vm={vm}
+                phaseColor={phaseColor}
+                nextStep={nextStep}
+              />
 
-            <WorkoutRunOverview
-              vm={vm}
-              totalSteps={totalSteps}
-              stepsDone={stepsDone}
-              metTargetSets={metTargetSets}
-              totalReps={totalReps}
-              onRequestFinish={() => setShowFinishConfirm(true)}
+              <WorkoutRunOverview
+                vm={vm}
+                totalSteps={totalSteps}
+                stepsDone={stepsDone}
+                metTargetSets={metTargetSets}
+                totalReps={totalReps}
+                onRequestFinish={() => setShowFinishConfirm(true)}
+              />
+            </div>
+
+            <WorkoutRunFormAnalysisPanel
+              currentExerciseName={targetStep?.exerciseName}
             />
           </div>
         )}

@@ -1,4 +1,5 @@
 ﻿using ApiModule.Application;
+using ApiModule.Application.FormAnalysis;
 using ApiModule.Domain;
 using ApiModule.Infrastructure;
 using ApiModule.Infrastructure.Auth;
@@ -75,6 +76,7 @@ builder.Services.AddScoped<WorkoutRunService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProgressService>();
 builder.Services.AddScoped<ProfileService>();
+builder.Services.AddScoped<FormAnalysisService>();
 
 builder.Services.AddScoped<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
 
