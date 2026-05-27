@@ -61,6 +61,16 @@ NEXT_PUBLIC_API_URL=http://localhost:5064/api
 
 In `mock` mode, frontend uses local mocks and does not require backend.
 
+## Mobile App (Capacitor)
+
+The project supports three frontends:
+
+1. Web PC: regular Next.js app on desktop.
+2. Web mobile: regular Next.js app opened in a mobile browser.
+3. Android app: Capacitor shell loading the same web app.
+
+See `MOBILE_APP.md` for emulator and physical phone commands.
+
 ## Docker (Profiles)
 
 ### Recommended runner scripts
