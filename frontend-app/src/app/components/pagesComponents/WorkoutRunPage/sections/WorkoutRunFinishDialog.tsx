@@ -22,14 +22,14 @@ export function WorkoutRunFinishDialog({
           <button
             type="button"
             onClick={onCancel}
-            className="min-h-11 rounded-full border border-borderSoft px-4 py-2 text-sm text-textPrimary transition hover:border-borderStrong hover:bg-bgHighlight/30"
+            className="min-h-11 w-full rounded-full border border-borderSoft px-4 py-2 text-sm text-textPrimary transition hover:border-borderStrong hover:bg-bgHighlight/30 sm:w-auto"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="rf-btn-primary min-h-11 rounded-full px-4 py-2 text-sm font-semibold"
+            className="rf-btn-primary min-h-11 w-full rounded-full px-4 py-2 text-sm font-semibold sm:w-auto"
           >
             Yes, finish workout
           </button>

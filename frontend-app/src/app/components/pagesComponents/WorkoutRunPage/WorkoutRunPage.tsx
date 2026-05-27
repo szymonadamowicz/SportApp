@@ -48,16 +48,16 @@ export default function WorkoutRunPage({ workoutId }: { workoutId: string }) {
 
   return (
     <div className="min-h-dvh text-textPrimary">
-      <div className="mx-auto max-w-7xl px-1 py-4 sm:px-3 md:px-8 md:py-8">
+      <div className="mx-auto max-w-7xl px-3 py-[calc(1rem+env(safe-area-inset-top))] sm:px-4 md:px-8 md:py-8">
         <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between md:mb-6">
-          <div>
+          <div className="min-w-0">
             <p className="text-xs uppercase tracking-[0.24em] text-textMuted">
               Workout Run Mode
             </p>
-            <h1 className="text-2xl font-semibold">
+            <h1 className="truncate text-2xl font-semibold">
               {vm.session?.workoutTitle ?? "Start training"}
             </h1>
-            <p className="mt-1 text-sm text-textSecondary">
+            <p className="mt-1 truncate text-sm text-textSecondary">
               {vm.session ? currentStepLabel : "Session ready"}
             </p>
           </div>
@@ -65,7 +65,7 @@ export default function WorkoutRunPage({ workoutId }: { workoutId: string }) {
           <button
             type="button"
             onClick={vm.backToWorkouts}
-            className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-full border border-borderSoft bg-bgCard/70 px-4 py-2 text-sm text-textSecondary transition hover:border-borderStrong hover:text-textPrimary sm:w-auto"
+            className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-borderSoft bg-bgCard/70 px-4 py-2 text-sm text-textSecondary transition hover:border-borderStrong hover:text-textPrimary sm:w-auto"
           >
             <ArrowLeft size={16} />
             Back to workouts
@@ -118,6 +118,9 @@ export default function WorkoutRunPage({ workoutId }: { workoutId: string }) {
 
             <WorkoutRunFormAnalysisPanel
               currentExerciseName={targetStep?.exerciseName}
+              workoutRunId={vm.session.runId}
+              workoutId={vm.session.workoutId}
+              currentStep={targetStep}
             />
           </div>
         )}

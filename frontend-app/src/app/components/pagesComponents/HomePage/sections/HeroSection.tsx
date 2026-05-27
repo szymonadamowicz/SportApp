@@ -96,11 +96,11 @@ export default function Hero({
             {!hasActiveRun && hero.kind === "missed" && <Tag label="Missed" />}
           </div>
 
-          <h1 className="text-2xl font-semibold text-textPrimary md:text-3xl">
+          <h1 className="break-words text-2xl font-semibold leading-tight text-textPrimary md:text-3xl">
             {title}
           </h1>
 
-          <p className="text-sm capitalize text-textSecondary md:text-base">
+          <p className="break-words text-sm capitalize text-textSecondary md:text-base">
             {subtitle}
           </p>
 
@@ -168,7 +168,7 @@ export default function Hero({
                 return (
                   <div
                     key={step.stepIndex}
-                    className="shrink-0 rounded-2xl px-4 py-2 text-sm flex items-center gap-2"
+                    className="flex max-w-[min(18rem,82vw)] shrink-0 items-center gap-2 rounded-2xl px-4 py-2 text-sm"
                     style={{
                       background: isCurrent
                         ? "linear-gradient(135deg, rgba(45,212,191,0.22), rgba(34,197,94,0.14))"
@@ -186,8 +186,10 @@ export default function Hero({
                           : "rgba(148,163,184,0.55)",
                       }}
                     />
-                    {step.exerciseName} {step.expectedReps} reps
-                    {step.expectedWeight ? ` - ${step.expectedWeight} kg` : ""}
+                    <span className="truncate">
+                      {step.exerciseName} {step.expectedReps} reps
+                      {step.expectedWeight ? ` - ${step.expectedWeight} kg` : ""}
+                    </span>
                   </div>
                 );
               })}
@@ -199,7 +201,7 @@ export default function Hero({
                 {hero.workout.exercises.map((ex) => (
                   <div
                     key={ex.id}
-                    className="shrink-0 rounded-2xl px-4 py-2 text-sm flex items-center gap-2"
+                    className="flex max-w-[min(18rem,82vw)] shrink-0 items-center gap-2 rounded-2xl px-4 py-2 text-sm"
                     style={{
                       background:
                         "linear-gradient(180deg, rgba(26,31,36,0.9), rgba(19,23,27,0.85))",
@@ -212,7 +214,7 @@ export default function Hero({
                         background: "linear-gradient(135deg, #22c55e, #4ade80)",
                       }}
                     />
-                    {formatExerciseShort(ex)}
+                    <span className="truncate">{formatExerciseShort(ex)}</span>
                   </div>
                 ))}
               </div>

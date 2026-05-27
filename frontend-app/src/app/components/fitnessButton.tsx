@@ -19,9 +19,9 @@ const fitnessButtonVariants = cva(
       },
       size: {
         default: "h-12 px-6 py-3",
-        sm: "h-10 px-4 py-2",
+        sm: "h-11 px-4 py-2 md:h-10",
         lg: "h-14 px-8 py-4 text-base",
-        icon: "h-10 w-10",
+        icon: "h-11 w-11 md:h-10 md:w-10",
       },
     },
     defaultVariants: {

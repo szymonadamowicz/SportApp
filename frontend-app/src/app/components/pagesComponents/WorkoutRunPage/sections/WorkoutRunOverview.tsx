@@ -91,7 +91,7 @@ export function WorkoutRunOverview({
                 )}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium">{step.exerciseName}</span>
+                  <span className="truncate font-medium">{step.exerciseName}</span>
                   <span className="text-textMuted">
                     {entry
                       ? `${entry.actualReps}/${step.expectedReps} reps`
@@ -113,13 +113,13 @@ export function WorkoutRunOverview({
       </label>
       <textarea
         id="session-notes"
-        className="rf-input-surface mt-1 min-h-32 w-full rounded-2xl px-3 py-2 text-sm md:rounded-lg"
+        className="rf-input-surface mt-1 min-h-28 w-full rounded-2xl px-3 py-2 text-sm md:min-h-32 md:rounded-lg"
         placeholder="Notes..."
         value={vm.notes}
         onChange={(event) => vm.setNotes(event.target.value)}
       />
 
-      <div className="mt-3 flex justify-end">
+      <div className="rf-mobile-bottom-action mt-3 flex justify-end md:static md:bg-transparent md:p-0">
         <button
           type="button"
           onClick={onRequestFinish}
@@ -144,8 +144,8 @@ export function WorkoutRunOverview({
             {vm.summary.completionRate}%
           </p>
           <button
-            type="button"
-            onClick={vm.backToWorkouts}
+          type="button"
+          onClick={vm.backToWorkouts}
           className="mt-2 min-h-10 w-full cursor-pointer rounded-full border border-borderSoft px-3 py-1.5 text-xs text-textPrimary transition hover:border-borderStrong hover:bg-bgHighlight/30 sm:w-auto"
           >
             Back to workouts

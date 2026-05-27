@@ -11,6 +11,7 @@ public sealed class AppDbContext : DbContext
     public DbSet<Exercise> Exercises => Set<Exercise>();
     public DbSet<WorkoutRun> WorkoutRuns => Set<WorkoutRun>();
     public DbSet<WorkoutRunEntry> WorkoutRunEntries => Set<WorkoutRunEntry>();
+    public DbSet<FormAnalysis> FormAnalyses => Set<FormAnalysis>();
     public DbSet<AppUser> Users => Set<AppUser>();
     public DbSet<Profile> Profiles => Set<Profile>();
 
@@ -41,6 +42,11 @@ public sealed class AppDbContext : DbContext
                 .WithOne(r => r.Workout)
                 .HasForeignKey(r => r.WorkoutId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(w => w.FormAnalyses)
+                .WithOne(a => a.Workout)
+                .HasForeignKey(a => a.WorkoutId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Exercise>(entity =>
@@ -85,6 +91,11 @@ public sealed class AppDbContext : DbContext
                 .WithOne(entry => entry.WorkoutRun)
                 .HasForeignKey(entry => entry.WorkoutRunId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(run => run.FormAnalyses)
+                .WithOne(analysis => analysis.WorkoutRun)
+                .HasForeignKey(analysis => analysis.WorkoutRunId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<WorkoutRunEntry>(entity =>
@@ -109,6 +120,66 @@ public sealed class AppDbContext : DbContext
 
             entity.Property(entry => entry.CompletedAt)
                 .IsRequired();
+        });
+
+        modelBuilder.Entity<FormAnalysis>(entity =>
+        {
+            entity.HasKey(analysis => analysis.Id);
+
+            entity.Property(analysis => analysis.OwnerUserId)
+                .IsRequired();
+
+            entity.Property(analysis => analysis.ExerciseName)
+                .HasMaxLength(200);
+
+            entity.Property(analysis => analysis.ExerciseType)
+                .IsRequired()
+                .HasMaxLength(80);
+
+            entity.Property(analysis => analysis.Status)
+                .IsRequired()
+                .HasMaxLength(40);
+
+            entity.Property(analysis => analysis.Summary)
+                .IsRequired()
+                .HasMaxLength(1000);
+
+            entity.Property(analysis => analysis.FindingsJson)
+                .IsRequired()
+                .HasColumnType("text");
+
+            entity.Property(analysis => analysis.MetricsJson)
+                .IsRequired()
+                .HasColumnType("text");
+
+            entity.Property(analysis => analysis.RawResultJson)
+                .HasColumnType("text");
+
+            entity.Property(analysis => analysis.ErrorMessage)
+                .HasMaxLength(1000);
+
+            entity.Property(analysis => analysis.SourceFileName)
+                .IsRequired()
+                .HasMaxLength(260);
+
+            entity.Property(analysis => analysis.AnalyzedFileName)
+                .HasMaxLength(260);
+
+            entity.Property(analysis => analysis.AnalyzerVersion)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            entity.Property(analysis => analysis.ModelName)
+                .HasMaxLength(160);
+
+            entity.Property(analysis => analysis.CreatedAt)
+                .IsRequired();
+
+            entity.HasIndex(analysis => analysis.OwnerUserId);
+            entity.HasIndex(analysis => analysis.WorkoutRunId);
+            entity.HasIndex(analysis => analysis.WorkoutId);
+            entity.HasIndex(analysis => analysis.CreatedAt);
+            entity.HasIndex(analysis => new { analysis.OwnerUserId, analysis.WorkoutRunId, analysis.CreatedAt });
         });
 
         modelBuilder.Entity<AppUser>(entity =>

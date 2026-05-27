@@ -8,7 +8,7 @@ import { Shield, User, KeyRound, LogOut, Check, X } from "lucide-react";
 const StatusPill = ({ ok, text }: { ok: boolean; text: string }) => {
   return (
     <span
-      className={`inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full ${
+      className={`inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
         ok ? "rf-status-success" : "rf-status-danger"
       }`}
     >
@@ -53,7 +53,7 @@ export default function ProfilePage() {
               <Shield className="w-5 h-5" />
             </div>
 
-            <div>
+            <div className="min-w-0">
               <h2 className="text-lg font-semibold">Account</h2>
               <p className="text-muted text-sm">
                 Basic authentication settings.
@@ -113,7 +113,7 @@ export default function ProfilePage() {
               <User className="w-5 h-5" />
             </div>
 
-            <div>
+            <div className="min-w-0">
               <h2 className="text-lg font-semibold">Profile details</h2>
               <p className="text-muted text-sm">
                 Optional information (stored locally in mock mode).
@@ -190,12 +190,12 @@ export default function ProfilePage() {
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                 <h2 className="text-lg font-semibold">Change password</h2>
                 {vm.verifyState !== "verified" && (
-                  <span className="text-xs text-muted">
+                  <span className="text-xs leading-relaxed text-muted">
                     Verify your current password above to enable changes.
                   </span>
                 )}
               </div>
-              <p className="text-muted text-sm">
+              <p className="text-muted text-sm leading-relaxed">
                 Use the verified password above to confirm the change.
               </p>
             </div>

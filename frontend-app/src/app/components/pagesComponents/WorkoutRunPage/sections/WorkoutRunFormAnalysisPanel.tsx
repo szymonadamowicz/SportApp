@@ -3,11 +3,18 @@
 import {
   analyzeExerciseFormApi,
   downloadExerciseFormVideoApi,
+  listExerciseFormAnalysesApi,
 } from "@/api/formAnalysis.api";
-import { ExerciseFormAnalysisResult } from "@/types/formAnalysis";
+import {
+  ExerciseFormAnalysisResult,
+  ExerciseFormAnalysisUploadContext,
+} from "@/types/formAnalysis";
+import { WorkoutRunStep } from "@/types/workout/workoutRun";
 import clsx from "clsx";
 import {
   Camera,
+  History,
+  PlayCircle,
   RefreshCcw,
   Square,
   UploadCloud,
@@ -17,6 +24,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 type WorkoutRunFormAnalysisPanelProps = {
   currentExerciseName?: string;
+  workoutRunId?: string;
+  workoutId?: string;
+  currentStep?: WorkoutRunStep | null;
 };
 
 const getRecorderMimeType = () => {
@@ -32,8 +42,30 @@ const getRecorderMimeType = () => {
   return candidates.find((type) => MediaRecorder.isTypeSupported(type)) ?? "";
 };
 
+const exerciseAnalyzerLabels: Record<string, string> = {
+  squat: "Squat beta",
+  bench_press: "Bench press beta",
+};
+
+const formatHistoryTime = (value?: string) => {
+  if (!value) return "Just now";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Just now";
+
+  return new Intl.DateTimeFormat(undefined, {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+};
+
 export function WorkoutRunFormAnalysisPanel({
   currentExerciseName,
+  workoutRunId,
+  workoutId,
+  currentStep,
 }: WorkoutRunFormAnalysisPanelProps) {
   const liveVideoRef = useRef<HTMLVideoElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -50,6 +82,10 @@ export function WorkoutRunFormAnalysisPanel({
   );
   const [analysisVideoUrl, setAnalysisVideoUrl] = useState<string | null>(null);
   const [result, setResult] = useState<ExerciseFormAnalysisResult | null>(null);
+  const [history, setHistory] = useState<ExerciseFormAnalysisResult[]>([]);
+  const [historyStatus, setHistoryStatus] = useState<"idle" | "loading">(
+    "idle",
+  );
   const [status, setStatus] = useState<"idle" | "recording" | "analyzing">(
     "idle",
   );
@@ -60,6 +96,17 @@ export function WorkoutRunFormAnalysisPanel({
     if (!result) return "-";
     return result.score == null ? "No score" : `${result.score}/100`;
   }, [result]);
+  const analysisContext = useMemo<ExerciseFormAnalysisUploadContext>(
+    () => ({
+      workoutRunId,
+      workoutId,
+      exerciseId: currentStep?.exerciseId,
+      exerciseName: currentStep?.exerciseName ?? currentExerciseName,
+      stepIndex: currentStep?.stepIndex,
+      setNumber: currentStep?.setNumber,
+    }),
+    [currentExerciseName, currentStep, workoutId, workoutRunId],
+  );
 
   useEffect(() => {
     if (!liveVideoRef.current || !streamRef.current) return;
@@ -73,6 +120,37 @@ export function WorkoutRunFormAnalysisPanel({
       revokeUrl(analysisVideoUrlRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!workoutRunId && !workoutId) {
+      setHistory([]);
+      return;
+    }
+
+    let cancelled = false;
+    setHistoryStatus("loading");
+
+    listExerciseFormAnalysesApi({ workoutRunId, workoutId })
+      .then((items) => {
+        if (!cancelled) {
+          setHistory(items);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setHistory([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setHistoryStatus("idle");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [workoutId, workoutRunId]);
 
   const revokeUrl = (url: string | null) => {
     if (url) URL.revokeObjectURL(url);
@@ -174,8 +252,18 @@ export function WorkoutRunFormAnalysisPanel({
       setError(null);
       setResult(null);
 
-      const analysis = await analyzeExerciseFormApi(recordedBlob, exerciseType);
+      const analysis = await analyzeExerciseFormApi(
+        recordedBlob,
+        exerciseType,
+        analysisContext,
+      );
       setResult(analysis);
+      setHistory((prev) =>
+        [
+          analysis,
+          ...prev.filter((item) => item.analysisId !== analysis.analysisId),
+        ].slice(0, 20),
+      );
 
       if (analysis.hasAnalyzedVideo) {
         const blob = await downloadExerciseFormVideoApi(
@@ -193,6 +281,26 @@ export function WorkoutRunFormAnalysisPanel({
       );
     } finally {
       setStatus("idle");
+    }
+  };
+
+  const loadAnalysisPreview = async (analysis: ExerciseFormAnalysisResult) => {
+    try {
+      setError(null);
+      setResult(analysis);
+
+      const kind = analysis.hasAnalyzedVideo ? "analyzed" : "source";
+      if (!analysis.hasAnalyzedVideo && !analysis.hasSourceVideo) return;
+
+      const blob = await downloadExerciseFormVideoApi(analysis.analysisId, kind);
+      const url = URL.createObjectURL(blob);
+      replaceAnalysisVideoUrl(url);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to load this analysis preview.",
+      );
     }
   };
 
@@ -214,7 +322,7 @@ export function WorkoutRunFormAnalysisPanel({
         </div>
 
         <div className="rounded-full border border-warning/30 bg-warning/10 px-3 py-1 text-xs font-medium text-warning">
-          Squat beta
+          {exerciseAnalyzerLabels[exerciseType] ?? "Beta"}
         </div>
       </div>
 
@@ -229,7 +337,8 @@ export function WorkoutRunFormAnalysisPanel({
               onChange={(event) => setExerciseType(event.target.value)}
               className="rf-input-surface mt-2 min-h-11 w-full rounded-xl px-3 py-2 text-sm"
             >
-              <option value="squat">Squat (current script)</option>
+              <option value="squat">Squat</option>
+              <option value="bench_press">Bench press (elbow/full rep)</option>
               <option value="other">Other exercise (not supported yet)</option>
             </select>
           </label>
@@ -243,9 +352,9 @@ export function WorkoutRunFormAnalysisPanel({
                 playsInline
                 className="aspect-video w-full object-cover"
               />
-            ) : recordedPreviewUrl ? (
+            ) : analysisVideoUrl || recordedPreviewUrl ? (
               <video
-                src={analysisVideoUrl ?? recordedPreviewUrl}
+                src={analysisVideoUrl ?? recordedPreviewUrl ?? undefined}
                 controls
                 playsInline
                 className="aspect-video w-full bg-black object-contain"
@@ -360,6 +469,56 @@ export function WorkoutRunFormAnalysisPanel({
               ))}
             </div>
           ) : null}
+
+          <div className="mt-5 border-t border-borderSoft pt-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.14em] text-textMuted">
+                <History size={14} />
+                Previous analyses
+              </div>
+              {historyStatus === "loading" && (
+                <span className="text-xs text-textMuted">Loading...</span>
+              )}
+            </div>
+
+            {history.length ? (
+              <div className="mt-3 space-y-2">
+                {history.slice(0, 5).map((analysis) => (
+                  <button
+                    key={analysis.analysisId}
+                    type="button"
+                    onClick={() => void loadAnalysisPreview(analysis)}
+                    className={clsx(
+                      "flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left transition hover:border-accent/45 hover:bg-accent/10",
+                      result?.analysisId === analysis.analysisId
+                        ? "border-accent/45 bg-accent/10"
+                        : "border-borderSoft bg-bgCard/35",
+                    )}
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-textPrimary">
+                        {analysis.exerciseName ??
+                          exerciseAnalyzerLabels[analysis.exerciseType] ??
+                          "Exercise"}
+                      </span>
+                      <span className="mt-0.5 block text-xs text-textMuted">
+                        {formatHistoryTime(analysis.createdAt)}
+                        {analysis.setNumber ? ` - set ${analysis.setNumber}` : ""}
+                      </span>
+                    </span>
+                    <span className="inline-flex shrink-0 items-center gap-2 text-xs text-textSecondary">
+                      {analysis.score == null ? "No score" : `${analysis.score}/100`}
+                      <PlayCircle size={14} />
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-3 text-sm text-textMuted">
+                No saved analyses for this workout yet.
+              </p>
+            )}
+          </div>
 
           {error && <p className="mt-4 text-sm text-danger">{error}</p>}
         </div>

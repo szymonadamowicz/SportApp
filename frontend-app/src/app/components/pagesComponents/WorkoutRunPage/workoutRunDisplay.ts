@@ -1,7 +1,7 @@
 import { WorkoutRunPhase } from "@/types/pages/workoutRunPage";
 
 export const metricCardClass =
-  "rounded-lg border border-borderSoft bg-bgHighlight/30 px-3 py-2";
+  "min-w-0 rounded-lg border border-borderSoft bg-bgHighlight/30 px-3 py-2";
 
 export const formatClock = (seconds: number): string => {
   const prefix = seconds < 0 ? "+" : "";

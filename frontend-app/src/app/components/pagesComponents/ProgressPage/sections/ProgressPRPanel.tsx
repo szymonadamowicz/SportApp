@@ -64,7 +64,7 @@ export function ProgressPRPanel({
                 type="button"
                 onClick={() => setPage((current) => Math.max(0, current - 1))}
                 disabled={safePage === 0}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-borderSoft text-textSecondary transition hover:border-borderStrong hover:text-textPrimary disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-borderSoft text-textSecondary transition hover:border-borderStrong hover:text-textPrimary disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9"
                 aria-label="Previous PR page"
               >
                 <ChevronLeft size={17} />
@@ -80,7 +80,7 @@ export function ProgressPRPanel({
                   setPage((current) => Math.min(pageCount - 1, current + 1))
                 }
                 disabled={safePage >= pageCount - 1}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-borderSoft text-textSecondary transition hover:border-borderStrong hover:text-textPrimary disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-borderSoft text-textSecondary transition hover:border-borderStrong hover:text-textPrimary disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9"
                 aria-label="Next PR page"
               >
                 <ChevronRight size={17} />

@@ -50,14 +50,14 @@ export function CreateWorkoutModal({
             animate="visible"
             exit="exit"
             className="
-  relative max-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-xl rounded-t-3xl sm:rounded-3xl md:max-w-2xl
-  border border-borderSoft
-  shadow-2xl overflow-hidden
-  bg-[linear-gradient(180deg,#13171b,#0c0f12)]
-"
+              relative flex max-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-xl flex-col
+              overflow-hidden rounded-t-3xl border border-borderSoft
+              bg-[linear-gradient(180deg,#13171b,#0c0f12)] shadow-2xl
+              sm:rounded-3xl md:max-w-2xl
+            "
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between gap-4 border-b border-borderSoft px-5 py-4 sm:px-8 sm:py-5">
+            <div className="shrink-0 flex items-center justify-between gap-4 border-b border-borderSoft px-5 py-4 sm:px-8 sm:py-5">
               <div className="flex min-w-0 items-center gap-2">
                 <Dumbbell className="h-5 w-5 text-accent" />
                 <h2 className="truncate text-base font-semibold text-textPrimary sm:text-lg">
@@ -70,7 +70,7 @@ export function CreateWorkoutModal({
               </IconButton>
             </div>
 
-            <div className="rf-mobile-scroll max-h-[calc(100dvh-10.5rem-env(safe-area-inset-bottom))] space-y-6 overflow-y-auto px-5 py-5 sm:max-h-[65vh] sm:space-y-8 sm:px-8 sm:py-6">
+            <div className="rf-mobile-scroll flex-1 space-y-6 overflow-y-auto px-5 py-5 sm:max-h-[65vh] sm:space-y-8 sm:px-8 sm:py-6">
               <Field
                 label="Training name"
                 hint={
@@ -409,7 +409,7 @@ export function CreateWorkoutModal({
 
                         <div
                           className="
-                          grid items-center gap-3
+                          grid items-start gap-3
                           grid-cols-2 sm:[grid-template-columns:115px_20px_115px_20px_115px_115px]
                         "
                         >
@@ -579,9 +579,10 @@ export function CreateWorkoutModal({
 
             <div
               className="
-    flex flex-col-reverse gap-3 border-t border-borderSoft px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:flex-row sm:justify-end sm:gap-4 sm:px-8 sm:py-5
-    bg-[linear-gradient(180deg,rgba(19,23,27,0.35),rgba(19,23,27,0.75))]
-  "
+                shrink-0 flex flex-col-reverse gap-3 border-t border-borderSoft
+                bg-[linear-gradient(180deg,rgba(19,23,27,0.35),rgba(19,23,27,0.75))]
+                px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:flex-row sm:justify-end sm:gap-4 sm:px-8 sm:py-5
+              "
             >
               <button
                 type="button"
@@ -592,7 +593,7 @@ export function CreateWorkoutModal({
   bg-bgCard/80
   text-textSecondary
   hover:text-textPrimary
-  hover:bg-bgCard-elevated
+  hover:bg-bgCardElevated
   hover:border-borderStrong
   transition
 "

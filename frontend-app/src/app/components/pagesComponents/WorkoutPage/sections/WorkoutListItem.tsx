@@ -21,11 +21,12 @@ export function WorkoutListItem({
   const tags = getWorkoutTags(item);
 
   return (
-    <motion.div
+    <motion.button
+      type="button"
       layout
       onClick={onClick}
       className={clsx(
-        "rf-animate-item rf-hover-lift cursor-pointer rounded-2xl border border-borderSoft/80 px-4 py-3 transition duration-200 sm:rounded-xl",
+        "rf-animate-item rf-hover-lift min-h-16 w-full cursor-pointer rounded-2xl border border-borderSoft/80 px-4 py-3 text-left transition duration-200 sm:rounded-xl",
         stateClass,
         selected
           ? "rf-selection-pop bg-[rgba(34,197,94,0.08)] ring-2 ring-[var(--accent-border)] border border-[var(--accent-border)] shadow-lg shadow-[rgba(34,197,94,0.2)]"
@@ -36,15 +37,15 @@ export function WorkoutListItem({
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div className="min-w-0">
-          <p className="font-medium">{item.title}</p>
-          <p className="text-sm text-textSecondary">{item.mainFocus}</p>
+          <p className="truncate font-medium">{item.title}</p>
+          <p className="truncate text-sm text-textSecondary">{item.mainFocus}</p>
         </div>
-        <div className="flex flex-wrap gap-2 sm:justify-end">
+        <div className="flex min-w-0 flex-wrap gap-2 sm:justify-end">
           {tags.map((tag) => (
             <Tag key={tag.id} {...tag} />
           ))}
         </div>
       </div>
-    </motion.div>
+    </motion.button>
   );
 }

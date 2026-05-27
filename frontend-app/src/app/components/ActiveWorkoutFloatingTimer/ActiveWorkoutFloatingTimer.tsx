@@ -16,6 +16,11 @@ const WIDTH = 304;
 const HEIGHT = 118;
 const EDGE_GAP = 16;
 
+const getFloatingWidth = () => {
+  if (typeof window === "undefined") return WIDTH;
+  return Math.min(WIDTH, window.innerWidth - EDGE_GAP * 2);
+};
+
 const getBottomReservedSpace = () => {
   if (typeof window === "undefined") return EDGE_GAP;
   return window.innerWidth < 768 ? 96 : EDGE_GAP;
@@ -44,7 +49,7 @@ const clampPosition = (position: FloatingPosition): FloatingPosition => {
   return {
     x: Math.min(
       Math.max(EDGE_GAP, position.x),
-      Math.max(EDGE_GAP, window.innerWidth - WIDTH - EDGE_GAP),
+      Math.max(EDGE_GAP, window.innerWidth - getFloatingWidth() - EDGE_GAP),
     ),
     y: Math.min(
       Math.max(EDGE_GAP, position.y),
@@ -69,7 +74,7 @@ const getInitialPosition = (): FloatingPosition => {
   }
 
   return clampPosition({
-    x: window.innerWidth - WIDTH - 24,
+    x: window.innerWidth - getFloatingWidth() - 24,
     y: window.innerHeight - HEIGHT - getBottomReservedSpace(),
   });
 };

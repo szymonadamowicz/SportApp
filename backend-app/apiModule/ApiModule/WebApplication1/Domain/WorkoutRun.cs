@@ -20,4 +20,5 @@ public sealed class WorkoutRun
     public DateTime? LastProgressAt { get; set; }
 
     public List<WorkoutRunEntry> Entries { get; set; } = [];
+    public List<FormAnalysis> FormAnalyses { get; set; } = [];
 }

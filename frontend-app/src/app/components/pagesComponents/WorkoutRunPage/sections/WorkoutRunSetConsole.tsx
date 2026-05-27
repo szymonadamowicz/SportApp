@@ -55,7 +55,7 @@ export function WorkoutRunSetConsole({
       <div className="mt-4 rounded-2xl border border-borderSoft bg-bgHighlight/25 p-3 sm:p-4 md:rounded-lg">
         {vm.phase === "exercise" && vm.currentStep && (
           <div className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               <div className={metricCardClass}>
                 <p className="text-[10px] uppercase tracking-[0.14em] text-textMuted">
                   Target reps
@@ -68,7 +68,7 @@ export function WorkoutRunSetConsole({
                 <p className="text-[10px] uppercase tracking-[0.14em] text-textMuted">
                   Weight
                 </p>
-                <p className="mt-1 text-2xl font-semibold">
+                <p className="mt-1 truncate text-xl font-semibold sm:text-2xl">
                   {formatWeight(vm.currentStep.expectedWeight)}
                 </p>
               </div>
@@ -124,7 +124,7 @@ export function WorkoutRunSetConsole({
 
         {vm.phase === "rest" && (
           <div className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <div className={metricCardClass}>
                 <p className="text-[10px] uppercase tracking-[0.14em] text-textMuted">
                   Rest target

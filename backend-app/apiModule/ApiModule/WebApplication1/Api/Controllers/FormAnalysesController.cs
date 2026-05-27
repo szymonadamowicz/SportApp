@@ -20,10 +20,7 @@ public sealed class FormAnalysesController(FormAnalysisService service) : Contro
     {
         try
         {
-            var result = await _service.AnalyzeAsync(
-                request.Video,
-                request.ExerciseType,
-                ct);
+            var result = await _service.AnalyzeAsync(request, ct);
 
             return Ok(result);
         }
@@ -31,6 +28,27 @@ public sealed class FormAnalysesController(FormAnalysisService service) : Contro
         {
             return BadRequest(ex.Message);
         }
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<List<FormAnalysisResultDto>>> List(
+        [FromQuery] Guid? workoutRunId,
+        [FromQuery] Guid? workoutId,
+        CancellationToken ct)
+    {
+        var analyses = await _service.ListAsync(workoutRunId, workoutId, ct);
+        return Ok(analyses);
+    }
+
+    [HttpGet("{analysisId:guid}")]
+    public async Task<ActionResult<FormAnalysisResultDto>> Get(
+        Guid analysisId,
+        CancellationToken ct)
+    {
+        var analysis = await _service.GetAsync(analysisId, ct);
+        if (analysis is null) return NotFound();
+
+        return Ok(analysis);
     }
 
     [HttpGet("{analysisId:guid}/video")]

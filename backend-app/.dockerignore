@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.git/
+**/.gitignore
+apiModule/ApiModule/WebApplication1/App_Data/
+videoAnalysysModule/assets/videos/
+videoAnalysysModule/assets/*.mp4
+videoAnalysysModule/assets/*.mov
+videoAnalysysModule/assets/*.webm

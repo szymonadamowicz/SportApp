@@ -25,8 +25,8 @@ services:
 
   backend:
     build:
-      context: ./backend-app/apiModule/ApiModule/WebApplication1
-      dockerfile: Dockerfile
+      context: ./backend-app
+      dockerfile: apiModule/ApiModule/WebApplication1/Dockerfile
     container_name: api-backend
     profiles: ["real"]
     restart: unless-stopped
@@ -40,6 +40,9 @@ services:
       Jwt__Audience: ${Jwt__Audience:-ApiModule.Client}
       Jwt__Key: ${Jwt__Key:-dev-only-change-me-to-at-least-32-characters}
       Jwt__ExpiresMinutes: ${Jwt__ExpiresMinutes:-120}
+      FormAnalysis__TimeoutSeconds: ${FORM_ANALYSIS_TIMEOUT_SECONDS:-300}
+    volumes:
+      - form_analysis_data:/app/App_Data/form-analysis
     ports:
       - "5064:8080"
 
@@ -79,3 +82,4 @@ services:
 
 volumes:
   postgres_data:
+  form_analysis_data:

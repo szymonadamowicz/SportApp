@@ -35,7 +35,7 @@ export default function Navbar() {
           md:h-16 md:pt-0
         "
       >
-      <nav className="mx-auto flex h-full max-w-6xl items-center justify-between px-4 sm:px-5 md:px-8">
+      <nav className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-5 md:px-8">
         <Link
           href="/dashboard"
           className="text-xl font-semibold tracking-tight text-textPrimary transition hover:text-accentBlue md:text-2xl"
@@ -107,7 +107,7 @@ export default function Navbar() {
               <li key={item.href}>
                 <Link
                   href={href}
-                  className={`relative flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-[11px] font-semibold transition ${
+                  className={`relative flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-[11px] font-semibold transition active:scale-[0.98] ${
                     active
                       ? "bg-accentBlue/12 text-textPrimary"
                       : "text-textMuted active:bg-bgHighlight/60"

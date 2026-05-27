@@ -47,7 +47,7 @@ export function WorkoutRunTimerHeader({
           title={timerHint}
         >
           <div className="flex items-start justify-between gap-4">
-            <div>
+            <div className="min-w-0">
               <p className="text-[11px] uppercase tracking-[0.18em] text-textMuted">
                 {getPhaseLabel(vm.phase)}
               </p>
@@ -90,15 +90,15 @@ export function WorkoutRunTimerHeader({
           </p>
         </button>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 min-[420px]:grid-cols-2">
           <div className={metricCardClass}>
             <p className="text-[10px] uppercase tracking-[0.16em] text-textMuted">
               {vm.phase === "rest" ? "Up next" : "Current target"}
             </p>
-            <p className="mt-1 text-base font-semibold text-textPrimary">
+            <p className="mt-1 truncate text-base font-semibold text-textPrimary">
               {currentStepLabel}
             </p>
-            <p className="mt-2 text-sm text-textSecondary">
+            <p className="mt-2 truncate text-sm text-textSecondary">
               {targetStep
                 ? `${targetStep.expectedReps} reps - ${formatWeight(targetStep.expectedWeight)}`
                 : "No active set"}
