@@ -4,6 +4,7 @@ import { workoutRunKeys } from "@/api/keys/workoutRun.keys";
 import { progressKeys } from "@/api/keys/progress.keys";
 import { workoutsKeys } from "@/api/keys/workouts.keys";
 import { cancelWorkoutRunApi } from "@/api/workoutRun.api";
+import { clearLiveActiveWorkoutRun } from "@/state/activeWorkoutRun.live";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useCancelWorkoutRun = () => {
@@ -16,6 +17,7 @@ export const useCancelWorkoutRun = () => {
         queryClient.setQueryData(workoutRunKeys.active(variables.workoutId), null);
       }
       queryClient.setQueryData(workoutRunKeys.latestActive(), null);
+      clearLiveActiveWorkoutRun(variables.runId);
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: workoutsKeys.all });

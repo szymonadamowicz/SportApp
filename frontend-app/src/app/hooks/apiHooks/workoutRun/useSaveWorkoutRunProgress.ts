@@ -3,6 +3,7 @@
 import { workoutRunKeys } from "@/api/keys/workoutRun.keys";
 import { mapWorkoutRunStartDto } from "@/api/mappers/workout/workoutRunMapper";
 import { saveWorkoutRunProgressApi } from "@/api/workoutRun.api";
+import { setLiveActiveWorkoutRun } from "@/state/activeWorkoutRun.live";
 import {
   SaveWorkoutRunProgressDto,
   WorkoutRunStart,
@@ -24,6 +25,7 @@ export const useSaveWorkoutRunProgress = () => {
     onSuccess: (run) => {
       queryClient.setQueryData(workoutRunKeys.active(run.workoutId), run);
       queryClient.setQueryData(workoutRunKeys.latestActive(), run);
+      setLiveActiveWorkoutRun(run);
     },
   });
 };

@@ -7,6 +7,7 @@ import {
   getLatestActiveWorkoutRunApi,
 } from "@/api/workoutRun.api";
 import { useAuth } from "@/hooks/auth/useAuth";
+import { useLiveActiveWorkoutRun } from "@/state/activeWorkoutRun.live";
 import { WorkoutRunStart } from "@/types/workout/workoutRun";
 import { useQuery } from "@tanstack/react-query";
 
@@ -36,6 +37,7 @@ export const useActiveWorkoutRun = (workoutId?: string) => {
 
 export const useLatestActiveWorkoutRun = () => {
   const { isAuthenticated, isReady } = useAuth();
+  const liveActiveRun = useLiveActiveWorkoutRun();
 
   const query = useQuery<WorkoutRunStart | null>({
     queryKey: workoutRunKeys.latestActive(),
@@ -50,8 +52,15 @@ export const useLatestActiveWorkoutRun = () => {
     refetchOnMount: true,
   });
 
+  const queriedActiveRun = query.data ?? null;
+  const activeRun =
+    liveActiveRun &&
+    (!queriedActiveRun || liveActiveRun.runId === queriedActiveRun.runId)
+      ? liveActiveRun
+      : queriedActiveRun;
+
   return {
-    activeRun: query.data ?? null,
+    activeRun,
     isLoading: query.isLoading,
     isError: query.isError,
     refetch: query.refetch,

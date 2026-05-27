@@ -5,6 +5,7 @@ import { mapWorkoutRunSummaryDto } from "@/api/mappers/workout/workoutRunMapper"
 import { progressKeys } from "@/api/keys/progress.keys";
 import { workoutsKeys } from "@/api/keys/workouts.keys";
 import { completeWorkoutRunApi } from "@/api/workoutRun.api";
+import { clearLiveActiveWorkoutRun } from "@/state/activeWorkoutRun.live";
 import {
   CompleteWorkoutRunDto,
   WorkoutRunSummary,
@@ -26,6 +27,7 @@ export const useCompleteWorkoutRun = () => {
     onSuccess: (summary) => {
       queryClient.setQueryData(workoutRunKeys.active(summary.workoutId), null);
       queryClient.setQueryData(workoutRunKeys.latestActive(), null);
+      clearLiveActiveWorkoutRun(summary.runId);
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: workoutsKeys.all });

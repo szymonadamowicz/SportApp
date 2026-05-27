@@ -17,6 +17,10 @@ import {
   WorkoutRunStep,
   WorkoutRunSummary,
 } from "@/types/workout/workoutRun";
+import {
+  clearLiveActiveWorkoutRun,
+  setLiveActiveWorkoutRun,
+} from "@/state/activeWorkoutRun.live";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -186,6 +190,7 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
     const restoredPaused = restoredPhase === "summary" ? true : Boolean(normalizedRun.isPaused);
 
     setSession(normalizedRun);
+    setLiveActiveWorkoutRun(normalizedRun);
     entriesRef.current = normalizedRun.entries ?? [];
     setEntries(normalizedRun.entries ?? []);
     setCurrentStepIndex(safeStepIndex);
@@ -337,6 +342,7 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
         optimisticRun,
       );
       queryClient.setQueryData(workoutRunKeys.latestActive(), optimisticRun);
+      setLiveActiveWorkoutRun(optimisticRun);
     },
     [queryClient, session],
   );
@@ -459,6 +465,7 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
       }
 
       setSession(normalizedStarted);
+      setLiveActiveWorkoutRun(normalizedStarted);
       setElapsedMs((normalizedStarted.durationSec ?? 0) * 1000);
       elapsedTickRef.current = Date.now();
 
@@ -746,6 +753,7 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
         payload: buildCompletionPayload(completionEntries),
       });
 
+      clearLiveActiveWorkoutRun(session.runId);
       setSummary(completed);
       setStatus("completed");
     } catch (error) {
