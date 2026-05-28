@@ -10,8 +10,8 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_VIDEO = SCRIPT_DIR / "assets" / "squat_fixed.mp4"
 DEFAULT_OUTPUT_DIR = SCRIPT_DIR / "assets" / "videos"
 MODEL_CANDIDATES = [
-    SCRIPT_DIR / "yolov8m-pose.pt",
     SCRIPT_DIR / "yolov8s-pose.pt",
+    SCRIPT_DIR / "yolov8m-pose.pt",
 ]
 
 IMG_SIZE = 960

@@ -8,3 +8,4 @@ videoAnalysysModule/assets/videos/
 videoAnalysysModule/assets/*.mp4
 videoAnalysysModule/assets/*.mov
 videoAnalysysModule/assets/*.webm
+videoAnalysysModule/*.pt

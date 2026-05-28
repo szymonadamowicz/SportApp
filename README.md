@@ -138,6 +138,29 @@ When the Python analyzer is missing, times out, or cannot process a clip, the
 recording remains saved and the UI shows a retry-oriented beta failure state
 instead of raw backend output.
 
+### YOLO Model Files
+
+YOLO `.pt` weights are not tracked in Git. This project intentionally uses a
+download script instead of Git LFS so the working tree and future commits stay
+small, and onboarding does not require extra Git tooling. Existing Git history
+is not rewritten by this setup.
+
+Default local model download:
+
+```powershell
+.\scripts\download-yolo-models.ps1
+```
+
+Optional larger pose model:
+
+```powershell
+.\scripts\download-yolo-models.ps1 -Models yolov8m-pose
+```
+
+The backend Docker image downloads `yolov8s-pose.pt` during build. The current
+form analyzer uses pose models only; `yolov8m.pt` is left available in the
+download script for experiments, but it is not needed for squat/bench analysis.
+
 ## Local Web PC
 
 ### Mock mode

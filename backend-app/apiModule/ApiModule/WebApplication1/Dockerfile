@@ -30,5 +30,6 @@ RUN python3 -m venv /opt/form-analysis \
 
 COPY --from=build /app/publish .
 COPY videoAnalysysModule ./videoAnalysysModule
+RUN /opt/form-analysis/bin/python videoAnalysysModule/download_models.py --models yolov8s-pose
 ENV YOLO_CONFIG_DIR=/tmp
 ENTRYPOINT ["dotnet", "ApiModule.dll"]
