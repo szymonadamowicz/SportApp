@@ -4,6 +4,7 @@
 
 \set ON_ERROR_STOP on
 
+SET client_min_messages TO WARNING;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 DO $$
@@ -78,6 +79,9 @@ BEGIN
     IF demo_user_id IS NULL THEN
         RAISE EXCEPTION 'User demo_full does not exist. Register it through /api/auth/register first.';
     END IF;
+
+    DELETE FROM "FormAnalyses"
+     WHERE "OwnerUserId" = demo_user_id;
 
     DELETE FROM "WorkoutRunEntries"
      WHERE "WorkoutRunId" IN (
@@ -366,6 +370,83 @@ BEGIN
     VALUES
         (gen_random_uuid(), active_run_id, active_exercise_a, 'Demo Bench Press', 0, 1, 8, 8, true, 56, 75, now() - interval '11 minutes'),
         (gen_random_uuid(), active_run_id, active_exercise_a, 'Demo Bench Press', 1, 2, 8, 7, false, 61, 75, now() - interval '7 minutes');
+
+    INSERT INTO "FormAnalyses" (
+        "Id",
+        "OwnerUserId",
+        "WorkoutRunId",
+        "WorkoutId",
+        "ExerciseId",
+        "ExerciseName",
+        "ExerciseType",
+        "StepIndex",
+        "SetNumber",
+        "Status",
+        "Score",
+        "Summary",
+        "FindingsJson",
+        "MetricsJson",
+        "RawResultJson",
+        "ErrorMessage",
+        "SourceFileName",
+        "AnalyzedFileName",
+        "AnalyzerVersion",
+        "ModelName",
+        "CreatedAt",
+        "UpdatedAt",
+        "CompletedAt"
+    )
+    VALUES
+        (
+            gen_random_uuid(),
+            demo_user_id,
+            active_run_id,
+            active_workout_id,
+            active_exercise_a,
+            'Demo Bench Press',
+            'bench_press',
+            0,
+            1,
+            'completed',
+            82,
+            'Demo analysis: elbow path and rep depth look acceptable for a beta check.',
+            '["Elbow angle stayed in a reasonable range.","Full repetition depth was detected on the sampled set."]',
+            '[{"label":"Exercise","value":"Bench press beta"},{"label":"Full reps","value":"3"},{"label":"Average elbow angle","value":"74 deg"}]',
+            NULL,
+            NULL,
+            'seeded-source.mp4',
+            NULL,
+            'form-analysis-v1',
+            'seeded-demo',
+            now() - interval '8 minutes',
+            now() - interval '7 minutes',
+            now() - interval '7 minutes'
+        ),
+        (
+            gen_random_uuid(),
+            demo_user_id,
+            active_run_id,
+            active_workout_id,
+            active_exercise_b,
+            'Demo Cable Row',
+            'other',
+            2,
+            1,
+            'unsupported_exercise',
+            NULL,
+            'This analyzer currently supports squat and bench press video only.',
+            '["Choose squat or bench press for the current Python analyzer.","Other exercise types can be added later behind this same upload flow."]',
+            '[{"label":"Supported now","value":"Squat, bench press"}]',
+            NULL,
+            'This analyzer currently supports squat and bench press video only.',
+            'seeded-source.webm',
+            NULL,
+            'form-analysis-v1',
+            'seeded-demo',
+            now() - interval '5 minutes',
+            now() - interval '5 minutes',
+            now() - interval '5 minutes'
+        );
 END $$;
 
 SELECT
@@ -376,11 +457,13 @@ SELECT
     count(DISTINCT w."Id") FILTER (WHERE w."CompletedAt" IS NULL AND w."ScheduledAt" >= now()) AS upcoming_workouts,
     count(DISTINCT r."Id") FILTER (WHERE r."FinishedAt" IS NULL) AS active_runs,
     count(DISTINCT e."Id") AS exercises,
-    count(DISTINCT re."Id") AS run_entries
+    count(DISTINCT re."Id") AS run_entries,
+    count(DISTINCT fa."Id") AS form_analyses
 FROM "Users" u
 LEFT JOIN "Workouts" w ON w."OwnerUserId" = u."Id"
 LEFT JOIN "Exercises" e ON e."WorkoutId" = w."Id"
 LEFT JOIN "WorkoutRuns" r ON r."WorkoutId" = w."Id"
 LEFT JOIN "WorkoutRunEntries" re ON re."WorkoutRunId" = r."Id"
+LEFT JOIN "FormAnalyses" fa ON fa."OwnerUserId" = u."Id"
 WHERE u."Login" = 'demo_full'
 GROUP BY u."Login";

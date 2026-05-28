@@ -1,202 +1,436 @@
-# SportApp
+# RepForge
 
-A simple fitness app for planning workouts, tracking progress, and viewing stats.
+RepForge is a bachelor's project for planning workouts, running training
+sessions, tracking progress, and reviewing basic exercise form analysis from
+recorded videos.
 
-## What is inside
+The project supports three user-facing targets:
 
-1. `frontend-app` - Next.js + TypeScript
-2. `backend-app` - ASP.NET Core + EF Core
-3. `docker-compose.yaml` - `real` and `mock` profiles
+1. Web PC - desktop browser.
+2. Web mobile - mobile browser on the same network.
+3. App mobile - Android app shell built with Capacitor.
 
-## Quick Start (Local)
+The frontend can run in two data modes:
 
-### 1) Database (optional, only if you want real backend mode)
+1. `mock` - local in-browser data, no backend required.
+2. `real` - ASP.NET Core API + PostgreSQL.
 
-```bash
-# Windows (PowerShell)
-./scripts/run-database-local.ps1
+## Tech Stack
 
-# Linux/macOS
-./scripts/run-database-local.sh
+Frontend:
+
+- Next.js 15
+- React 19
+- TypeScript
+- Tailwind CSS
+- TanStack Query
+- Framer Motion
+- Capacitor Android
+
+Backend:
+
+- ASP.NET Core 8
+- Entity Framework Core
+- PostgreSQL
+- JWT authentication
+- Python/OpenCV/YOLO-based exercise form analysis
+
+Infrastructure:
+
+- Docker Compose profiles for mock and real runtime
+- PowerShell helper scripts for local development, Docker, Android, release
+  verification, and API smoke checks
+
+## Repository Structure
+
+```text
+SportApp/
+  backend-app/      ASP.NET Core API and Python form analysis module
+  frontend-app/     Next.js web app and Capacitor Android project
+  scripts/          Local, Docker, Android, smoke, and release helpers
+  docker-compose.yaml
+  .env.example
+  MOBILE_APP.md
 ```
 
-### 2) Backend
+## Runtime Matrix
 
-```bash
+| Target | Local mock | Local real API | Docker mock | Docker real API |
+| --- | --- | --- | --- | --- |
+| Web PC | Yes | Yes | Yes | Yes |
+| Web mobile | Yes | Yes, with PC LAN IP | Yes | Yes, with PC LAN API URL baked at build time |
+| Android app | Yes, through local web server | Yes, through local web server + API | Not recommended for daily dev | Possible, but local web server is simpler |
+
+For phone testing, `localhost` means the phone itself. Use the computer LAN IP,
+for example `192.168.1.25`.
+
+## Prerequisites
+
+- Node.js 20+
+- npm
+- Docker Desktop
+- .NET SDK 8 if running the backend outside Docker
+- Android Studio + Android SDK for the Android app
+- Python dependencies are installed inside the backend Docker image
+
+## Environment
+
+Copy `.env.example` to `.env` only when you want to override Docker defaults:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+For local Next.js development, prefer `frontend-app/.env.local` or the helper
+scripts below.
+
+Important variables:
+
+```env
+NEXT_PUBLIC_API_MODE=mock
+NEXT_PUBLIC_API_URL=http://localhost:5064/api
+NEXT_PUBLIC_API_URL_REAL=http://localhost:5064/api
+NEXT_PUBLIC_API_URL_MOCK=http://localhost:5064/api
+CORS_ALLOWED_ORIGINS=http://localhost:3000
+FORM_ANALYSIS_TIMEOUT_SECONDS=300
+FORM_ANALYSIS_MAX_VIDEO_MEGABYTES=250
+Jwt__Key=dev-only-change-me-to-at-least-32-characters
+```
+
+For a physical phone, replace `localhost` with the computer LAN IP:
+
+```env
+NEXT_PUBLIC_API_URL=http://192.168.1.25:5064/api
+NEXT_PUBLIC_API_URL_REAL=http://192.168.1.25:5064/api
+CORS_ALLOWED_ORIGINS=http://localhost:3000;http://192.168.1.25:3000
+```
+
+## Local Web PC
+
+### Mock mode
+
+```powershell
+.\scripts\run-frontend-local.ps1 -Mode mock
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+### Real API mode
+
+Option A: run Postgres and backend in Docker:
+
+```powershell
+docker compose --profile real up -d postgres backend
+```
+
+Run the frontend against the API:
+
+```powershell
+.\scripts\run-frontend-local.ps1 -Mode real -ApiUrl http://localhost:5064/api
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+API health:
+
+```text
+http://localhost:5064/health
+```
+
+Swagger in development:
+
+```text
+http://localhost:5064/swagger
+```
+
+Option B: run Postgres in Docker and backend locally:
+
+```powershell
+.\scripts\run-database-local.ps1
 cd backend-app/apiModule/ApiModule/WebApplication1
 dotnet run
 ```
 
-Backend will be available at `http://localhost:5064` (Swagger: `/swagger`).
+Then run the frontend:
 
-### 3) Frontend
-
-```bash
-cd frontend-app
-npm install
-npm run dev
+```powershell
+.\scripts\run-frontend-local.ps1 -Mode real -ApiUrl http://localhost:5064/api
 ```
 
-Frontend: `http://localhost:3000`
+## Local Web Mobile
 
-## Frontend Environment (Local Dev)
+Find the computer LAN IP:
 
-For `npm run dev`, use:
-
-`frontend-app/.env.local`
-
-Examples:
-
-```env
-# real mode
-NEXT_PUBLIC_API_MODE=real
-NEXT_PUBLIC_API_URL=http://localhost:5064/api
+```powershell
+ipconfig
 ```
 
-```env
-# mock mode
-NEXT_PUBLIC_API_MODE=mock
-NEXT_PUBLIC_API_URL=http://localhost:5064/api
+Use the IPv4 address from the active network adapter, for example
+`192.168.1.25`.
+
+### Mock mode
+
+```powershell
+.\scripts\run-frontend-local.ps1 -Mode mock -Mobile
 ```
 
-In `mock` mode, frontend uses local mocks and does not require backend.
+Open on the phone:
 
-## Mobile App (Capacitor)
-
-The project supports three frontends:
-
-1. Web PC: regular Next.js app on desktop.
-2. Web mobile: regular Next.js app opened in a mobile browser.
-3. Android app: Capacitor shell loading the same web app.
-
-See `MOBILE_APP.md` for emulator and physical phone commands.
-
-## Docker (Profiles)
-
-### Recommended runner scripts
-
-Use the helper scripts to avoid stale profile/mode issues:
-
-```bash
-# Windows (PowerShell)
-./scripts/run-app-docker.ps1 -Profile real
-./scripts/run-app-docker.ps1 -Profile mock
-
-# Linux/macOS
-./scripts/run-app-docker.sh --profile real
-./scripts/run-app-docker.sh --profile mock
+```text
+http://192.168.1.25:3000
 ```
 
-Optional flags:
+### Real API mode
 
-1. `-Detached` / `--detached` to run in background
-2. `-NoCache` / `--no-cache` if frontend mode still looks stale
+Start the API:
 
-### `real` profile
-
-Starts: `postgres` + `backend` + `frontend-real`
-
-```bash
-docker compose --profile real up --build
+```powershell
+docker compose --profile real up -d postgres backend
 ```
 
-### `mock` profile
+Run the frontend with a phone-reachable API URL:
 
-Starts: `frontend-mock`
-
-```bash
-docker compose --profile mock up --build
+```powershell
+.\scripts\run-frontend-local.ps1 -Mode real -Mobile -ApiUrl http://192.168.1.25:5064/api
 ```
 
-### Stop
+Open on the phone:
 
-```bash
-docker compose down
+```text
+http://192.168.1.25:3000
 ```
 
-## Important: profiles and image cache
+If the phone cannot connect, allow inbound Windows Firewall traffic for ports
+`3000` and `5064`.
 
-Frontend `NEXT_PUBLIC_API_MODE` is baked during `docker build`.
+## Android App Mobile
 
-That means:
+The Android app is a Capacitor shell that loads the running Next.js app. This
+keeps web PC, web mobile, and app mobile on the same frontend codebase.
 
-1. Switching profile without rebuilding can keep old mode.
-2. When switching `real <-> mock`, run with `--build`.
+### Emulator mock mode
 
-If mode is still wrong:
+Terminal 1:
 
-```bash
-./scripts/run-app-docker.ps1 -Profile mock -NoCache
+```powershell
+.\scripts\run-frontend-local.ps1 -Mode mock -Mobile
 ```
 
-Or on Linux/macOS:
+Terminal 2:
 
-```bash
-./scripts/run-app-docker.sh --profile mock --no-cache
+```powershell
+.\scripts\run-android-local.ps1 -ServerUrl http://10.0.2.2:3000
 ```
 
-## Tests and quality checks
+### Emulator real API mode
 
-```bash
+Terminal 1:
+
+```powershell
+docker compose --profile real up -d postgres backend
+.\scripts\run-frontend-local.ps1 -Mode real -Mobile -ApiUrl http://10.0.2.2:5064/api
+```
+
+Terminal 2:
+
+```powershell
+.\scripts\run-android-local.ps1 -ServerUrl http://10.0.2.2:3000
+```
+
+### Physical phone mock mode
+
+Terminal 1:
+
+```powershell
+.\scripts\run-frontend-local.ps1 -Mode mock -Mobile
+```
+
+Terminal 2:
+
+```powershell
+.\scripts\run-android-local.ps1 -ServerUrl http://192.168.1.25:3000
+```
+
+### Physical phone real API mode
+
+Terminal 1:
+
+```powershell
+docker compose --profile real up -d postgres backend
+.\scripts\run-frontend-local.ps1 -Mode real -Mobile -ApiUrl http://192.168.1.25:5064/api
+```
+
+Terminal 2:
+
+```powershell
+.\scripts\run-android-local.ps1 -ServerUrl http://192.168.1.25:3000
+```
+
+More Android notes are in `MOBILE_APP.md`.
+
+## Docker Web
+
+Use Docker when you want the app to run as containers.
+
+### Mock mode
+
+```powershell
+.\scripts\run-app-docker.ps1 -Profile mock
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+### Real API mode for desktop browser
+
+```powershell
+.\scripts\run-app-docker.ps1 -Profile real
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+### Real API mode for phone browser
+
+Set a phone-reachable API URL before building the Docker frontend:
+
+```powershell
+$env:NEXT_PUBLIC_API_URL_REAL="http://192.168.1.25:5064/api"
+$env:CORS_ALLOWED_ORIGINS="http://localhost:3000;http://192.168.1.25:3000"
+.\scripts\run-app-docker.ps1 -Profile real -NoCache
+```
+
+Open on the phone:
+
+```text
+http://192.168.1.25:3000
+```
+
+### Android app using Docker frontend
+
+Mock mode:
+
+```powershell
+.\scripts\run-app-docker.ps1 -Profile mock -NoCache -Detached
+.\scripts\run-android-local.ps1 -ServerUrl http://192.168.1.25:3000
+```
+
+Real API mode:
+
+```powershell
+$env:NEXT_PUBLIC_API_URL_REAL="http://192.168.1.25:5064/api"
+$env:CORS_ALLOWED_ORIGINS="http://localhost:3000;http://192.168.1.25:3000"
+.\scripts\run-app-docker.ps1 -Profile real -NoCache -Detached
+.\scripts\run-android-local.ps1 -ServerUrl http://192.168.1.25:3000
+```
+
+## Quality Checks
+
+Frontend:
+
+```powershell
 cd frontend-app
 npm run lint
 npm test -- --runInBand
 npm run build
 ```
 
-For a broader local release check on Windows:
+Backend Docker build:
 
 ```powershell
-./scripts/verify-release.ps1
+docker compose --profile real build backend
 ```
 
-Optional Docker image verification:
-
-```powershell
-./scripts/verify-release.ps1 -WithDocker
-```
-
-## API smoke check
-
-When the real backend is running, this script verifies the critical API path:
-health, register, create workout, start run, save progress, complete run, and
-read progress.
+Basic API smoke check:
 
 ```powershell
 docker compose --profile real up -d postgres backend
-./scripts/smoke-api.ps1
+.\scripts\smoke-api.ps1
 ```
 
-## Operational settings
+## Demo Dataset
 
-Backend defaults are development-friendly. For stricter environments, configure:
+Use this when you want the real API database to look full for development,
+review, or presentation.
 
-```env
-CORS_ALLOWED_ORIGINS=http://localhost:3000;http://YOUR_PC_LAN_IP:3000
-FORM_ANALYSIS_TIMEOUT_SECONDS=300
-FORM_ANALYSIS_MAX_VIDEO_MEGABYTES=250
-Jwt__Key=replace-with-a-long-secret-for-non-dev-use
+```powershell
+.\scripts\seed-demo-data.ps1
 ```
 
-`FormAnalysis__MaxVideoMegabytes` is capped at 250 MB by the API. Uploaded
-analysis videos are validated by size, MIME type, and extension before they are
-stored.
+The script:
 
-## Structure (short)
+1. Starts Postgres and backend through Docker Compose.
+2. Creates or logs into the demo user.
+3. Applies the full demo SQL dataset.
+4. Prints dataset counts for validation.
+
+Demo login:
 
 ```text
-SportApp/
-  backend-app/
-  frontend-app/
-  scripts/
-  docker-compose.yaml
+demo_full
 ```
 
-## Common issues
+Demo password:
 
-1. Frontend still calls API in `mock` mode:
-   - rebuild image (`--build`, and if needed `--no-cache`)
-2. `npm run dev` behaves differently than Docker:
-   - expected; local dev reads `.env.local`, Docker uses Compose `build.args`
-3. No backend in `mock` profile:
-   - expected; `mock` profile starts frontend only
+```text
+demo_full123
+```
+
+Seeded data includes completed workouts, missed workouts, upcoming workouts,
+an active workout run, run history, exercises, profile data, and sample form
+analysis records.
+
+The seed is idempotent for `demo_full`: running it again resets only that demo
+account's workout/profile/analysis data.
+
+Broader local release check:
+
+```powershell
+.\scripts\verify-release.ps1
+```
+
+## Common Issues
+
+1. Phone cannot reach the app:
+   - Use the computer LAN IP instead of `localhost`.
+   - Allow Windows Firewall traffic for `3000` and `5064`.
+
+2. Docker frontend calls the wrong API URL:
+   - `NEXT_PUBLIC_API_URL_REAL` is baked during Docker build.
+   - Rebuild with `-NoCache` after changing it.
+
+3. Android app opens a fallback page:
+   - `CAPACITOR_SERVER_URL` was not set during `cap sync`.
+   - Run `.\scripts\run-android-local.ps1 -ServerUrl http://YOUR_URL:3000`.
+
+4. Backend does not start locally:
+   - Use Docker backend if the .NET SDK is not installed.
+
+5. Form analysis fails:
+   - The upload is still saved.
+   - Check Python dependencies, model files, and backend logs.
+
+## Hosting Direction
+
+Hosting is not implemented in this step. The recommended later direction is:
+
+1. Backend API + PostgreSQL + persistent file storage on one provider.
+2. Frontend web on a hosted URL.
+3. Android `CAPACITOR_SERVER_URL` pointed at the hosted frontend.
+
+This keeps desktop web, mobile web, and Android app using the same frontend and
+API contracts.
