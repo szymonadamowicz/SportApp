@@ -94,6 +94,8 @@ NEXT_PUBLIC_API_URL_MOCK=http://localhost:5064/api
 CORS_ALLOWED_ORIGINS=http://localhost:3000
 FORM_ANALYSIS_TIMEOUT_SECONDS=300
 FORM_ANALYSIS_MAX_VIDEO_MEGABYTES=250
+FORM_ANALYSIS_MAX_ANALYSES_PER_USER=50
+FORM_ANALYSIS_RETENTION_DAYS=30
 Jwt__Key=dev-only-change-me-to-at-least-32-characters
 ```
 
@@ -104,6 +106,24 @@ NEXT_PUBLIC_API_URL=http://192.168.1.25:5064/api
 NEXT_PUBLIC_API_URL_REAL=http://192.168.1.25:5064/api
 CORS_ALLOWED_ORIGINS=http://localhost:3000;http://192.168.1.25:3000
 ```
+
+## Video Analysis Beta
+
+Exercise form analysis is a controlled beta feature. It is intended for short,
+single-set clips and currently supports only:
+
+- Squat
+- Bench press
+
+The backend stores uploaded source videos and analyzed previews under
+`App_Data/form-analysis` or the Docker `form_analysis_data` volume. To keep the
+feature predictable, uploads are capped by `FORM_ANALYSIS_MAX_VIDEO_MEGABYTES`,
+and old analysis records/files are cleaned up automatically by
+`FORM_ANALYSIS_MAX_ANALYSES_PER_USER` and `FORM_ANALYSIS_RETENTION_DAYS`.
+
+When the Python analyzer is missing, times out, or cannot process a clip, the
+recording remains saved and the UI shows a retry-oriented beta failure state
+instead of raw backend output.
 
 ## Local Web PC
 
@@ -468,7 +488,8 @@ Broader local release check:
 
 5. Form analysis fails:
    - The upload is still saved.
-   - Check Python dependencies, model files, and backend logs.
+   - Keep the clip short, well lit, and within the supported squat/bench press beta.
+   - Check Python dependencies, model files, and backend logs if failures repeat.
 
 ## Hosting Direction
 

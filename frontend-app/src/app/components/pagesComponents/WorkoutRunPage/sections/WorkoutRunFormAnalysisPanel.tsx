@@ -13,6 +13,8 @@ import {
 import { WorkoutRunStep } from "@/types/workout/workoutRun";
 import clsx from "clsx";
 import {
+  AlertTriangle,
+  BadgeInfo,
   Camera,
   History,
   PlayCircle,
@@ -47,7 +49,79 @@ const exerciseAnalyzerLabels: Record<string, string> = {
   squat: "Squat beta",
   bench_press: "Bench press beta",
 };
-const maxUploadBytes = 250 * 1024 * 1024;
+const supportedExerciseTypes = new Set(["squat", "bench_press"]);
+const uploadLimitMegabytes = 250;
+const maxUploadBytes = uploadLimitMegabytes * 1024 * 1024;
+
+const isFailedAnalysisStatus = (status?: string) =>
+  status === "script_failed" || status === "script_not_configured";
+
+const isUnsupportedAnalysisStatus = (status?: string) =>
+  status === "unsupported_exercise";
+
+const getAnalysisStatusMeta = (status?: string) => {
+  if (isFailedAnalysisStatus(status)) {
+    return {
+      label: "Analysis failed",
+      className: "border-danger/30 bg-danger/10 text-danger",
+      panelClassName: "border-danger/30 bg-danger/10 text-danger",
+    };
+  }
+
+  if (isUnsupportedAnalysisStatus(status)) {
+    return {
+      label: "Unsupported",
+      className: "border-warning/30 bg-warning/10 text-warning",
+      panelClassName: "border-warning/30 bg-warning/10 text-warning",
+    };
+  }
+
+  if (status === "completed") {
+    return {
+      label: "Completed",
+      className: "border-accent/30 bg-accent/10 text-accent",
+      panelClassName: "border-accent/30 bg-accent/10 text-accent",
+    };
+  }
+
+  return {
+    label: status ? status.replaceAll("_", " ") : "Beta result",
+    className: "border-accentBlue/30 bg-accentBlue/10 text-accentBlue",
+    panelClassName: "border-accentBlue/30 bg-accentBlue/10 text-accentBlue",
+  };
+};
+
+const getResultScoreLabel = (result: ExerciseFormAnalysisResult | null) => {
+  if (!result) return "-";
+  if (isUnsupportedAnalysisStatus(result.status)) return "Unsupported";
+  if (isFailedAnalysisStatus(result.status)) return "Needs retry";
+  return result.score == null ? "No score" : `${result.score}/100`;
+};
+
+const getDisplaySummary = (result: ExerciseFormAnalysisResult | null) => {
+  if (!result) {
+    return "Record a short set, choose the analyzer, then upload it for a first-pass form check.";
+  }
+
+  if (isFailedAnalysisStatus(result.status)) {
+    return "Analysis could not be completed. The recording was saved so you can retry later.";
+  }
+
+  return result.summary;
+};
+
+const getDisplayFindings = (result: ExerciseFormAnalysisResult | null) => {
+  if (!result) return [];
+
+  if (isFailedAnalysisStatus(result.status)) {
+    return [
+      "Try a shorter, well-lit clip with the full set in frame.",
+      "Retry after the analyzer service is checked if the issue repeats.",
+    ];
+  }
+
+  return result.findings;
+};
 
 const formatHistoryTime = (value?: string) => {
   if (!value) return "Just now";
@@ -93,11 +167,12 @@ export function WorkoutRunFormAnalysisPanel({
   );
   const [error, setError] = useState<string | null>(null);
 
-  const canAnalyze = Boolean(recordedBlob) && status !== "analyzing";
-  const scoreLabel = useMemo(() => {
-    if (!result) return "-";
-    return result.score == null ? "No score" : `${result.score}/100`;
-  }, [result]);
+  const isSupportedAnalyzer = supportedExerciseTypes.has(exerciseType);
+  const canAnalyze =
+    Boolean(recordedBlob) && status !== "analyzing" && isSupportedAnalyzer;
+  const scoreLabel = useMemo(() => getResultScoreLabel(result), [result]);
+  const resultStatusMeta = result ? getAnalysisStatusMeta(result.status) : null;
+  const displayFindings = useMemo(() => getDisplayFindings(result), [result]);
   const analysisContext = useMemo<ExerciseFormAnalysisUploadContext>(
     () => ({
       workoutRunId,
@@ -255,8 +330,15 @@ export function WorkoutRunFormAnalysisPanel({
       setError(null);
       setResult(null);
 
+      if (!isSupportedAnalyzer) {
+        setError("This beta currently supports squat and bench press analysis only.");
+        return;
+      }
+
       if (recordedBlob.size > maxUploadBytes) {
-        setError("Recording is too large. Keep analysis videos under 250 MB.");
+        setError(
+          `Recording is too large. Keep analysis videos under ${uploadLimitMegabytes} MB.`,
+        );
         return;
       }
 
@@ -331,8 +413,27 @@ export function WorkoutRunFormAnalysisPanel({
           </p>
         </div>
 
-        <div className="rounded-full border border-warning/30 bg-warning/10 px-3 py-1 text-xs font-medium text-warning">
-          {exerciseAnalyzerLabels[exerciseType] ?? "Beta"}
+        <div
+          className={clsx(
+            "rounded-full border px-3 py-1 text-xs font-medium",
+            isSupportedAnalyzer
+              ? "border-warning/30 bg-warning/10 text-warning"
+              : "border-danger/30 bg-danger/10 text-danger",
+          )}
+        >
+          {exerciseAnalyzerLabels[exerciseType] ?? "Unsupported beta"}
+        </div>
+      </div>
+
+      <div className="mt-4 flex gap-3 rounded-2xl border border-accentBlue/25 bg-accentBlue/10 p-3 text-sm text-textSecondary">
+        <BadgeInfo className="mt-0.5 h-4 w-4 shrink-0 text-accentBlue" />
+        <div>
+          <p className="font-semibold text-textPrimary">Controlled beta</p>
+          <p className="mt-1">
+            Squat and bench press only. Short single-set clips work best. Upload
+            limit is {uploadLimitMegabytes} MB, and old analysis files are
+            cleaned up automatically.
+          </p>
         </div>
       </div>
 
@@ -347,11 +448,18 @@ export function WorkoutRunFormAnalysisPanel({
               onChange={(event) => setExerciseType(event.target.value)}
               className="rf-input-surface mt-2 min-h-11 w-full rounded-xl px-3 py-2 text-sm"
             >
-              <option value="squat">Squat</option>
-              <option value="bench_press">Bench press (elbow/full rep)</option>
+              <option value="squat">Squat beta</option>
+              <option value="bench_press">Bench press beta</option>
               <option value="other">Other exercise (not supported yet)</option>
             </select>
           </label>
+
+          {!isSupportedAnalyzer && (
+            <div className="rounded-xl border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-warning">
+              Other exercises can be recorded, but this beta will not score them
+              yet. Choose squat or bench press to run analysis.
+            </div>
+          )}
 
           <div className="overflow-hidden rounded-2xl border border-borderSoft bg-bgHighlight/30">
             {isRecording ? (
@@ -410,7 +518,11 @@ export function WorkoutRunFormAnalysisPanel({
               )}
             >
               <UploadCloud size={16} />
-              {status === "analyzing" ? "Analyzing..." : "Analyze"}
+              {!isSupportedAnalyzer
+                ? "Not supported"
+                : status === "analyzing"
+                  ? "Analyzing..."
+                  : "Analyze"}
             </button>
 
             <button
@@ -436,18 +548,46 @@ export function WorkoutRunFormAnalysisPanel({
               </p>
             </div>
 
-            {result && (
-              <span className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs text-accent">
-                {result.status.replaceAll("_", " ")}
+            {resultStatusMeta && (
+              <span
+                className={clsx(
+                  "rounded-full border px-3 py-1 text-xs",
+                  resultStatusMeta.className,
+                )}
+              >
+                {resultStatusMeta.label}
               </span>
             )}
           </div>
 
           <p className="mt-3 text-sm text-textSecondary">
-            {result
-              ? result.summary
-              : "Record a short set, choose the analyzer, then upload it for a first-pass form check."}
+            {getDisplaySummary(result)}
           </p>
+
+          {result &&
+            (isFailedAnalysisStatus(result.status) ||
+              isUnsupportedAnalysisStatus(result.status)) && (
+              <div
+                className={clsx(
+                  "mt-4 flex gap-3 rounded-xl border p-3 text-sm",
+                  resultStatusMeta?.panelClassName,
+                )}
+              >
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <div>
+                  <p className="font-semibold">
+                    {isUnsupportedAnalysisStatus(result.status)
+                      ? "Analyzer not available for this exercise"
+                      : "Analyzer could not finish this clip"}
+                  </p>
+                  <p className="mt-1 opacity-90">
+                    {isUnsupportedAnalysisStatus(result.status)
+                      ? "This beta only scores squat and bench press recordings."
+                      : "The recording was saved. Try a shorter, well-lit clip or retry after the analyzer service is checked."}
+                  </p>
+                </div>
+              </div>
+            )}
 
           {result?.metrics.length ? (
             <div className="mt-4 grid grid-cols-2 gap-2">
@@ -467,9 +607,9 @@ export function WorkoutRunFormAnalysisPanel({
             </div>
           ) : null}
 
-          {result?.findings.length ? (
+          {displayFindings.length ? (
             <div className="mt-4 space-y-2">
-              {result.findings.map((finding) => (
+              {displayFindings.map((finding) => (
                 <div
                   key={finding}
                   className="rounded-xl border border-borderSoft bg-bgCard/40 px-3 py-2 text-sm text-textSecondary"
@@ -493,35 +633,51 @@ export function WorkoutRunFormAnalysisPanel({
 
             {history.length ? (
               <div className="mt-3 space-y-2">
-                {history.slice(0, 5).map((analysis) => (
-                  <button
-                    key={analysis.analysisId}
-                    type="button"
-                    onClick={() => void loadAnalysisPreview(analysis)}
-                    className={clsx(
-                      "flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left transition hover:border-accent/45 hover:bg-accent/10",
-                      result?.analysisId === analysis.analysisId
-                        ? "border-accent/45 bg-accent/10"
-                        : "border-borderSoft bg-bgCard/35",
-                    )}
-                  >
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold text-textPrimary">
-                        {analysis.exerciseName ??
-                          exerciseAnalyzerLabels[analysis.exerciseType] ??
-                          "Exercise"}
+                {history.slice(0, 5).map((analysis) => {
+                  const statusMeta = getAnalysisStatusMeta(analysis.status);
+
+                  return (
+                    <button
+                      key={analysis.analysisId}
+                      type="button"
+                      onClick={() => void loadAnalysisPreview(analysis)}
+                      className={clsx(
+                        "flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left transition hover:border-accent/45 hover:bg-accent/10",
+                        result?.analysisId === analysis.analysisId
+                          ? "border-accent/45 bg-accent/10"
+                          : "border-borderSoft bg-bgCard/35",
+                      )}
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-semibold text-textPrimary">
+                          {analysis.exerciseName ??
+                            exerciseAnalyzerLabels[analysis.exerciseType] ??
+                            "Exercise"}
+                        </span>
+                        <span className="mt-0.5 block text-xs text-textMuted">
+                          {formatHistoryTime(analysis.createdAt)}
+                          {analysis.setNumber ? ` - set ${analysis.setNumber}` : ""}
+                        </span>
                       </span>
-                      <span className="mt-0.5 block text-xs text-textMuted">
-                        {formatHistoryTime(analysis.createdAt)}
-                        {analysis.setNumber ? ` - set ${analysis.setNumber}` : ""}
+                      <span className="inline-flex shrink-0 flex-col items-end gap-1 text-xs text-textSecondary">
+                        <span
+                          className={clsx(
+                            "rounded-full border px-2 py-0.5",
+                            statusMeta.className,
+                          )}
+                        >
+                          {statusMeta.label}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          {analysis.score == null
+                            ? "No score"
+                            : `${analysis.score}/100`}
+                          <PlayCircle size={14} />
+                        </span>
                       </span>
-                    </span>
-                    <span className="inline-flex shrink-0 items-center gap-2 text-xs text-textSecondary">
-                      {analysis.score == null ? "No score" : `${analysis.score}/100`}
-                      <PlayCircle size={14} />
-                    </span>
-                  </button>
-                ))}
+                    </button>
+                  );
+                })}
               </div>
             ) : (
               <p className="mt-3 text-sm text-textMuted">
@@ -530,7 +686,18 @@ export function WorkoutRunFormAnalysisPanel({
             )}
           </div>
 
-          {error && <p className="mt-4 text-sm text-danger">{error}</p>}
+          {error && (
+            <div
+              role="alert"
+              className="mt-4 flex gap-3 rounded-xl border border-danger/30 bg-danger/10 p-3 text-sm text-danger"
+            >
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+              <div>
+                <p className="font-semibold">Analysis failed</p>
+                <p className="mt-1 opacity-90">{error}</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>

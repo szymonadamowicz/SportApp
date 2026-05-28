@@ -17,6 +17,8 @@ public sealed class FormAnalysisService(
 {
     private const long MaxVideoBytes = 250L * 1024L * 1024L;
     private const int DefaultMaxVideoMegabytes = 250;
+    private const int DefaultMaxAnalysesPerUser = 50;
+    private const int DefaultRetentionDays = 30;
     private const string AnalyzerVersion = "form-analysis-v1";
     private static readonly HashSet<string> SupportedExerciseTypes =
         new(StringComparer.OrdinalIgnoreCase) { "squat", "bench_press" };
@@ -99,6 +101,7 @@ public sealed class FormAnalysisService(
 
             ApplyResult(analysis, result, analyzedFileName, rawResultJson);
             await _db.SaveChangesAsync(ct);
+            await RunRetentionCleanupAsync(ownerId);
 
             return ToDto(analysis);
         }
@@ -106,17 +109,15 @@ public sealed class FormAnalysisService(
         {
             throw;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             ApplyResult(
                 analysis,
-                CreateScriptFailedResult(
-                    analysisId,
-                    normalizedExercise,
-                    $"Could not complete form analysis: {TrimForUi(ex.Message)}"),
+                CreateScriptFailedResult(analysisId, normalizedExercise),
                 analyzedFileName: null,
                 rawResultJson: null);
             await _db.SaveChangesAsync(CancellationToken.None);
+            await RunRetentionCleanupAsync(ownerId);
 
             return ToDto(analysis);
         }
@@ -243,10 +244,11 @@ public sealed class FormAnalysisService(
                 AnalysisId = analysisId,
                 ExerciseType = exerciseType,
                 Status = "script_not_configured",
-                Summary = "Form analysis is wired up, but the Python script is not available to the API process.",
+                Summary = "Form analysis is temporarily unavailable because the beta analyzer is not configured.",
                 Findings =
                 [
-                    "Set FormAnalysis:ScriptPath or run the API from a workspace that can access backend-app/videoAnalysysModule/video.py.",
+                    "The uploaded video was saved.",
+                    "Try again after the analyzer service is configured.",
                     "Supported analyzers now: squat and bench press."
                 ],
                 Metrics =
@@ -303,29 +305,23 @@ public sealed class FormAnalysisService(
             var completed = await Task.Run(
                 () => process.WaitForExit(timeoutSeconds * 1000),
                 ct);
-            var stdout = await stdoutTask;
-            var stderr = await stderrTask;
+            await stdoutTask;
+            await stderrTask;
 
             if (!completed)
             {
                 TryKill(process);
-                return CreateScriptFailedResult(analysisId, exerciseType, "Python analysis timed out.");
+                return CreateScriptFailedResult(analysisId, exerciseType);
             }
 
             if (process.ExitCode != 0)
             {
-                return CreateScriptFailedResult(
-                    analysisId,
-                    exerciseType,
-                    $"Python analysis failed: {TrimForUi(stderr.Length > 0 ? stderr : stdout)}");
+                return CreateScriptFailedResult(analysisId, exerciseType);
             }
 
             if (!File.Exists(resultJsonPath))
             {
-                return CreateScriptFailedResult(
-                    analysisId,
-                    exerciseType,
-                    "Python analysis completed but did not write analysis_result.json.");
+                return CreateScriptFailedResult(analysisId, exerciseType);
             }
 
             return await ParsePythonResultAsync(
@@ -339,12 +335,9 @@ public sealed class FormAnalysisService(
         {
             throw;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return CreateScriptFailedResult(
-                analysisId,
-                exerciseType,
-                $"Could not run Python analysis: {TrimForUi(ex.Message)}");
+            return CreateScriptFailedResult(analysisId, exerciseType);
         }
     }
 
@@ -484,20 +477,23 @@ public sealed class FormAnalysisService(
 
     private static FormAnalysisResultDto CreateScriptFailedResult(
         Guid analysisId,
-        string exerciseType,
-        string message) =>
+        string exerciseType) =>
         new()
         {
             AnalysisId = analysisId,
             ExerciseType = exerciseType,
             Status = "script_failed",
-            Summary = message,
+            Summary = "Analysis could not be completed. The recording was saved so you can retry later.",
             Findings =
             [
-                "The uploaded video was saved successfully.",
-                "Check Python dependencies and model paths before retrying analysis."
+                "Try a shorter, well-lit clip with the full set in frame.",
+                "If this keeps happening, check the analyzer service before retrying."
             ],
-            Metrics = [new() { Label = "Engine", Value = "Python script" }],
+            Metrics =
+            [
+                new() { Label = "Engine", Value = "Python beta" },
+                new() { Label = "Status", Value = "Needs retry" }
+            ],
         };
 
     private string? ResolveScriptPath()
@@ -550,6 +546,75 @@ public sealed class FormAnalysisService(
         return MaxVideoBytes;
     }
 
+    private int ResolveMaxAnalysesPerUser()
+    {
+        var configured = _configuration["FormAnalysis:MaxAnalysesPerUser"];
+        if (int.TryParse(configured, out var count))
+        {
+            return Math.Clamp(count, 5, 200);
+        }
+
+        return DefaultMaxAnalysesPerUser;
+    }
+
+    private int ResolveRetentionDays()
+    {
+        var configured = _configuration["FormAnalysis:RetentionDays"];
+        if (int.TryParse(configured, out var days))
+        {
+            return Math.Clamp(days, 1, 365);
+        }
+
+        return DefaultRetentionDays;
+    }
+
+    private async Task RunRetentionCleanupAsync(Guid ownerId)
+    {
+        try
+        {
+            await CleanupOldAnalysesAsync(ownerId);
+        }
+        catch
+        {
+        }
+    }
+
+    private async Task CleanupOldAnalysesAsync(Guid ownerId)
+    {
+        var maxAnalyses = ResolveMaxAnalysesPerUser();
+        var retentionCutoff = DateTime.UtcNow.AddDays(-ResolveRetentionDays());
+        var existingAnalyses = await _db.FormAnalyses
+            .Where(analysis => analysis.OwnerUserId == ownerId)
+            .OrderByDescending(analysis => analysis.CreatedAt)
+            .Select(analysis => new { analysis.Id, analysis.CreatedAt })
+            .ToListAsync(CancellationToken.None);
+
+        var staleIds = existingAnalyses
+            .Skip(maxAnalyses)
+            .Select(analysis => analysis.Id)
+            .Concat(
+                existingAnalyses
+                    .Where(analysis => analysis.CreatedAt < retentionCutoff)
+                    .Select(analysis => analysis.Id))
+            .Distinct()
+            .ToList();
+
+        if (staleIds.Count == 0) return;
+
+        var staleAnalyses = await _db.FormAnalyses
+            .Where(analysis => analysis.OwnerUserId == ownerId && staleIds.Contains(analysis.Id))
+            .ToListAsync(CancellationToken.None);
+        if (staleAnalyses.Count == 0) return;
+
+        _db.FormAnalyses.RemoveRange(staleAnalyses);
+        await _db.SaveChangesAsync(CancellationToken.None);
+
+        foreach (var analysis in staleAnalyses)
+        {
+            DeleteAnalysisDirectory(ownerId, analysis.Id);
+        }
+    }
+
     private string? ResolveModelName()
     {
         var modelPath = _configuration["FormAnalysis:ModelPath"];
@@ -565,6 +630,21 @@ public sealed class FormAnalysisService(
             "form-analysis",
             ownerId.ToString("N"),
             analysisId.ToString("N"));
+
+    private static void DeleteAnalysisDirectory(Guid ownerId, Guid analysisId)
+    {
+        var path = GetAnalysisDirectory(ownerId, analysisId);
+        try
+        {
+            if (Directory.Exists(path))
+            {
+                Directory.Delete(path, recursive: true);
+            }
+        }
+        catch
+        {
+        }
+    }
 
     private static async Task<string?> ReadRawResultJsonAsync(
         string analysisDir,
@@ -687,7 +767,8 @@ public sealed class FormAnalysisService(
 
     private static bool IsFailureStatus(string status) =>
         status.Equals("script_failed", StringComparison.OrdinalIgnoreCase) ||
-        status.Equals("script_not_configured", StringComparison.OrdinalIgnoreCase);
+        status.Equals("script_not_configured", StringComparison.OrdinalIgnoreCase) ||
+        status.Equals("unsupported_exercise", StringComparison.OrdinalIgnoreCase);
 
     private static string? TrimOrNull(string? value, int maxLength)
     {
@@ -701,9 +782,4 @@ public sealed class FormAnalysisService(
         return normalized.Length <= maxLength ? normalized : normalized[..maxLength];
     }
 
-    private static string TrimForUi(string value)
-    {
-        var normalized = value.Trim();
-        return normalized.Length <= 220 ? normalized : normalized[..220];
-    }
 }
