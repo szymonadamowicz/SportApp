@@ -41,6 +41,8 @@ services:
       Jwt__Key: ${Jwt__Key:-dev-only-change-me-to-at-least-32-characters}
       Jwt__ExpiresMinutes: ${Jwt__ExpiresMinutes:-120}
       FormAnalysis__TimeoutSeconds: ${FORM_ANALYSIS_TIMEOUT_SECONDS:-300}
+      FormAnalysis__MaxVideoMegabytes: ${FORM_ANALYSIS_MAX_VIDEO_MEGABYTES:-250}
+      Cors__AllowedOrigins: ${CORS_ALLOWED_ORIGINS:-}
     volumes:
       - form_analysis_data:/app/App_Data/form-analysis
     ports:

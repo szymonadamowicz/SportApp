@@ -144,6 +144,44 @@ npm test -- --runInBand
 npm run build
 ```
 
+For a broader local release check on Windows:
+
+```powershell
+./scripts/verify-release.ps1
+```
+
+Optional Docker image verification:
+
+```powershell
+./scripts/verify-release.ps1 -WithDocker
+```
+
+## API smoke check
+
+When the real backend is running, this script verifies the critical API path:
+health, register, create workout, start run, save progress, complete run, and
+read progress.
+
+```powershell
+docker compose --profile real up -d postgres backend
+./scripts/smoke-api.ps1
+```
+
+## Operational settings
+
+Backend defaults are development-friendly. For stricter environments, configure:
+
+```env
+CORS_ALLOWED_ORIGINS=http://localhost:3000;http://YOUR_PC_LAN_IP:3000
+FORM_ANALYSIS_TIMEOUT_SECONDS=300
+FORM_ANALYSIS_MAX_VIDEO_MEGABYTES=250
+Jwt__Key=replace-with-a-long-secret-for-non-dev-use
+```
+
+`FormAnalysis__MaxVideoMegabytes` is capped at 250 MB by the API. Uploaded
+analysis videos are validated by size, MIME type, and extension before they are
+stored.
+
 ## Structure (short)
 
 ```text

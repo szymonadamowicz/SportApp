@@ -3,6 +3,7 @@ using System.Text.Json;
 using ApiModule.Api.Contracts.FormAnalysis;
 using ApiModule.Domain;
 using ApiModule.Infrastructure;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 using FormAnalysisRecord = ApiModule.Domain.FormAnalysis;
@@ -15,11 +16,20 @@ public sealed class FormAnalysisService(
     AppDbContext db)
 {
     private const long MaxVideoBytes = 250L * 1024L * 1024L;
+    private const int DefaultMaxVideoMegabytes = 250;
     private const string AnalyzerVersion = "form-analysis-v1";
     private static readonly HashSet<string> SupportedExerciseTypes =
         new(StringComparer.OrdinalIgnoreCase) { "squat", "bench_press" };
     private static readonly HashSet<string> SupportedExtensions =
         new(StringComparer.OrdinalIgnoreCase) { ".webm", ".mp4", ".mov", ".m4v" };
+    private static readonly HashSet<string> SupportedContentTypes =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            "video/webm",
+            "video/mp4",
+            "video/quicktime",
+            "video/x-m4v"
+        };
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     private readonly IConfiguration _configuration = configuration;
@@ -30,15 +40,7 @@ public sealed class FormAnalysisService(
         FormAnalysisUploadRequest request,
         CancellationToken ct)
     {
-        if (request.Video is null || request.Video.Length == 0)
-        {
-            throw new InvalidOperationException("Video file is required.");
-        }
-
-        if (request.Video.Length > MaxVideoBytes)
-        {
-            throw new InvalidOperationException("Video file is too large.");
-        }
+        var video = ValidateVideoUpload(request.Video, ResolveMaxVideoBytes());
 
         var ownerId = _currentUser.UserId;
         var normalizedExercise = TrimToMax(NormalizeExerciseType(request.ExerciseType), 80);
@@ -46,8 +48,8 @@ public sealed class FormAnalysisService(
         var analysisId = Guid.NewGuid();
         var now = DateTime.UtcNow;
         var extension = NormalizeExtension(
-            Path.GetExtension(request.Video.FileName),
-            request.Video.ContentType);
+            Path.GetExtension(video.FileName),
+            video.ContentType);
         var sourceFileName = $"source{extension}";
 
         var analysis = new FormAnalysisRecord
@@ -83,7 +85,7 @@ public sealed class FormAnalysisService(
         {
             await using (var stream = File.Create(sourcePath))
             {
-                await request.Video.CopyToAsync(stream, ct);
+                await video.CopyToAsync(stream, ct);
             }
 
             var result = SupportedExerciseTypes.Contains(normalizedExercise)
@@ -537,6 +539,17 @@ public sealed class FormAnalysisService(
         return 300;
     }
 
+    private long ResolveMaxVideoBytes()
+    {
+        var configured = _configuration["FormAnalysis:MaxVideoMegabytes"];
+        if (int.TryParse(configured, out var megabytes))
+        {
+            return Math.Clamp(megabytes, 1, DefaultMaxVideoMegabytes) * 1024L * 1024L;
+        }
+
+        return MaxVideoBytes;
+    }
+
     private string? ResolveModelName()
     {
         var modelPath = _configuration["FormAnalysis:ModelPath"];
@@ -591,20 +604,71 @@ public sealed class FormAnalysisService(
             return extension.ToLowerInvariant();
         }
 
-        return contentType.Contains("mp4", StringComparison.OrdinalIgnoreCase)
-            ? ".mp4"
-            : ".webm";
+        var normalizedContentType = NormalizeContentType(contentType);
+        return normalizedContentType switch
+        {
+            "video/mp4" => ".mp4",
+            "video/quicktime" => ".mov",
+            "video/x-m4v" => ".m4v",
+            _ => ".webm",
+        };
     }
 
     private static string GetContentType(string path)
     {
         var extension = Path.GetExtension(path);
-        return extension.Equals(".mp4", StringComparison.OrdinalIgnoreCase) ||
-               extension.Equals(".m4v", StringComparison.OrdinalIgnoreCase) ||
-               extension.Equals(".mov", StringComparison.OrdinalIgnoreCase)
-            ? "video/mp4"
+        if (extension.Equals(".mp4", StringComparison.OrdinalIgnoreCase))
+        {
+            return "video/mp4";
+        }
+
+        if (extension.Equals(".m4v", StringComparison.OrdinalIgnoreCase))
+        {
+            return "video/x-m4v";
+        }
+
+        return extension.Equals(".mov", StringComparison.OrdinalIgnoreCase)
+            ? "video/quicktime"
             : "video/webm";
     }
+
+    private static IFormFile ValidateVideoUpload(IFormFile? video, long maxVideoBytes)
+    {
+        if (video is null || video.Length == 0)
+        {
+            throw new InvalidOperationException("Video file is required.");
+        }
+
+        if (video.Length > maxVideoBytes)
+        {
+            var maxMegabytes = Math.Max(1, maxVideoBytes / 1024L / 1024L);
+            throw new InvalidOperationException($"Video file is too large. Max size is {maxMegabytes} MB.");
+        }
+
+        var extension = Path.GetExtension(video.FileName);
+        var contentType = NormalizeContentType(video.ContentType);
+        var hasSupportedExtension = !string.IsNullOrWhiteSpace(extension) &&
+                                    SupportedExtensions.Contains(extension);
+        var hasSupportedContentType = SupportedContentTypes.Contains(contentType);
+
+        if (hasSupportedContentType || hasSupportedExtension && IsOctetStream(contentType))
+        {
+            return video;
+        }
+
+        throw new InvalidOperationException("Unsupported video type. Upload WebM, MP4, MOV, or M4V.");
+    }
+
+    private static string NormalizeContentType(string? contentType)
+    {
+        if (string.IsNullOrWhiteSpace(contentType)) return string.Empty;
+
+        return contentType.Split(';', 2)[0].Trim().ToLowerInvariant();
+    }
+
+    private static bool IsOctetStream(string contentType) =>
+        string.IsNullOrWhiteSpace(contentType) ||
+        contentType.Equals("application/octet-stream", StringComparison.OrdinalIgnoreCase);
 
     private static void TryKill(Process process)
     {

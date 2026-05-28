@@ -172,7 +172,6 @@ public sealed class WorkoutRunService(
             .OrderBy(entry => entry.StepIndex)
             .Select(entry => new WorkoutRunEntry
             {
-                Id = Guid.NewGuid(),
                 WorkoutRunId = runId,
                 ExerciseId = entry.ExerciseId,
                 ExerciseName = entry.ExerciseName,
@@ -223,7 +222,6 @@ public sealed class WorkoutRunService(
 
             run.Entries.Add(new WorkoutRunEntry
             {
-                Id = Guid.NewGuid(),
                 WorkoutRunId = run.Id,
                 ExerciseId = entry.ExerciseId,
                 ExerciseName = entry.ExerciseName,

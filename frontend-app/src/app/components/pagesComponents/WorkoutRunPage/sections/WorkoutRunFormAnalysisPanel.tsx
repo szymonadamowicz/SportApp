@@ -46,6 +46,7 @@ const exerciseAnalyzerLabels: Record<string, string> = {
   squat: "Squat beta",
   bench_press: "Bench press beta",
 };
+const maxUploadBytes = 250 * 1024 * 1024;
 
 const formatHistoryTime = (value?: string) => {
   if (!value) return "Just now";
@@ -251,6 +252,11 @@ export function WorkoutRunFormAnalysisPanel({
       setStatus("analyzing");
       setError(null);
       setResult(null);
+
+      if (recordedBlob.size > maxUploadBytes) {
+        setError("Recording is too large. Keep analysis videos under 250 MB.");
+        return;
+      }
 
       const analysis = await analyzeExerciseFormApi(
         recordedBlob,

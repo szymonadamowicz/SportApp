@@ -48,6 +48,7 @@ public sealed class EfWorkoutRunRepository : IWorkoutRunRepository
 
     public async Task UpdateAsync(WorkoutRun run, CancellationToken ct)
     {
+        await MarkMissingRunEntriesAsAddedAsync(ct);
         await _db.SaveChangesAsync(ct);
     }
 
@@ -76,5 +77,25 @@ public sealed class EfWorkoutRunRepository : IWorkoutRunRepository
         }
 
         await _db.SaveChangesAsync(ct);
+    }
+
+    private async Task MarkMissingRunEntriesAsAddedAsync(CancellationToken ct)
+    {
+        var modifiedEntries = _db.ChangeTracker
+            .Entries<WorkoutRunEntry>()
+            .Where(entry => entry.State == EntityState.Modified)
+            .ToList();
+
+        foreach (var entry in modifiedEntries)
+        {
+            var exists = await _db.WorkoutRunEntries
+                .AsNoTracking()
+                .AnyAsync(item => item.Id == entry.Entity.Id, ct);
+
+            if (!exists)
+            {
+                entry.State = EntityState.Added;
+            }
+        }
     }
 }
