@@ -216,6 +216,12 @@ If the phone cannot connect, allow inbound Windows Firewall traffic for ports
 The Android app is a Capacitor shell that loads the running Next.js app. This
 keeps web PC, web mobile, and app mobile on the same frontend codebase.
 
+Check Android prerequisites first:
+
+```powershell
+.\scripts\android-doctor.ps1
+```
+
 ### Emulator mock mode
 
 Terminal 1:
@@ -275,6 +281,46 @@ Terminal 2:
 ```
 
 More Android notes are in `MOBILE_APP.md`.
+
+### Build debug APK
+
+Emulator:
+
+```powershell
+.\scripts\build-android-debug.ps1 -ServerUrl http://10.0.2.2:3000
+```
+
+Physical phone:
+
+```powershell
+.\scripts\build-android-debug.ps1 -ServerUrl http://192.168.1.25:3000
+```
+
+APK output:
+
+```text
+frontend-app/android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+### Install debug APK
+
+Emulator:
+
+```powershell
+.\scripts\install-android-debug.ps1 -ServerUrl http://10.0.2.2:3000
+```
+
+Physical phone:
+
+```powershell
+.\scripts\install-android-debug.ps1 -ServerUrl http://192.168.1.25:3000
+```
+
+If more than one Android device is connected:
+
+```powershell
+.\scripts\install-android-debug.ps1 -ServerUrl http://192.168.1.25:3000 -DeviceId DEVICE_ID
+```
 
 ## Docker Web
 
