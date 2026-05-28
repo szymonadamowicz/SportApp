@@ -18,6 +18,7 @@ import {
 import { useRouter } from "next/navigation";
 import { usePutWorkoutStructure } from "@/hooks/apiHooks/workouts/usePutWorkoutStructure";
 import { useActiveWorkoutRun } from "@/hooks/apiHooks/workoutRun/useActiveWorkoutRun";
+import { getFriendlyErrorMessage } from "@/api/apiError";
 
 const createEmptyDraftExercise = (): DraftExercise => ({
   name: "",
@@ -42,6 +43,7 @@ export const useWorkoutFormVM = (workout: Workout): WorkoutFormVM => {
   const [exerciseErrors, setExerciseErrors] = useState<
     Record<string, DraftExerciseValidationError>
   >({});
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const now = useNow();
   const router = useRouter();
@@ -62,6 +64,7 @@ export const useWorkoutFormVM = (workout: Workout): WorkoutFormVM => {
 
     setDraft(initial);
     setExerciseErrors({});
+    setActionError(null);
     setEditMode(false);
     setHasChanges(false);
   }, [workout]);
@@ -69,6 +72,7 @@ export const useWorkoutFormVM = (workout: Workout): WorkoutFormVM => {
   const enterExercisesEdit = () => setEditMode(true);
 
   const updateDraft = (id: string, patch: Partial<DraftExercise>) => {
+    setActionError(null);
     setDraft((prev) => ({
       ...prev,
       [id]: { ...(prev[id] ?? createEmptyDraftExercise()), ...patch },
@@ -119,10 +123,11 @@ export const useWorkoutFormVM = (workout: Workout): WorkoutFormVM => {
       .sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
   }, [draft]);
 
-  const saveAllChanges = () => {
+  const saveAllChanges = async () => {
     const validation = validateDraftExercises(draft);
     if (!validation.valid) {
       setExerciseErrors(validation.errors);
+      setActionError("Fix the highlighted exercise fields before saving.");
       return;
     }
 
@@ -131,9 +136,20 @@ export const useWorkoutFormVM = (workout: Workout): WorkoutFormVM => {
       exercises: computedExercises,
     };
 
-    mutation.mutate(nextWorkout);
-    setEditMode(false);
-    setHasChanges(false);
+    setActionError(null);
+
+    try {
+      await mutation.mutateAsync(nextWorkout);
+      setEditMode(false);
+      setHasChanges(false);
+    } catch (error) {
+      setActionError(
+        getFriendlyErrorMessage(
+          error,
+          "Could not save exercise changes. Please try again.",
+        ),
+      );
+    }
   };
 
   const cancelEdit = () => {
@@ -144,6 +160,7 @@ export const useWorkoutFormVM = (workout: Workout): WorkoutFormVM => {
 
     setDraft(reset);
     setExerciseErrors({});
+    setActionError(null);
     setEditMode(false);
     setHasChanges(false);
   };
@@ -160,6 +177,8 @@ export const useWorkoutFormVM = (workout: Workout): WorkoutFormVM => {
     hasChanges,
     draft,
     exerciseErrors,
+    actionError,
+    isSaving: mutation.isPending,
     handleEditWorkout,
     handleStartWorkout,
     startButtonLabel,

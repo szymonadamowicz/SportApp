@@ -24,6 +24,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getFriendlyErrorMessage } from "@/api/apiError";
 
 const normalizeRepsInput = (value: string): string => {
   return value.replace(/[^\d]/g, "");
@@ -494,9 +495,14 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
       }
 
       setStatus("running");
-    } catch {
+    } catch (error) {
       setStatus("error");
-      setErrorMessage("Unable to start workout session.");
+      setErrorMessage(
+        getFriendlyErrorMessage(
+          error,
+          "Unable to start workout session. Please try again.",
+        ),
+      );
     }
   }, [
     status,
@@ -760,11 +766,10 @@ export const useWorkoutRunPageVM = (workoutId: string): WorkoutRunPageVM => {
       isCompletingRef.current = false;
       setStatus("error");
       setErrorMessage(
-        error instanceof Error
-          ? error.message.length > 180
-            ? "Unable to save workout session. Please try again."
-            : error.message
-          : "Unable to save workout session.",
+        getFriendlyErrorMessage(
+          error,
+          "Unable to save workout session. Please try again.",
+        ),
       );
     }
   }, [

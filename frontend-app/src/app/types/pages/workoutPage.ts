@@ -17,6 +17,8 @@ export type WorkoutFormVM = {
   editMode: boolean;
   hasChanges: boolean;
   draft: Record<string, DraftExercise>;
+  actionError: string | null;
+  isSaving: boolean;
   handleEditWorkout: () => void;
   handleStartWorkout: () => void;
   startButtonLabel: string;
@@ -185,7 +187,9 @@ export type WorkoutModalVM = {
   updateExercise: (id: string, patch: Partial<ExerciseDTO>) => void;
 
   errors: WorkoutCreateErrors;
+  submitError: string | null;
   showToast: boolean;
+  isSaving: boolean;
 
   createOrUpdateWorkout: () => Promise<void>;
 };

@@ -1,4 +1,8 @@
 import { API_BASE_URL } from "@/api/env";
+import {
+  createApiErrorFromResponse,
+  createNetworkError,
+} from "@/api/apiError";
 import { authStorage } from "@/contexts/auth/authStorage";
 import {
   ExerciseFormAnalysisKind,
@@ -28,15 +32,24 @@ export const formAnalysisReal = {
     appendOptional(formData, "stepIndex", context?.stepIndex);
     appendOptional(formData, "setNumber", context?.setNumber);
 
-    const response = await fetch(`${API_BASE_URL}/form-analyses`, {
-      method: "POST",
-      headers: getAuthHeaders(),
-      body: formData,
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${API_BASE_URL}/form-analyses`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: formData,
+      });
+    } catch {
+      throw createNetworkError("Could not upload the recording. Check your connection and try again.");
+    }
 
     const text = await response.text();
     if (!response.ok) {
-      throw new Error(text.trim() || `HTTP ${response.status}: Request failed.`);
+      throw createApiErrorFromResponse(
+        response,
+        text,
+        "Could not analyze this recording. Please try again.",
+      );
     }
 
     return JSON.parse(text) as ExerciseFormAnalysisResult;
@@ -53,29 +66,47 @@ export const formAnalysisReal = {
       params.set("workoutId", filters.workoutId);
     }
 
-    const response = await fetch(
-      `${API_BASE_URL}/form-analyses${params.size ? `?${params}` : ""}`,
-      {
-        headers: getAuthHeaders(),
-      },
-    );
+    let response: Response;
+    try {
+      response = await fetch(
+        `${API_BASE_URL}/form-analyses${params.size ? `?${params}` : ""}`,
+        {
+          headers: getAuthHeaders(),
+        },
+      );
+    } catch {
+      throw createNetworkError("Could not load form analyses. Check your connection and try again.");
+    }
 
     const text = await response.text();
     if (!response.ok) {
-      throw new Error(text.trim() || `HTTP ${response.status}: Request failed.`);
+      throw createApiErrorFromResponse(
+        response,
+        text,
+        "Could not load form analyses. Please try again.",
+      );
     }
 
     return JSON.parse(text) as ExerciseFormAnalysisResult[];
   },
 
   async get(analysisId: string): Promise<ExerciseFormAnalysisResult> {
-    const response = await fetch(`${API_BASE_URL}/form-analyses/${analysisId}`, {
-      headers: getAuthHeaders(),
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${API_BASE_URL}/form-analyses/${analysisId}`, {
+        headers: getAuthHeaders(),
+      });
+    } catch {
+      throw createNetworkError("Could not load this analysis. Check your connection and try again.");
+    }
 
     const text = await response.text();
     if (!response.ok) {
-      throw new Error(text.trim() || `HTTP ${response.status}: Request failed.`);
+      throw createApiErrorFromResponse(
+        response,
+        text,
+        "Could not load this analysis. Please try again.",
+      );
     }
 
     return JSON.parse(text) as ExerciseFormAnalysisResult;
@@ -85,15 +116,25 @@ export const formAnalysisReal = {
     analysisId: string,
     kind: ExerciseFormAnalysisKind,
   ): Promise<Blob> {
-    const response = await fetch(
-      `${API_BASE_URL}/form-analyses/${analysisId}/video?kind=${kind}`,
-      {
-        headers: getAuthHeaders(),
-      },
-    );
+    let response: Response;
+    try {
+      response = await fetch(
+        `${API_BASE_URL}/form-analyses/${analysisId}/video?kind=${kind}`,
+        {
+          headers: getAuthHeaders(),
+        },
+      );
+    } catch {
+      throw createNetworkError("Could not load the video preview. Check your connection and try again.");
+    }
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: Video preview unavailable.`);
+      const text = await response.text();
+      throw createApiErrorFromResponse(
+        response,
+        text,
+        "Video preview is unavailable. Please try again.",
+      );
     }
 
     return response.blob();

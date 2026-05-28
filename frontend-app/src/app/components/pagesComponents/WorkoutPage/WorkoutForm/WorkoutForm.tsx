@@ -13,11 +13,13 @@ import { WorkoutFormProps } from "@/types/pages/workoutPage";
 import { ChevronRight, Trash2, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
+import { getFriendlyErrorMessage } from "@/api/apiError";
 
 export default function WorkoutForm({ workout, onClose }: WorkoutFormProps) {
   const vm = useWorkoutFormVM(workout);
   const deleteMutation = useDeleteWorkout();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const isToday = isSameDay(workout.scheduledAt, vm.now);
   const timeDiff = formatTimeDiff(workout.scheduledAt, vm.now);
@@ -35,12 +37,25 @@ export default function WorkoutForm({ workout, onClose }: WorkoutFormProps) {
     desc += timeDiff;
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
+    setDeleteError(null);
+
     if (showDeleteConfirm) {
-      deleteMutation.mutate(workout.id);
-    } else {
-      setShowDeleteConfirm(true);
+      try {
+        await deleteMutation.mutateAsync(workout.id);
+        onClose();
+      } catch (error) {
+        setDeleteError(
+          getFriendlyErrorMessage(
+            error,
+            "Could not delete this training. Please try again.",
+          ),
+        );
+      }
+      return;
     }
+
+    setShowDeleteConfirm(true);
   };
 
   return (
@@ -51,21 +66,23 @@ export default function WorkoutForm({ workout, onClose }: WorkoutFormProps) {
         showButton={{
           label: vm.editMode
             ? vm.hasChanges
-              ? "Save changes"
+              ? vm.isSaving
+                ? "Saving..."
+                : "Save changes"
               : "Cancel"
             : "Edit exercises",
-          onClick: () => {
-            if (!vm.editMode) {
-              vm.enterExercisesEdit();
+                onClick: () => {
+                  if (!vm.editMode) {
+                    vm.enterExercisesEdit();
               return;
             }
 
-            if (vm.hasChanges) {
-              vm.saveAllChanges();
-            } else {
-              vm.cancelEdit();
-            }
-          },
+                  if (vm.hasChanges) {
+                    void vm.saveAllChanges();
+                  } else {
+                    vm.cancelEdit();
+                  }
+                },
         }}
         secondaryButton={
           !vm.hasChanges
@@ -140,6 +157,12 @@ export default function WorkoutForm({ workout, onClose }: WorkoutFormProps) {
             ) : undefined
           }
       >
+        {(vm.actionError || deleteError) && (
+          <p className="mb-4 rounded-xl border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger">
+            {vm.actionError ?? deleteError}
+          </p>
+        )}
+
         <WorkoutExercisesSection
           workout={vm.workout ?? workout}
           editMode={vm.editMode}

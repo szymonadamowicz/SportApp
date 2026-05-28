@@ -25,6 +25,12 @@ export default function WorkoutsPage() {
   return (
     <>
       <div className="space-y-5 md:space-y-6">
+        {vm.errorMessage && (
+          <div className="rounded-xl border border-danger/25 bg-danger/10 px-4 py-3 text-sm text-danger">
+            {vm.errorMessage}
+          </div>
+        )}
+
         <AnimatePresence mode="popLayout" initial={false}>
           {vm.selectedWorkout ? (
             <motion.div

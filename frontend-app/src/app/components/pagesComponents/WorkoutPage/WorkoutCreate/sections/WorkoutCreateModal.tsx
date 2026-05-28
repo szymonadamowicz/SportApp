@@ -577,6 +577,14 @@ export function CreateWorkoutModal({
               )}
             </AnimatePresence>
 
+            {vm.submitError && (
+              <div className="shrink-0 border-t border-danger/15 px-5 pt-3 sm:px-8">
+                <p className="rounded-xl border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger">
+                  {vm.submitError}
+                </p>
+              </div>
+            )}
+
             <div
               className="
                 shrink-0 flex flex-col-reverse gap-3 border-t border-borderSoft
@@ -587,6 +595,7 @@ export function CreateWorkoutModal({
               <button
                 type="button"
                 onClick={onClose}
+                disabled={vm.isSaving}
                 className="
   min-h-11 w-full rounded-full px-5 py-2 text-sm font-semibold sm:w-auto
   border border-borderSoft
@@ -604,6 +613,7 @@ export function CreateWorkoutModal({
               <button
                 type="button"
                 onClick={vm.createOrUpdateWorkout}
+                disabled={vm.isSaving}
                 className="
   min-h-11 w-full rounded-full px-6 py-2 text-sm font-semibold sm:w-auto
   text-bgMain
@@ -615,7 +625,11 @@ export function CreateWorkoutModal({
   transition
 "
               >
-                {isEditMode ? "Save changes" : "Create training"}
+                {vm.isSaving
+                  ? "Saving..."
+                  : isEditMode
+                    ? "Save changes"
+                    : "Create training"}
               </button>
             </div>
           </motion.div>

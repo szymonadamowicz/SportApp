@@ -5,6 +5,7 @@ import {
   downloadExerciseFormVideoApi,
   listExerciseFormAnalysesApi,
 } from "@/api/formAnalysis.api";
+import { getFriendlyErrorMessage } from "@/api/apiError";
 import {
   ExerciseFormAnalysisResult,
   ExerciseFormAnalysisUploadContext,
@@ -231,9 +232,10 @@ export function WorkoutRunFormAnalysisPanel({
       recorder.start();
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to start camera recording.",
+        getFriendlyErrorMessage(
+          err,
+          "Unable to start camera recording. Check camera permissions and try again.",
+        ),
       );
       setIsRecording(false);
       setStatus("idle");
@@ -281,9 +283,10 @@ export function WorkoutRunFormAnalysisPanel({
       }
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to analyze this recording.",
+        getFriendlyErrorMessage(
+          err,
+          "Unable to analyze this recording. Please try again.",
+        ),
       );
     } finally {
       setStatus("idle");
@@ -303,9 +306,10 @@ export function WorkoutRunFormAnalysisPanel({
       replaceAnalysisVideoUrl(url);
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to load this analysis preview.",
+        getFriendlyErrorMessage(
+          err,
+          "Unable to load this analysis preview. Please try again.",
+        ),
       );
     }
   };
