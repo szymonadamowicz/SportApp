@@ -15,6 +15,7 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 var runtimeSettings = RuntimeSettings.Resolve(builder.Configuration);
 var corsAllowedOrigins = ResolveCorsAllowedOrigins(builder.Configuration);
+ValidateRuntimeSecurity(builder.Environment, runtimeSettings, corsAllowedOrigins);
 
 builder.Services.AddControllers();
 builder.Services.Configure<FormOptions>(options =>
@@ -74,7 +75,7 @@ builder.Services.AddCors(options =>
         }
         else
         {
-            policy.WithOrigins("http://localhost:3000");
+            policy.SetIsOriginAllowed(_ => false);
         }
     });
 });
@@ -160,13 +161,36 @@ static string[] ResolveCorsAllowedOrigins(IConfiguration configuration)
         .GetSection("Cors:AllowedOrigins")
         .Get<string[]>() ?? [];
     var scalar = configuration["Cors:AllowedOrigins"];
+    var envScalar = configuration["CORS_ALLOWED_ORIGINS"];
 
     return values
         .Concat(SplitSetting(scalar))
+        .Concat(SplitSetting(envScalar))
         .Select(origin => origin.Trim().TrimEnd('/'))
         .Where(origin => !string.IsNullOrWhiteSpace(origin))
         .Distinct(StringComparer.OrdinalIgnoreCase)
         .ToArray();
+}
+
+static void ValidateRuntimeSecurity(
+    IWebHostEnvironment environment,
+    RuntimeSettings runtimeSettings,
+    string[] corsAllowedOrigins)
+{
+    if (environment.IsDevelopment()) return;
+
+    if (corsAllowedOrigins.Length == 0)
+    {
+        throw new InvalidOperationException(
+            "Cors:AllowedOrigins or CORS_ALLOWED_ORIGINS must be configured outside Development.");
+    }
+
+    if (runtimeSettings.Jwt.Key == RuntimeSettings.DevelopmentJwtKey ||
+        runtimeSettings.Jwt.Key.Length < 64)
+    {
+        throw new InvalidOperationException(
+            "Jwt:Key must be a non-development secret with at least 64 characters outside Development.");
+    }
 }
 
 static long ResolveMaxMultipartBytes(IConfiguration configuration)

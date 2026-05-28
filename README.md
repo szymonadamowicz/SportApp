@@ -99,6 +99,19 @@ FORM_ANALYSIS_RETENTION_DAYS=30
 Jwt__Key=dev-only-change-me-to-at-least-32-characters
 ```
 
+Security split:
+
+- In `Development`, the API may run with the dev JWT secret and permissive CORS
+  when no origins are configured.
+- Outside `Development`, the API refuses to start unless
+  `CORS_ALLOWED_ORIGINS`/`Cors:AllowedOrigins` is explicit and `Jwt__Key` is a
+  unique non-dev secret with at least 64 characters.
+- Generate a local strong secret when needed:
+
+```powershell
+[Convert]::ToBase64String((1..64 | ForEach-Object { Get-Random -Maximum 256 }))
+```
+
 For a physical phone, replace `localhost` with the computer LAN IP:
 
 ```env
@@ -497,6 +510,7 @@ Broader local release check:
 
 4. Backend does not start locally:
    - Use Docker backend if the .NET SDK is not installed.
+   - Outside `Development`, set `CORS_ALLOWED_ORIGINS` and a strong `Jwt__Key`.
 
 5. Form analysis fails:
    - The upload is still saved.
