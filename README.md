@@ -421,6 +421,18 @@ Backend Docker build:
 docker compose --profile real build backend
 ```
 
+Backend service tests:
+
+```powershell
+.\scripts\test-backend.ps1
+```
+
+If .NET SDK 8 is installed locally:
+
+```powershell
+.\scripts\test-backend.ps1 -UseLocalDotnet
+```
+
 Basic API smoke check:
 
 ```powershell
