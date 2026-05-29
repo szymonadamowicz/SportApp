@@ -660,11 +660,14 @@ public sealed class FormAnalysisService(
             .Trim()
             .ToLowerInvariant()
             .Replace("-", "_")
-            .Replace(" ", "_");
+            .Replace(" ", "_")
+            .Replace("\u0142", "l")
+            .Replace("\u00C5\u201A", "l")
+            .Replace("\u00E5\u201A", "l");
 
         normalized = normalized switch
         {
-            "bench" or "benchpress" or "lawka" or "Å‚awka" or "wyciskanie" or "wyciskanie_na_lawce" or "wyciskanie_na_Å‚awce" => "bench_press",
+            "bench" or "benchpress" or "lawka" or "wyciskanie" or "wyciskanie_na_lawce" => "bench_press",
             "squats" or "przysiad" or "przysiady" => "squat",
             _ => normalized,
         };

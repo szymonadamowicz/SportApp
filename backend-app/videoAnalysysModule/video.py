@@ -62,14 +62,21 @@ def clamp(value, lower, upper):
 
 
 def normalize_exercise(value):
-    normalized = (value or "squat").strip().lower().replace("-", "_").replace(" ", "_")
+    normalized = (
+        (value or "squat")
+        .strip()
+        .lower()
+        .replace("-", "_")
+        .replace(" ", "_")
+        .replace("\u0142", "l")
+        .replace("\u00c5\u201a", "l")
+        .replace("\u00e5\u201a", "l")
+    )
     aliases = {
         "bench": "bench_press",
         "lawka": "bench_press",
-        "ławka": "bench_press",
         "wyciskanie": "bench_press",
         "wyciskanie_na_lawce": "bench_press",
-        "wyciskanie_na_ławce": "bench_press",
         "benchpress": "bench_press",
         "squats": "squat",
         "przysiad": "squat",

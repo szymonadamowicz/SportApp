@@ -72,7 +72,7 @@ export const useProgressPageVM = () => {
       case ProgressLastSessionFeedbackKind.AVAILABLE:
         return {
           kind: ProgressLastSessionFeedbackKind.AVAILABLE,
-          sessionLabel: `${lastCompletedWorkout.title} • ${lastCompletedWorkout.mainFocus}`,
+          sessionLabel: `${lastCompletedWorkout.title} - ${lastCompletedWorkout.mainFocus}`,
           onClick: submitFeedback,
         };
 
@@ -201,7 +201,7 @@ export const useProgressPageVM = () => {
           : {
               kind: "none",
               empty: {
-                icon: "🏋️",
+                icon: "!",
                 title: "No completed workouts yet",
                 description:
                   "Finish your first training and come back here to track your progress.",

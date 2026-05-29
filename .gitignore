@@ -56,3 +56,6 @@ backend-app/videoAnalysysModule/*.pt
 .idea/
 .vs/
 *.DotSettings.user
+
+# local assistant/editor state
+.continue/

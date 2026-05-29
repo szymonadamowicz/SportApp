@@ -10,6 +10,24 @@ namespace ApiModule.Tests;
 
 public sealed class FormAnalysisServiceTests
 {
+    [Theory]
+    [InlineData("lawka")]
+    [InlineData("\u0142awka")]
+    [InlineData("wyciskanie_na_\u0142awce")]
+    [InlineData("\u00C5\u201Aawka")]
+    public void NormalizeExerciseType_MapsBenchPressAliases(string value)
+    {
+        var method = typeof(FormAnalysisService).GetMethod(
+            "NormalizeExerciseType",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+
+        Assert.NotNull(method);
+        var normalized = Assert.IsType<string>(
+            method.Invoke(null, new object[] { value }));
+
+        Assert.Equal("bench_press", normalized);
+    }
+
     [Fact]
     public async Task AnalyzeAsync_PersistsUnsupportedExerciseWithSourceVideoAndContext()
     {
