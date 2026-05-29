@@ -151,9 +151,57 @@ app.MapGet("/health", () => Results.Ok(new
     utc = DateTime.UtcNow
 })).AllowAnonymous();
 
+app.MapGet("/health/live", () => Results.Ok(new
+{
+    status = "live",
+    utc = DateTime.UtcNow
+})).AllowAnonymous();
+
+app.MapGet("/health/ready", CheckReadinessAsync).AllowAnonymous();
+
 app.MapControllers();
 
 app.Run();
+
+static async Task<IResult> CheckReadinessAsync(
+    AppDbContext db,
+    IWebHostEnvironment environment,
+    CancellationToken ct)
+{
+    try
+    {
+        if (await db.Database.CanConnectAsync(ct))
+        {
+            return Results.Ok(new
+            {
+                status = "ready",
+                database = "ok",
+                utc = DateTime.UtcNow
+            });
+        }
+
+        return Results.Json(
+            new
+            {
+                status = "not_ready",
+                database = "unavailable",
+                utc = DateTime.UtcNow
+            },
+            statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(
+            new
+            {
+                status = "not_ready",
+                database = "error",
+                error = environment.IsDevelopment() ? ex.Message : null,
+                utc = DateTime.UtcNow
+            },
+            statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+}
 
 static string[] ResolveCorsAllowedOrigins(IConfiguration configuration)
 {

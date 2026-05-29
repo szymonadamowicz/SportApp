@@ -6,7 +6,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $apiBase = $ApiBaseUrl.TrimEnd("/")
-$healthUrl = $apiBase -replace "/api$", "/health"
+$readyUrl = $apiBase -replace "/api$", "/health/ready"
 $login = "smoke_$([DateTimeOffset]::UtcNow.ToUnixTimeSeconds())"
 $password = "SmokeTest123!"
 
@@ -33,8 +33,8 @@ function Invoke-Api {
     return Invoke-RestMethod -Method $Method -Uri $uri -Headers $headers
 }
 
-Write-Host "[smoke] Checking health at $healthUrl"
-Invoke-RestMethod -Method GET -Uri $healthUrl | Out-Null
+Write-Host "[smoke] Checking readiness at $readyUrl"
+Invoke-RestMethod -Method GET -Uri $readyUrl | Out-Null
 
 Write-Host "[smoke] Registering temporary user $login"
 $auth = Invoke-Api -Method POST -Path "/auth/register" -Body @{

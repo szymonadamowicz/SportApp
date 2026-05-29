@@ -12,7 +12,7 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = Resolve-Path (Join-Path $scriptDir "..")
 $seedPath = Join-Path $scriptDir "dev-seed-full-demo.sql"
 $apiBase = $ApiBaseUrl.TrimEnd("/")
-$healthUrl = $apiBase -replace "/api$", "/health"
+$readyUrl = $apiBase -replace "/api$", "/health/ready"
 $configuredPostgresUser = [Environment]::GetEnvironmentVariable("POSTGRES_USER")
 $configuredPostgresDb = [Environment]::GetEnvironmentVariable("POSTGRES_DB")
 $postgresUser = if ($configuredPostgresUser) { $configuredPostgresUser } else { "workout_user" }
@@ -23,7 +23,7 @@ function Wait-Api {
 
     do {
         try {
-            Invoke-RestMethod -Method GET -Uri $healthUrl -TimeoutSec 5 | Out-Null
+            Invoke-RestMethod -Method GET -Uri $readyUrl -TimeoutSec 5 | Out-Null
             return
         }
         catch {
@@ -31,7 +31,7 @@ function Wait-Api {
         }
     } while ((Get-Date) -lt $deadline)
 
-    throw "API did not become healthy at $healthUrl."
+    throw "API did not become ready at $readyUrl."
 }
 
 function Invoke-Auth {

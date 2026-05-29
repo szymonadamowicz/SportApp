@@ -201,6 +201,7 @@ API health:
 
 ```text
 http://localhost:5064/health
+http://localhost:5064/health/ready
 ```
 
 Swagger in development:
@@ -409,7 +410,9 @@ http://localhost:3000
 ```
 
 Docker Compose has health checks for Postgres, backend, and frontend services.
-Use this to confirm that containers are actually ready, not only running:
+The backend container uses `/health/ready`, so it only becomes healthy after it
+can reach the database. Use this to confirm that containers are actually ready,
+not only running:
 
 ```powershell
 docker compose --profile real ps
