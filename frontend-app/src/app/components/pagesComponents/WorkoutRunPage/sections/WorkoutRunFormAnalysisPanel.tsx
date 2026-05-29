@@ -5,6 +5,7 @@ import {
   downloadExerciseFormVideoApi,
   listExerciseFormAnalysesApi,
 } from "@/api/formAnalysis.api";
+import { formAnalysisKeys } from "@/api/keys/formAnalysis.keys";
 import { getFriendlyErrorMessage } from "@/api/apiError";
 import {
   ExerciseFormAnalysisResult,
@@ -23,6 +24,7 @@ import {
   UploadCloud,
   Video,
 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type WorkoutRunFormAnalysisPanelProps = {
@@ -143,6 +145,7 @@ export function WorkoutRunFormAnalysisPanel({
   workoutId,
   currentStep,
 }: WorkoutRunFormAnalysisPanelProps) {
+  const queryClient = useQueryClient();
   const liveVideoRef = useRef<HTMLVideoElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -158,10 +161,6 @@ export function WorkoutRunFormAnalysisPanel({
   );
   const [analysisVideoUrl, setAnalysisVideoUrl] = useState<string | null>(null);
   const [result, setResult] = useState<ExerciseFormAnalysisResult | null>(null);
-  const [history, setHistory] = useState<ExerciseFormAnalysisResult[]>([]);
-  const [historyStatus, setHistoryStatus] = useState<"idle" | "loading">(
-    "idle",
-  );
   const [status, setStatus] = useState<"idle" | "recording" | "analyzing">(
     "idle",
   );
@@ -184,6 +183,19 @@ export function WorkoutRunFormAnalysisPanel({
     }),
     [currentExerciseName, currentStep, workoutId, workoutRunId],
   );
+  const historyFilters = useMemo(
+    () => ({ workoutRunId, workoutId }),
+    [workoutId, workoutRunId],
+  );
+  const historyKey = formAnalysisKeys.list(historyFilters);
+  const historyQuery = useQuery<ExerciseFormAnalysisResult[]>({
+    queryKey: historyKey,
+    queryFn: () => listExerciseFormAnalysesApi(historyFilters),
+    enabled: Boolean(workoutRunId || workoutId),
+    staleTime: 2 * 60 * 1000,
+    refetchOnMount: false,
+  });
+  const history = historyQuery.data ?? [];
 
   useEffect(() => {
     if (!liveVideoRef.current || !streamRef.current) return;
@@ -197,37 +209,6 @@ export function WorkoutRunFormAnalysisPanel({
       revokeUrl(analysisVideoUrlRef.current);
     };
   }, []);
-
-  useEffect(() => {
-    if (!workoutRunId && !workoutId) {
-      setHistory([]);
-      return;
-    }
-
-    let cancelled = false;
-    setHistoryStatus("loading");
-
-    listExerciseFormAnalysesApi({ workoutRunId, workoutId })
-      .then((items) => {
-        if (!cancelled) {
-          setHistory(items);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setHistory([]);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setHistoryStatus("idle");
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [workoutId, workoutRunId]);
 
   const revokeUrl = (url: string | null) => {
     if (url) URL.revokeObjectURL(url);
@@ -263,7 +244,10 @@ export function WorkoutRunFormAnalysisPanel({
       resetRecording();
       setError(null);
 
-      if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      if (
+        !navigator.mediaDevices?.getUserMedia ||
+        typeof MediaRecorder === "undefined"
+      ) {
         setError("Recording is not supported in this browser.");
         return;
       }
@@ -348,11 +332,15 @@ export function WorkoutRunFormAnalysisPanel({
         analysisContext,
       );
       setResult(analysis);
-      setHistory((prev) =>
-        [
-          analysis,
-          ...prev.filter((item) => item.analysisId !== analysis.analysisId),
-        ].slice(0, 20),
+      queryClient.setQueryData<ExerciseFormAnalysisResult[]>(
+        historyKey,
+        (prev) =>
+          [
+            analysis,
+            ...(prev ?? []).filter(
+              (item) => item.analysisId !== analysis.analysisId,
+            ),
+          ].slice(0, 20),
       );
 
       if (analysis.hasAnalyzedVideo) {
@@ -626,7 +614,7 @@ export function WorkoutRunFormAnalysisPanel({
                 <History size={14} />
                 Previous analyses
               </div>
-              {historyStatus === "loading" && (
+              {historyQuery.isFetching && (
                 <span className="text-xs text-textMuted">Loading...</span>
               )}
             </div>

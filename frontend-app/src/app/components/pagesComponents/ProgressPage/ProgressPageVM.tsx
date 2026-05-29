@@ -18,12 +18,13 @@ import { ProgressAchievements } from "@/types/progress/progress";
 import { useCallback, useMemo, useState } from "react";
 
 export const useProgressPageVM = () => {
+  const [showWeek, setShowWeek] = useState(false);
   const {
     achievements,
     allProgress,
     isLoading: isLoadingAchievements,
     isError: isErrorAchievements,
-  } = useProgressAchievements();
+  } = useProgressAchievements(showWeek);
   const {
     lastCompletedWorkout,
     isLoading: isLoadingLastWorkout,
@@ -32,7 +33,6 @@ export const useProgressPageVM = () => {
 
   const updateWorkout = usePatchWorkoutMeta();
 
-  const [showWeek, setShowWeek] = useState(false);
   const [prevFeedbackState, setPrevFeedbackState] =
     useState<ProgressLastSessionFeedbackKind>(
       ProgressLastSessionFeedbackKind.NONE,

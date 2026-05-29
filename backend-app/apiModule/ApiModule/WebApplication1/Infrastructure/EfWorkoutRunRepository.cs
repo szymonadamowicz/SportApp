@@ -20,15 +20,17 @@ public sealed class EfWorkoutRunRepository : IWorkoutRunRepository
 
     public Task<WorkoutRun?> GetByIdForOwnerAsync(Guid runId, Guid ownerUserId, CancellationToken ct)
         => _db.Set<WorkoutRun>()
+            .AsSplitQuery()
             .Include(r => r.Workout)
-                .ThenInclude(w => w.Exercises)
+                .ThenInclude(w => w.Exercises.OrderBy(e => e.OrderIndex))
             .Include(r => r.Entries)
             .FirstOrDefaultAsync(r => r.Id == runId && r.OwnerUserId == ownerUserId, ct);
 
     public Task<WorkoutRun?> GetActiveByWorkoutForOwnerAsync(Guid workoutId, Guid ownerUserId, CancellationToken ct)
         => _db.Set<WorkoutRun>()
+            .AsSplitQuery()
             .Include(r => r.Workout)
-                .ThenInclude(w => w.Exercises)
+                .ThenInclude(w => w.Exercises.OrderBy(e => e.OrderIndex))
             .Include(r => r.Entries)
             .Where(r =>
                 r.WorkoutId == workoutId &&
@@ -39,8 +41,9 @@ public sealed class EfWorkoutRunRepository : IWorkoutRunRepository
 
     public Task<WorkoutRun?> GetLatestActiveForOwnerAsync(Guid ownerUserId, CancellationToken ct)
         => _db.Set<WorkoutRun>()
+            .AsSplitQuery()
             .Include(r => r.Workout)
-                .ThenInclude(w => w.Exercises)
+                .ThenInclude(w => w.Exercises.OrderBy(e => e.OrderIndex))
             .Include(r => r.Entries)
             .Where(r => r.OwnerUserId == ownerUserId && r.FinishedAt == null)
             .OrderByDescending(r => r.LastProgressAt ?? r.StartedAt)

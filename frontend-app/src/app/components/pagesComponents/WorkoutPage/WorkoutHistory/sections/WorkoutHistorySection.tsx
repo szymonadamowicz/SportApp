@@ -2,7 +2,11 @@ import EmptyState from "@/components/EmptyState/EmptyState";
 import InfoPanel from "@/components/InfoPanel/InfoPanel";
 import { WorkoutListItem } from "../../sections/WorkoutListItem";
 import { WorkoutHistorySectionProps } from "@/types/pages/workoutPage";
+import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
 import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
+
+const ITEMS_PER_PAGE = 6;
 
 const stateTransition = {
   duration: 0.22,
@@ -17,6 +21,37 @@ export function WorkoutHistorySection({
   onSelect,
   selectedId,
 }: WorkoutHistorySectionProps) {
+  const [page, setPage] = useState(0);
+  const pageCount = Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE));
+  const safePage = Math.min(page, pageCount - 1);
+  const selectedIndex = useMemo(
+    () =>
+      selectedId ? items.findIndex((item) => item.id === selectedId) : -1,
+    [items, selectedId],
+  );
+  const pageItems = useMemo(
+    () =>
+      items.slice(
+        safePage * ITEMS_PER_PAGE,
+        safePage * ITEMS_PER_PAGE + ITEMS_PER_PAGE,
+      ),
+    [items, safePage],
+  );
+
+  useEffect(() => {
+    setPage(0);
+  }, [title]);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, pageCount - 1));
+  }, [pageCount]);
+
+  useEffect(() => {
+    if (selectedIndex >= 0) {
+      setPage(Math.floor(selectedIndex / ITEMS_PER_PAGE));
+    }
+  }, [selectedIndex]);
+
   return (
     <AnimatePresence mode="popLayout" initial={false}>
       {items.length === 0 ? (
@@ -48,7 +83,7 @@ export function WorkoutHistorySection({
           transition={stateTransition}
         >
           <InfoPanel title={title} outerButton={outerButton}>
-            {items.map((item) => (
+            {pageItems.map((item) => (
               <WorkoutListItem
                 key={item.id}
                 item={item}
@@ -56,6 +91,17 @@ export function WorkoutHistorySection({
                 selected={selectedId === item.id}
               />
             ))}
+
+            <PaginationControls
+              page={safePage}
+              pageCount={pageCount}
+              onPrevious={() => setPage((current) => Math.max(0, current - 1))}
+              onNext={() =>
+                setPage((current) => Math.min(pageCount - 1, current + 1))
+              }
+              previousLabel="Previous history page"
+              nextLabel="Next history page"
+            />
           </InfoPanel>
         </motion.div>
       )}

@@ -14,6 +14,8 @@ public sealed class EfWorkoutRepository : IWorkoutRepository
 
     public Task<List<Workout>> GetAllByOwnerAsync(Guid ownerUserId, CancellationToken ct)
         => _db.Workouts
+            .AsNoTracking()
+            .AsSplitQuery()
             .Where(w => w.OwnerUserId == ownerUserId)
             .Include(w => w.Exercises.OrderBy(e => e.OrderIndex))
             .ToListAsync(ct);
@@ -25,6 +27,8 @@ public sealed class EfWorkoutRepository : IWorkoutRepository
 
     public Task<Workout?> GetLastCompletedForOwnerAsync(Guid ownerUserId, CancellationToken ct)
         => _db.Workouts
+            .AsNoTracking()
+            .AsSplitQuery()
             .Where(w => w.OwnerUserId == ownerUserId && w.CompletedAt != null)
             .OrderByDescending(w => w.CompletedAt)
             .Include(w => w.Exercises.OrderBy(e => e.OrderIndex))

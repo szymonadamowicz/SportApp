@@ -31,8 +31,6 @@ export const useCompleteWorkoutRun = () => {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: workoutsKeys.all });
-      queryClient.invalidateQueries({ queryKey: workoutRunKeys.all });
-      queryClient.invalidateQueries({ queryKey: ["progress"] });
       queryClient.invalidateQueries({ queryKey: progressKeys.all("all") });
       queryClient.invalidateQueries({ queryKey: progressKeys.all("week") });
     },

@@ -21,7 +21,6 @@ export const useCancelWorkoutRun = () => {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: workoutsKeys.all });
-      queryClient.invalidateQueries({ queryKey: workoutRunKeys.all });
       queryClient.invalidateQueries({ queryKey: progressKeys.all("all") });
       queryClient.invalidateQueries({ queryKey: progressKeys.all("week") });
     },
