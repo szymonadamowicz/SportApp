@@ -2,8 +2,6 @@
 
 import Providers from "./provider";
 import { AuthProvider } from "./contexts/auth/authContext";
-import { ActiveWorkoutFloatingTimer } from "./components/ActiveWorkoutFloatingTimer/ActiveWorkoutFloatingTimer";
-import { ActiveWorkoutLifecycleGuard } from "./components/ActiveWorkoutLifecycleGuard/ActiveWorkoutLifecycleGuard";
 import "./styles/globals.css";
 
 export default function RootLayout({
@@ -23,11 +21,7 @@ export default function RootLayout({
       </head>
       <body>
         <Providers>
-          <AuthProvider>
-            {children}
-            <ActiveWorkoutLifecycleGuard />
-            <ActiveWorkoutFloatingTimer />
-          </AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
         </Providers>
       </body>
     </html>

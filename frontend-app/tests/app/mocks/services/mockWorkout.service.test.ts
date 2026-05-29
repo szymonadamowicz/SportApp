@@ -88,7 +88,7 @@ describe("mockWorkoutService", () => {
   it("passes null completedAt when clearing completion", async () => {
     const patch = {
       completedAt: null,
-      perceivedLoad: "easy" as const,
+      perceivedLoad: "light" as const,
     };
     workoutsRepositoryMock.updateMeta.mockReturnValue({
       ...baseWorkout,

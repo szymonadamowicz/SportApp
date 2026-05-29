@@ -34,6 +34,16 @@ export async function httpClient<T>(
   const text = await res.text();
 
   if (!res.ok) {
+    if (res.status === 401) {
+      authStorage.write(null);
+      if (typeof window !== "undefined") {
+        const path = window.location.pathname;
+        if (path !== "/" && path !== "/login") {
+          window.location.replace("/login");
+        }
+      }
+    }
+
     throw createApiErrorFromResponse(res, text);
   }
 

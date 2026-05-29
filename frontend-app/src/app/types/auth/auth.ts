@@ -6,6 +6,7 @@ export type AuthSession = {
   user?: AuthUser;
   accessToken: string;
   lastActive?: number;
+  expiresAt?: number;
 };
 
 export type AuthLoginPayload = {

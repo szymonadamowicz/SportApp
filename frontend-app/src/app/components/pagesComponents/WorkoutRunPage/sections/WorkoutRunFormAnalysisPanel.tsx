@@ -55,13 +55,42 @@ const supportedExerciseTypes = new Set(["squat", "bench_press"]);
 const uploadLimitMegabytes = 250;
 const maxUploadBytes = uploadLimitMegabytes * 1024 * 1024;
 
+const isRunningInNativeApp = () => {
+  if (typeof window === "undefined") return false;
+
+  const capacitor = (
+    window as Window & {
+      Capacitor?: {
+        isNativePlatform?: () => boolean;
+        getPlatform?: () => string;
+      };
+    }
+  ).Capacitor;
+
+  if (typeof capacitor?.isNativePlatform === "function") {
+    return capacitor.isNativePlatform();
+  }
+
+  return capacitor?.getPlatform?.() === "android";
+};
+
 const isFailedAnalysisStatus = (status?: string) =>
   status === "script_failed" || status === "script_not_configured";
 
 const isUnsupportedAnalysisStatus = (status?: string) =>
   status === "unsupported_exercise";
 
+const isProcessingAnalysisStatus = (status?: string) => status === "processing";
+
 const getAnalysisStatusMeta = (status?: string) => {
+  if (isProcessingAnalysisStatus(status)) {
+    return {
+      label: "Processing",
+      className: "border-accent/30 bg-accent/10 text-accent",
+      panelClassName: "border-accent/30 bg-accent/10 text-accent",
+    };
+  }
+
   if (isFailedAnalysisStatus(status)) {
     return {
       label: "Analysis failed",
@@ -139,6 +168,27 @@ const formatHistoryTime = (value?: string) => {
   }).format(date);
 };
 
+const formatElapsedTime = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+};
+
+const getEstimatedAnalysisProgress = (seconds: number) => {
+  if (seconds < 8) return Math.min(28, 8 + seconds * 3);
+  if (seconds < 120) return Math.min(74, 30 + (seconds - 8) * 0.4);
+  if (seconds < 240) return Math.min(92, 75 + (seconds - 120) * 0.14);
+  return 95;
+};
+
+const getAnalysisStageLabel = (seconds: number) => {
+  if (seconds < 8) return "Uploading video";
+  if (seconds < 120) return "Detecting pose";
+  if (seconds < 240) return "Scoring movement";
+  return "Rendering overlay";
+};
+
 export function WorkoutRunFormAnalysisPanel({
   currentExerciseName,
   workoutRunId,
@@ -147,6 +197,8 @@ export function WorkoutRunFormAnalysisPanel({
 }: WorkoutRunFormAnalysisPanelProps) {
   const queryClient = useQueryClient();
   const liveVideoRef = useRef<HTMLVideoElement | null>(null);
+  const captureVideoInputRef = useRef<HTMLInputElement | null>(null);
+  const uploadVideoInputRef = useRef<HTMLInputElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -165,10 +217,13 @@ export function WorkoutRunFormAnalysisPanel({
     "idle",
   );
   const [error, setError] = useState<string | null>(null);
+  const [isNativeApp, setIsNativeApp] = useState<boolean | null>(null);
+  const [analysisElapsedSeconds, setAnalysisElapsedSeconds] = useState(0);
 
   const isSupportedAnalyzer = supportedExerciseTypes.has(exerciseType);
-  const canAnalyze =
-    Boolean(recordedBlob) && status !== "analyzing" && isSupportedAnalyzer;
+  const isAnalyzingRequest = status === "analyzing";
+  const isPlatformReady = isNativeApp !== null;
+  const canRecordVideo = isNativeApp === true;
   const scoreLabel = useMemo(() => getResultScoreLabel(result), [result]);
   const resultStatusMeta = result ? getAnalysisStatusMeta(result.status) : null;
   const displayFindings = useMemo(() => getDisplayFindings(result), [result]);
@@ -193,9 +248,53 @@ export function WorkoutRunFormAnalysisPanel({
     queryFn: () => listExerciseFormAnalysesApi(historyFilters),
     enabled: Boolean(workoutRunId || workoutId),
     staleTime: 2 * 60 * 1000,
-    refetchOnMount: false,
+    refetchOnMount: "always",
+    refetchInterval: (query) => {
+      const data = query.state.data as ExerciseFormAnalysisResult[] | undefined;
+      return data?.some((analysis) => isProcessingAnalysisStatus(analysis.status))
+        ? 5000
+        : false;
+    },
   });
   const history = historyQuery.data ?? [];
+  const processingAnalysis = history.find((analysis) =>
+    isProcessingAnalysisStatus(analysis.status),
+  );
+  const processingStartedAt = processingAnalysis?.createdAt
+    ? new Date(processingAnalysis.createdAt).getTime()
+    : null;
+  const isAnalyzing = isAnalyzingRequest || Boolean(processingAnalysis);
+  const canAnalyze = Boolean(recordedBlob) && !isAnalyzing && isSupportedAnalyzer;
+  const analysisProgress = getEstimatedAnalysisProgress(analysisElapsedSeconds);
+  const analysisStageLabel = getAnalysisStageLabel(analysisElapsedSeconds);
+
+  useEffect(() => {
+    setIsNativeApp(isRunningInNativeApp());
+  }, []);
+
+  useEffect(() => {
+    if (!isAnalyzing) {
+      setAnalysisElapsedSeconds(0);
+      return;
+    }
+
+    const getElapsedSeconds = () => {
+      if (!processingStartedAt || Number.isNaN(processingStartedAt)) {
+        return 0;
+      }
+
+      return Math.max(0, Math.floor((Date.now() - processingStartedAt) / 1000));
+    };
+
+    setAnalysisElapsedSeconds(getElapsedSeconds());
+    const intervalId = window.setInterval(() => {
+      setAnalysisElapsedSeconds((seconds) =>
+        processingStartedAt ? getElapsedSeconds() : seconds + 1,
+      );
+    }, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [isAnalyzing, processingStartedAt]);
 
   useEffect(() => {
     if (!liveVideoRef.current || !streamRef.current) return;
@@ -239,7 +338,29 @@ export function WorkoutRunFormAnalysisPanel({
     setError(null);
   };
 
+  const loadRecordedFile = (file: File) => {
+    resetRecording();
+    setError(null);
+    setStatus("idle");
+    setIsRecording(false);
+    setRecordedBlob(file);
+    replaceRecordedPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const openNativeVideoCapture = () => {
+    captureVideoInputRef.current?.click();
+  };
+
+  const openVideoUpload = () => {
+    uploadVideoInputRef.current?.click();
+  };
+
   const startRecording = async () => {
+    if (!canRecordVideo) {
+      openVideoUpload();
+      return;
+    }
+
     try {
       resetRecording();
       setError(null);
@@ -248,7 +369,7 @@ export function WorkoutRunFormAnalysisPanel({
         !navigator.mediaDevices?.getUserMedia ||
         typeof MediaRecorder === "undefined"
       ) {
-        setError("Recording is not supported in this browser.");
+        openNativeVideoCapture();
         return;
       }
 
@@ -425,6 +546,16 @@ export function WorkoutRunFormAnalysisPanel({
         </div>
       </div>
 
+      {isNativeApp === false && (
+        <div className="mt-3 flex gap-3 rounded-2xl border border-warning/30 bg-warning/10 p-3 text-sm text-warning">
+          <BadgeInfo className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>
+            Recording is supported in the mobile app. On web, upload an
+            existing video instead.
+          </p>
+        </div>
+      )}
+
       <div className="mt-4 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="space-y-3">
           <label className="block">
@@ -476,6 +607,34 @@ export function WorkoutRunFormAnalysisPanel({
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              ref={captureVideoInputRef}
+              type="file"
+              accept="video/*"
+              capture="environment"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+
+                if (!file) return;
+                loadRecordedFile(file);
+              }}
+            />
+            <input
+              ref={uploadVideoInputRef}
+              type="file"
+              accept="video/*"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+
+                if (!file) return;
+                loadRecordedFile(file);
+              }}
+            />
+
             {isRecording ? (
               <button
                 type="button"
@@ -485,7 +644,7 @@ export function WorkoutRunFormAnalysisPanel({
                 <Square size={16} />
                 Stop recording
               </button>
-            ) : (
+            ) : canRecordVideo ? (
               <button
                 type="button"
                 onClick={startRecording}
@@ -493,6 +652,17 @@ export function WorkoutRunFormAnalysisPanel({
               >
                 <Camera size={16} />
                 Record
+              </button>
+            ) : null}
+
+            {!isRecording && isPlatformReady && (
+              <button
+                type="button"
+                onClick={openVideoUpload}
+                className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full border border-accentBlue/35 bg-accentBlue/10 px-4 py-2 text-sm font-semibold text-accentBlue transition hover:bg-accentBlue/18"
+              >
+                <UploadCloud size={16} />
+                Upload
               </button>
             )}
 
@@ -508,7 +678,7 @@ export function WorkoutRunFormAnalysisPanel({
               <UploadCloud size={16} />
               {!isSupportedAnalyzer
                 ? "Not supported"
-                : status === "analyzing"
+                : isAnalyzing
                   ? "Analyzing..."
                   : "Analyze"}
             </button>
@@ -523,6 +693,27 @@ export function WorkoutRunFormAnalysisPanel({
               Reset
             </button>
           </div>
+
+          {isAnalyzing && (
+            <div className="rounded-2xl border border-accent/25 bg-accent/10 px-3 py-3 text-sm text-textSecondary">
+              <div className="flex items-center justify-between gap-3">
+                <span>{analysisStageLabel}</span>
+                <span className="shrink-0 text-xs uppercase tracking-[0.14em] text-accent">
+                  {Math.round(analysisProgress)}%
+                </span>
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-bgHighlight">
+                <div
+                  className="h-full rounded-full bg-accent transition-[width] duration-700 ease-out"
+                  style={{ width: `${analysisProgress}%` }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-textMuted">
+                Elapsed {formatElapsedTime(analysisElapsedSeconds)}. The final
+                step can pause near the end while the overlay video is encoded.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="rounded-2xl border border-borderSoft bg-bgHighlight/20 p-4">
@@ -549,7 +740,13 @@ export function WorkoutRunFormAnalysisPanel({
           </div>
 
           <p className="mt-3 text-sm text-textSecondary">
-            {getDisplaySummary(result)}
+            {isAnalyzing
+              ? `${analysisStageLabel}. The backend is still working on this video.`
+              : result
+                ? getDisplaySummary(result)
+                : !isPlatformReady || canRecordVideo
+                  ? getDisplaySummary(result)
+                  : "Upload a short set, choose the analyzer, then send it for a first-pass form check."}
           </p>
 
           {result &&
@@ -619,8 +816,34 @@ export function WorkoutRunFormAnalysisPanel({
               )}
             </div>
 
-            {history.length ? (
+            {isAnalyzing || history.length ? (
               <div className="mt-3 space-y-2">
+                {isAnalyzing && (
+                  <div className="min-h-12 rounded-xl border border-accent/35 bg-accent/10 px-3 py-2 text-left">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-semibold text-textPrimary">
+                          {analysisContext.exerciseName ?? "Current exercise"}
+                        </span>
+                        <span className="mt-0.5 block text-xs text-textMuted">
+                          {analysisStageLabel} - {formatElapsedTime(analysisElapsedSeconds)}
+                          {analysisContext.setNumber
+                            ? ` - set ${analysisContext.setNumber}`
+                            : ""}
+                        </span>
+                      </span>
+                      <span className="shrink-0 rounded-full border border-accent/35 bg-accent/10 px-2 py-0.5 text-xs text-accent">
+                        {Math.round(analysisProgress)}%
+                      </span>
+                    </div>
+                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-bgHighlight">
+                      <div
+                        className="h-full rounded-full bg-accent transition-[width] duration-700 ease-out"
+                        style={{ width: `${analysisProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
                 {history.slice(0, 5).map((analysis) => {
                   const statusMeta = getAnalysisStatusMeta(analysis.status);
 

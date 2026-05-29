@@ -120,7 +120,7 @@ describe("workoutsMock adapter", () => {
   it("delegates patchWorkoutMeta with null completedAt", async () => {
     const patch = {
       completedAt: null,
-      perceivedLoad: "easy" as const,
+      perceivedLoad: "light" as const,
     };
     mockWorkoutServiceMock.patchWorkoutMeta.mockResolvedValue({
       ...dtoWorkout,

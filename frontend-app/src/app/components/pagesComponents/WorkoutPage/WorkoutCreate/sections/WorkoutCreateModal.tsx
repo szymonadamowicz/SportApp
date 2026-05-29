@@ -129,6 +129,8 @@ export function CreateWorkoutModal({
                     className={inputClass}
                     placeholder="Select or type muscle group"
                     value={vm.muscleInput}
+                    autoComplete="off"
+                    onPointerDown={() => vm.setDropdownOpen(true)}
                     onFocus={() => vm.setDropdownOpen(true)}
                     onChange={(e) => {
                       vm.setMuscleInput(e.target.value);
@@ -143,7 +145,7 @@ export function CreateWorkoutModal({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 6 }}
                         className="
-    absolute left-0 top-full mt-2 w-full z-50 overflow-hidden
+    relative mt-2 w-full z-50 overflow-hidden sm:absolute sm:left-0 sm:top-full
     rounded-2xl
     border border-borderSoft
     shadow-[0_30px_90px_rgba(0,0,0,0.75)]

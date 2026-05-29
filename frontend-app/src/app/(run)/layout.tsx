@@ -1,6 +1,8 @@
 "use client";
 
 import { PageTransition } from "@/components/animations/PageTransition";
+import { ActiveWorkoutFloatingTimer } from "@/components/ActiveWorkoutFloatingTimer/ActiveWorkoutFloatingTimer";
+import { ActiveWorkoutLifecycleGuard } from "@/components/ActiveWorkoutLifecycleGuard/ActiveWorkoutLifecycleGuard";
 import { AuthGate } from "@/contexts/auth/authGate";
 
 export default function WorkoutRunLayout({
@@ -13,6 +15,8 @@ export default function WorkoutRunLayout({
       <main className="min-h-dvh pb-[max(1rem,env(safe-area-inset-bottom))]">
         <PageTransition>{children}</PageTransition>
       </main>
+      <ActiveWorkoutLifecycleGuard />
+      <ActiveWorkoutFloatingTimer />
     </AuthGate>
   );
 }

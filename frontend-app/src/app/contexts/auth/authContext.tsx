@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.replace("/login");
     }
 
-    if (isPublic && isAuthenticated && path === "/login") {
+    if (isPublic && isAuthenticated) {
       router.replace("/dashboard");
     }
   }, [isReady, isAuthenticated, pathname, router]);

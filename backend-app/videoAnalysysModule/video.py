@@ -1,6 +1,8 @@
 import argparse
 import json
 import math
+import shutil
+import subprocess
 import sys
 import time
 from collections import Counter
@@ -843,6 +845,49 @@ def create_writer(cv2, path, fps, width, height):
     raise RuntimeError("Cannot create analyzed video writer.")
 
 
+def transcode_for_browser(input_path, output_path, fps):
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        if input_path != output_path:
+            shutil.move(str(input_path), str(output_path))
+        return False
+
+    temp_output = output_path.with_suffix(".browser.mp4")
+    command = [
+        ffmpeg,
+        "-y",
+        "-i",
+        str(input_path),
+        "-an",
+        "-r",
+        f"{fps:.3f}",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "veryfast",
+        "-crf",
+        "23",
+        "-pix_fmt",
+        "yuv420p",
+        "-movflags",
+        "+faststart",
+        str(temp_output),
+    ]
+
+    try:
+        subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        shutil.move(str(temp_output), str(output_path))
+        if input_path != output_path and input_path.exists():
+            input_path.unlink()
+        return True
+    except Exception:
+        if temp_output.exists():
+            temp_output.unlink()
+        if input_path != output_path:
+            shutil.move(str(input_path), str(output_path))
+        return False
+
+
 def draw_pose(cv2, frame, joints):
     if not joints:
         return
@@ -913,7 +958,8 @@ def write_analyzed_video(video_path, rows, result, output_path, show_preview):
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    writer = create_writer(cv2, output_path, fps, width, height)
+    writer_path = output_path.with_suffix(".opencv.mp4")
+    writer = create_writer(cv2, writer_path, fps, width, height)
 
     idx = 0
     while True:
@@ -937,6 +983,8 @@ def write_analyzed_video(video_path, rows, result, output_path, show_preview):
     writer.release()
     if show_preview:
         cv2.destroyAllWindows()
+
+    transcode_for_browser(writer_path, output_path, fps)
 
 
 def unsupported_result(exercise):

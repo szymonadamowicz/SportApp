@@ -2,6 +2,7 @@
 
 import InfoPanel from "@/components/InfoPanel/InfoPanel";
 import { useWorkoutFormVM } from "./WorkoutFormVM";
+import { WorkoutFormAnalysesSection } from "./sections/WorkoutFormAnalysesSection";
 import { WorkoutExercisesSection } from "./sections/WorkoutExercisesSection";
 import { useDeleteWorkout } from "@/hooks/apiHooks/workouts/useDeleteWorkout";
 import {
@@ -173,6 +174,8 @@ export default function WorkoutForm({ workout, onClose }: WorkoutFormProps) {
           onAddExercise={vm.addExercise}
           onRemoveExercise={vm.removeExercise}
         />
+
+        {!vm.editMode && <WorkoutFormAnalysesSection workoutId={workout.id} />}
       </InfoPanel>
     </>
   );

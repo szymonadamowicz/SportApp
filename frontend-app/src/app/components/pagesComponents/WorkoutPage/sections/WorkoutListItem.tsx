@@ -4,7 +4,6 @@ import { Tag } from "@/components/Tag/Tag";
 import { getWorkoutTags } from "@/helpers/ui/workoutTagStyles";
 import { WorkoutListItemVMProps } from "@/types/pages/workoutPage";
 import clsx from "clsx";
-import { motion } from "framer-motion";
 
 export function WorkoutListItem({
   item,
@@ -21,9 +20,8 @@ export function WorkoutListItem({
   const tags = getWorkoutTags(item);
 
   return (
-    <motion.button
+    <button
       type="button"
-      layout
       onClick={onClick}
       className={clsx(
         "rf-animate-item rf-hover-lift min-h-16 w-full cursor-pointer rounded-2xl border border-borderSoft/80 px-4 py-3 text-left transition duration-200 sm:rounded-xl",
@@ -32,8 +30,6 @@ export function WorkoutListItem({
           ? "rf-selection-pop bg-[rgba(34,197,94,0.08)] ring-2 ring-[var(--accent-border)] border border-[var(--accent-border)] shadow-lg shadow-[rgba(34,197,94,0.2)]"
           : "hover:bg-white/5",
       )}
-      whileTap={{ scale: 0.992 }}
-      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div className="min-w-0">
@@ -46,6 +42,6 @@ export function WorkoutListItem({
           ))}
         </div>
       </div>
-    </motion.button>
+    </button>
   );
 }

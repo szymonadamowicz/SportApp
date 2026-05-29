@@ -1,6 +1,8 @@
 "use client";
 
 import { PageTransition } from "@/components/animations/PageTransition";
+import { ActiveWorkoutFloatingTimer } from "@/components/ActiveWorkoutFloatingTimer/ActiveWorkoutFloatingTimer";
+import { ActiveWorkoutLifecycleGuard } from "@/components/ActiveWorkoutLifecycleGuard/ActiveWorkoutLifecycleGuard";
 import Navbar from "@/components/Navbar/Navbar";
 import { AuthGate } from "@/contexts/auth/authGate";
 
@@ -13,6 +15,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <PageTransition>{children}</PageTransition>
         </div>
       </main>
+      <ActiveWorkoutLifecycleGuard />
+      <ActiveWorkoutFloatingTimer />
     </AuthGate>
   );
 }
