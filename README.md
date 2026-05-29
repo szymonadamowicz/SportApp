@@ -408,6 +408,13 @@ Open:
 http://localhost:3000
 ```
 
+Docker Compose has health checks for Postgres, backend, and frontend services.
+Use this to confirm that containers are actually ready, not only running:
+
+```powershell
+docker compose --profile real ps
+```
+
 ### Real API mode for phone browser
 
 Set a phone-reachable API URL before building the Docker frontend:

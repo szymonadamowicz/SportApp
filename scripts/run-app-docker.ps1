@@ -33,6 +33,7 @@ try {
 
     if ($Detached) {
         Write-Host "[docker-run] Running in background. Logs: docker compose --profile $Profile logs -f"
+        docker compose --profile $Profile ps | Out-Host
     }
 }
 finally {
