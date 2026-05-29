@@ -81,12 +81,14 @@ export const WorkoutExercisesSection = ({
               </div>
             </>
           ) : (
-            <span className="font-semibold">{view.name}</span>
+            <span className="block break-words text-base font-semibold leading-snug text-textPrimary sm:text-lg">
+              {view.name}
+            </span>
           );
 
         return (
           <div key={id}>
-            <div className={clsx(rowClass, "space-y-3 md:hidden")}>
+            <div className="flex flex-col gap-3 rounded-xl border border-borderSoft bg-bgMain/40 px-3 py-3 sm:px-4 md:hidden">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <span className={labelClass}>Exercise</span>
@@ -105,8 +107,8 @@ export const WorkoutExercisesSection = ({
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div className={clsx(cellClass, "rounded-xl bg-bgHighlight/25 p-3")}>
+              <div className="grid grid-cols-2 gap-2 min-[420px]:grid-cols-4">
+                <div className={clsx(cellClass, "min-w-0 rounded-xl bg-bgHighlight/25 p-3")}>
                   <span className={labelClass}>Sets</span>
                   {editMode ? (
                     <>
@@ -128,11 +130,13 @@ export const WorkoutExercisesSection = ({
                       </div>
                     </>
                   ) : (
-                    <span className="mt-1 text-lg font-semibold">{view.sets}</span>
+                    <span className="mt-1 break-words text-lg font-semibold leading-tight">
+                      {view.sets}
+                    </span>
                   )}
                 </div>
 
-                <div className={clsx(cellClass, "rounded-xl bg-bgHighlight/25 p-3")}>
+                <div className={clsx(cellClass, "min-w-0 rounded-xl bg-bgHighlight/25 p-3")}>
                   <span className={labelClass}>Reps</span>
                   {editMode ? (
                     <>
@@ -154,11 +158,13 @@ export const WorkoutExercisesSection = ({
                       </div>
                     </>
                   ) : (
-                    <span className="mt-1 text-lg font-semibold">{view.reps}</span>
+                    <span className="mt-1 break-words text-lg font-semibold leading-tight">
+                      {view.reps}
+                    </span>
                   )}
                 </div>
 
-                <div className={clsx(cellClass, "rounded-xl bg-bgHighlight/25 p-3")}>
+                <div className={clsx(cellClass, "min-w-0 rounded-xl bg-bgHighlight/25 p-3")}>
                   <span className={labelClass}>Weight</span>
                   {editMode ? (
                     <input
@@ -171,13 +177,13 @@ export const WorkoutExercisesSection = ({
                       }
                     />
                   ) : (
-                    <span className="mt-1 text-lg font-semibold">
+                    <span className="mt-1 break-words text-lg font-semibold leading-tight">
                       {view.weight ?? "-"}
                     </span>
                   )}
                 </div>
 
-                <div className={clsx(cellClass, "rounded-xl bg-bgHighlight/25 p-3")}>
+                <div className={clsx(cellClass, "min-w-0 rounded-xl bg-bgHighlight/25 p-3")}>
                   <span className={labelClass}>Rest</span>
                   {editMode ? (
                     <input
@@ -190,7 +196,7 @@ export const WorkoutExercisesSection = ({
                       }
                     />
                   ) : (
-                    <span className="mt-1 text-lg font-semibold">
+                    <span className="mt-1 break-words text-lg font-semibold leading-tight">
                       {view.restTimeSec ?? "-"}
                     </span>
                   )}

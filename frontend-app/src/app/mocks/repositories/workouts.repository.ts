@@ -3,6 +3,7 @@ import { deepClone } from "@/mocks/runtime/clone";
 import { UpdateWorkoutStructureDto } from "@/types/workout/workoutApi";
 import { WorkoutDTO } from "@/types/workout/workoutDTO";
 import { FeedbackValue } from "@/types/pages/progressPage";
+import { createClientId } from "@/helpers/utils/id/createClientId";
 
 let state: WorkoutDTO[] = deepClone(workoutsFixture);
 
@@ -38,7 +39,7 @@ export const workoutsRepository = {
   create(workout: WorkoutDTO): WorkoutDTO {
     const created: WorkoutDTO = {
       ...workout,
-      id: workout.id ?? crypto.randomUUID(),
+      id: workout.id ?? createClientId(),
     };
 
     state.unshift(created);

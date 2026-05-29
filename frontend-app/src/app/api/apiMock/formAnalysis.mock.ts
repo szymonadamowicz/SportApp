@@ -4,6 +4,7 @@ import {
   ExerciseFormAnalysisResult,
   ExerciseFormAnalysisUploadContext,
 } from "@/types/formAnalysis";
+import { createClientId } from "@/helpers/utils/id/createClientId";
 
 export const formAnalysisMock = {
   async analyze(
@@ -15,7 +16,7 @@ export const formAnalysisMock = {
     const isBenchPress = exerciseType === "bench_press";
 
     return {
-      analysisId: crypto.randomUUID(),
+      analysisId: createClientId(),
       workoutRunId: context?.workoutRunId ?? null,
       workoutId: context?.workoutId ?? null,
       exerciseId: context?.exerciseId ?? null,

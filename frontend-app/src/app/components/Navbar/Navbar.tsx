@@ -90,9 +90,11 @@ export default function Navbar() {
 
       <nav
         className="
-          fixed inset-x-0 bottom-0 z-50 border-t border-borderSoft
-          bg-bgMain/95 px-3 pb-[calc(0.55rem+env(safe-area-inset-bottom))] pt-2
-          shadow-[0_-16px_44px_rgba(0,0,0,0.34)] backdrop-blur-xl
+          fixed inset-x-3 bottom-[max(0.65rem,env(safe-area-inset-bottom))] z-[80]
+          rounded-[1.75rem] border border-borderSoft
+          bg-bgMain/95 px-2 py-2
+          shadow-[0_-10px_36px_rgba(0,0,0,0.34),0_14px_34px_rgba(0,0,0,0.36)]
+          backdrop-blur-xl
           md:hidden
         "
         aria-label="Mobile navigation"

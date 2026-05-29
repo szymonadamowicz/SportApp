@@ -14,6 +14,7 @@ import { isValidExercise } from "@/helpers/utils/workout/workoutDraftValidateExe
 import { usePutWorkoutStructure } from "@/hooks/apiHooks/workouts/usePutWorkoutStructure";
 import { usePatchWorkoutMeta } from "@/hooks/apiHooks/workouts/usePatchWorkoutMeta";
 import { getFriendlyErrorMessage } from "@/api/apiError";
+import { createClientId } from "@/helpers/utils/id/createClientId";
 
 const PRESET_MUSCLE_GROUPS = [
   "chest",
@@ -30,7 +31,7 @@ const PRESET_MUSCLE_GROUPS = [
 ];
 
 const createEmptyExercise = (): ExerciseDTO => ({
-  id: crypto.randomUUID(),
+  id: createClientId(),
   orderIndex: 0,
   name: "",
   sets: 0,
@@ -393,7 +394,7 @@ export const useWorkoutModalVM = ({
         : undefined;
 
     const payload: Workout = {
-      ...(workout ?? { id: crypto.randomUUID() }),
+      ...(workout ?? { id: createClientId() }),
       title,
       muscleGroups: selectedMuscles,
       mainFocus: selectedMuscles[0],

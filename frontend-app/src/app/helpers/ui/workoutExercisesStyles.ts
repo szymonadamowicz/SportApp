@@ -5,7 +5,8 @@ export const editInputClass =
   "focus:outline-none focus:bg-bgHighlight/80 focus:border-accent " +
   "focus:ring-1 focus:ring-accent/40 transition";
 
-export const labelClass = "text-xs text-textSecondary uppercase tracking-wide";
+export const labelClass =
+  "block text-xs text-textSecondary uppercase tracking-wide";
 
 export const rowClass =
   "grid grid-cols-12 gap-3 items-end rounded-xl border border-borderSoft bg-bgMain/40 px-3 py-3 sm:px-4";

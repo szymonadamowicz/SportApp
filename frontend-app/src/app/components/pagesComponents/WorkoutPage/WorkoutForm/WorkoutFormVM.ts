@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { usePutWorkoutStructure } from "@/hooks/apiHooks/workouts/usePutWorkoutStructure";
 import { useActiveWorkoutRun } from "@/hooks/apiHooks/workoutRun/useActiveWorkoutRun";
 import { getFriendlyErrorMessage } from "@/api/apiError";
+import { createClientId } from "@/helpers/utils/id/createClientId";
 
 const createEmptyDraftExercise = (): DraftExercise => ({
   name: "",
@@ -89,7 +90,7 @@ export const useWorkoutFormVM = (workout: Workout): WorkoutFormVM => {
   };
 
   const addExercise = () => {
-    const clientId = crypto.randomUUID();
+    const clientId = createClientId();
     setDraft((prev) => ({ ...prev, [clientId]: createEmptyDraftExercise() }));
     setHasChanges(true);
   };

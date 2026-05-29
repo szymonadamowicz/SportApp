@@ -2,6 +2,7 @@ import { workoutsRepository } from "@/mocks/repositories/workouts.repository";
 import { workoutRunsRepository } from "@/mocks/repositories/workoutRuns.repository";
 import { mockDelay } from "@/mocks/runtime/delay";
 import { estimateSetSeconds } from "@/helpers/utils/calculate/workoutRunEstimate";
+import { createClientId } from "@/helpers/utils/id/createClientId";
 import {
   CompleteWorkoutRunDto,
   SaveWorkoutRunProgressDto,
@@ -72,7 +73,7 @@ export const mockWorkoutRunService = {
     }
 
     const startDto: WorkoutRunStartDto = {
-      runId: crypto.randomUUID(),
+      runId: createClientId(),
       workoutId: workout.id,
       workoutTitle: workout.title,
       startedAt: new Date().toISOString(),
