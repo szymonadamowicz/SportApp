@@ -1,5 +1,7 @@
 # RepForge
 
+[![CI](https://github.com/szymonadamowicz/SportApp/actions/workflows/ci.yml/badge.svg)](https://github.com/szymonadamowicz/SportApp/actions/workflows/ci.yml)
+
 RepForge is a bachelor's project for planning workouts, running training
 sessions, tracking progress, and reviewing basic exercise form analysis from
 recorded videos.
@@ -441,6 +443,10 @@ $env:CORS_ALLOWED_ORIGINS="http://localhost:3000;http://192.168.1.25:3000"
 ```
 
 ## Quality Checks
+
+GitHub Actions runs CI on pushes and pull requests to `main`. The workflow
+checks frontend lint/tests/build, backend service tests on .NET 8, and Docker
+Compose profile syntax.
 
 Frontend:
 
