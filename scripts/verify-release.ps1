@@ -3,8 +3,11 @@ param(
     [switch]$SkipBackend,
     [switch]$SkipBackendDockerFallback,
     [switch]$SkipFrontendTests,
+    [switch]$SkipFrontendBuild,
     [switch]$WithDocker,
     [switch]$WithApiSmoke,
+    [switch]$WithAndroidDoctor,
+    [string]$AndroidSdkPath = "",
     [string]$ApiBaseUrl = "http://localhost:5064/api"
 )
 
@@ -41,6 +44,35 @@ function Get-DotnetSdkCount {
     return $sdks.Count
 }
 
+function Test-DockerComposeConfig {
+    if (-not (Test-CommandExists "docker")) {
+        Write-Host "[verify] Docker CLI was not found. Skipping Docker Compose config validation."
+        return
+    }
+
+    docker compose --profile mock config --quiet
+    if ($LASTEXITCODE -ne 0) {
+        throw "Docker Compose mock profile config validation failed."
+    }
+
+    docker compose --profile real config --quiet
+    if ($LASTEXITCODE -ne 0) {
+        throw "Docker Compose real profile config validation failed."
+    }
+}
+
+function Invoke-CheckedNative {
+    param(
+        [scriptblock]$Command,
+        [string]$FailureMessage
+    )
+
+    & $Command
+    if ($LASTEXITCODE -ne 0) {
+        throw $FailureMessage
+    }
+}
+
 function Run-Step {
     param(
         [string]$Name,
@@ -54,10 +86,14 @@ function Run-Step {
 
 Push-Location $repoRoot
 try {
+    Run-Step "Docker Compose config" {
+        Test-DockerComposeConfig
+    }
+
     if (-not $SkipBackend) {
         Run-Step "Backend build" {
             if ((Get-DotnetSdkCount) -gt 0) {
-                dotnet build $backendProject -c Release
+                Invoke-CheckedNative { dotnet build $backendProject -c Release } "Backend build failed."
                 return
             }
 
@@ -70,7 +106,7 @@ try {
             }
 
             Write-Host "[verify] No local .NET SDK found. Falling back to Docker backend build."
-            docker compose --profile real build backend
+            Invoke-CheckedNative { docker compose --profile real build backend } "Backend Docker build failed."
             $script:backendVerifiedWithDocker = $true
         }
     }
@@ -88,26 +124,37 @@ try {
     try {
         if (-not $SkipInstall -and -not (Test-Path "node_modules")) {
             Run-Step "Frontend install" {
-                npm ci
+                Invoke-CheckedNative { npm ci } "Frontend install failed."
             }
         }
 
         Run-Step "Frontend lint" {
-            npm run lint
+            Invoke-CheckedNative { npm run lint } "Frontend lint failed."
         }
 
         if (-not $SkipFrontendTests) {
             Run-Step "Frontend tests" {
-                npm test -- --runInBand
+                Invoke-CheckedNative { npm test -- --runInBand } "Frontend tests failed."
             }
         }
 
-        Run-Step "Frontend build" {
-            npm run build
+        if (-not $SkipFrontendBuild) {
+            Run-Step "Frontend build" {
+                Invoke-CheckedNative { npm run build } "Frontend build failed."
+            }
+        }
+        else {
+            Write-Host "[verify] Skipping frontend build."
         }
     }
     finally {
         Pop-Location
+    }
+
+    if ($WithAndroidDoctor) {
+        Run-Step "Android setup" {
+            Invoke-CheckedNative { & (Join-Path $scriptDir "android-doctor.ps1") -AndroidSdkPath $AndroidSdkPath } "Android setup check failed."
+        }
     }
 
     if ($WithDocker -and -not $backendVerifiedWithDocker) {
@@ -116,7 +163,7 @@ try {
                 throw "Docker is not available. Start Docker Desktop before running -WithDocker."
             }
 
-            docker compose --profile real build backend
+            Invoke-CheckedNative { docker compose --profile real build backend } "Backend Docker build failed."
         }
     }
 
@@ -128,11 +175,11 @@ try {
         }
 
         Run-Step "API smoke backend" {
-            docker compose --profile real up -d postgres backend
+            Invoke-CheckedNative { docker compose --profile real up -d postgres backend } "API smoke backend startup failed."
         }
 
         Run-Step "API smoke flow" {
-            & (Join-Path $scriptDir "smoke-api.ps1") -ApiBaseUrl $ApiBaseUrl
+            Invoke-CheckedNative { & (Join-Path $scriptDir "smoke-api.ps1") -ApiBaseUrl $ApiBaseUrl } "API smoke flow failed."
         }
     }
 

@@ -162,6 +162,9 @@ The debug APK loads the configured web URL. Keep the web app and backend
 running on the computer, or point `CAPACITOR_SERVER_URL` to a hosted frontend
 later.
 
+Before presenting the mobile target, run the Android section in
+`RELEASE_CHECKLIST.md` on the actual device you plan to use.
+
 ## Troubleshooting
 
 1. `Android SDK not found`
