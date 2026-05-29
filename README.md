@@ -517,6 +517,19 @@ Broader local release check:
 .\scripts\verify-release.ps1
 ```
 
+Useful release-check variants:
+
+```powershell
+.\scripts\verify-release.ps1 -SkipBackend
+.\scripts\verify-release.ps1 -SkipFrontendTests
+.\scripts\verify-release.ps1 -WithDocker
+.\scripts\verify-release.ps1 -WithApiSmoke
+```
+
+`verify-release.ps1` uses a local .NET SDK when available. If the SDK is not
+installed, it falls back to Docker for the backend build and prints a clear
+environment error when Docker Desktop is not running.
+
 ## Common Issues
 
 1. Phone cannot reach the app:
