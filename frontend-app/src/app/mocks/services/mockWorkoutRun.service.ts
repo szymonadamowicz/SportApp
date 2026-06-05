@@ -1,5 +1,6 @@
 import { workoutsRepository } from "@/mocks/repositories/workouts.repository";
 import { workoutRunsRepository } from "@/mocks/repositories/workoutRuns.repository";
+import { getMockLoginFromToken } from "@/contexts/auth/authMock";
 import { mockDelay } from "@/mocks/runtime/delay";
 import { estimateSetSeconds } from "@/helpers/utils/calculate/workoutRunEstimate";
 import { createClientId } from "@/helpers/utils/id/createClientId";
@@ -51,18 +52,19 @@ const buildSteps = (
 export const mockWorkoutRunService = {
   async getActiveRun(workoutId: string): Promise<WorkoutRunStartDto | null> {
     await mockDelay(90);
-    return workoutRunsRepository.getActive(workoutId);
+    return workoutRunsRepository.getActive(getMockLoginFromToken(), workoutId);
   },
 
   async getLatestActiveRun(): Promise<WorkoutRunStartDto | null> {
     await mockDelay(90);
-    return workoutRunsRepository.getLatestActive();
+    return workoutRunsRepository.getLatestActive(getMockLoginFromToken());
   },
 
   async startRun(workoutId: string): Promise<WorkoutRunStartDto> {
     await mockDelay(120);
+    const ownerLogin = getMockLoginFromToken();
 
-    const activeRun = workoutRunsRepository.getActive(workoutId);
+    const activeRun = workoutRunsRepository.getActive(ownerLogin, workoutId);
     if (activeRun) {
       return activeRun;
     }
@@ -91,7 +93,7 @@ export const mockWorkoutRunService = {
       steps: buildSteps(workout.exercises),
     };
 
-    return workoutRunsRepository.create(startDto);
+    return workoutRunsRepository.create(ownerLogin, startDto);
   },
 
   async saveProgress(
@@ -99,7 +101,11 @@ export const mockWorkoutRunService = {
     payload: SaveWorkoutRunProgressDto,
   ): Promise<WorkoutRunStartDto> {
     await mockDelay(90);
-    return workoutRunsRepository.saveProgress(runId, payload);
+    return workoutRunsRepository.saveProgress(
+      getMockLoginFromToken(),
+      runId,
+      payload,
+    );
   },
 
   async completeRun(
@@ -108,7 +114,11 @@ export const mockWorkoutRunService = {
   ): Promise<WorkoutRunSummaryDto> {
     await mockDelay(120);
 
-    const summary = workoutRunsRepository.complete(runId, payload);
+    const summary = workoutRunsRepository.complete(
+      getMockLoginFromToken(),
+      runId,
+      payload,
+    );
 
     workoutsRepository.updateMeta(summary.workoutId, {
       completedAt: summary.finishedAt,
@@ -119,6 +129,6 @@ export const mockWorkoutRunService = {
 
   async cancelRun(runId: string): Promise<void> {
     await mockDelay(90);
-    workoutRunsRepository.cancel(runId);
+    workoutRunsRepository.cancel(getMockLoginFromToken(), runId);
   },
 };

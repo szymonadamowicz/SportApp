@@ -1,6 +1,7 @@
 import { mockWorkoutRunService } from "@/mocks/services/mockWorkoutRun.service";
 import { workoutRunsRepository } from "@/mocks/repositories/workoutRuns.repository";
 import { workoutsRepository } from "@/mocks/repositories/workouts.repository";
+import { authStorage } from "@/contexts/auth/authStorage";
 
 jest.mock("@/mocks/runtime/delay", () => ({
   mockDelay: jest.fn(() => Promise.resolve()),
@@ -10,6 +11,11 @@ describe("mockWorkoutRunService", () => {
   beforeEach(() => {
     workoutsRepository.__reset();
     workoutRunsRepository.__reset();
+    authStorage.write({
+      user: { login: "user" },
+      accessToken: "mock:user",
+      lastActive: Date.now(),
+    });
   });
 
   it("starts workout run and builds timed steps", async () => {
