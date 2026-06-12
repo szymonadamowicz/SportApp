@@ -40,31 +40,30 @@ const calculateStreak = (completedWorkouts: WorkoutDTO[]) => {
   }
 
   const todayIso = new Date().toISOString().slice(0, 10);
-  if (days[0] !== todayIso) {
-    return {
-      current: 0,
-      longest: 0,
-      lastWorkoutDate: `${days[0]}T00:00:00.000Z`,
-    };
-  }
+  const yesterday = new Date(`${todayIso}T00:00:00.000Z`);
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+  const yesterdayIso = yesterday.toISOString().slice(0, 10);
 
-  let current = 1;
-  let longest = 1;
+  let current = 0;
+  if (days[0] === todayIso || days[0] === yesterdayIso) {
+    current = 1;
 
-  for (let i = 1; i < days.length; i++) {
-    const previous = new Date(`${days[i - 1]}T00:00:00.000Z`);
-    const expected = new Date(previous);
-    expected.setUTCDate(expected.getUTCDate() - 1);
+    for (let i = 1; i < days.length; i++) {
+      const previous = new Date(`${days[i - 1]}T00:00:00.000Z`);
+      const expected = new Date(previous);
+      expected.setUTCDate(expected.getUTCDate() - 1);
 
-    const day = new Date(`${days[i]}T00:00:00.000Z`);
+      const day = new Date(`${days[i]}T00:00:00.000Z`);
 
-    if (day.getTime() === expected.getTime()) {
-      current += 1;
-    } else {
-      break;
+      if (day.getTime() === expected.getTime()) {
+        current += 1;
+      } else {
+        break;
+      }
     }
   }
 
+  let longest = 1;
   let run = 1;
   for (let i = 1; i < days.length; i++) {
     const previous = new Date(`${days[i - 1]}T00:00:00.000Z`);

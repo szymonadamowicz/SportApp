@@ -28,6 +28,7 @@ export const useWorkoutsPageVM = () => {
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<
     string | undefined
   >(undefined);
+  const [allowAutoSelect, setAllowAutoSelect] = useState(true);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -53,6 +54,7 @@ export const useWorkoutsPageVM = () => {
   };
 
   const closeSelectedWorkout = () => {
+    setAllowAutoSelect(false);
     setSelectedWorkoutId(undefined);
     router.push("/workouts", { scroll: false });
   };
@@ -76,6 +78,7 @@ export const useWorkoutsPageVM = () => {
 
   useEffect(() => {
     if (!selectedFromQuery) return;
+    setAllowAutoSelect(true);
     setSelectedWorkoutId(selectedFromQuery);
   }, [selectedFromQuery]);
 
@@ -87,9 +90,9 @@ export const useWorkoutsPageVM = () => {
         return current;
       }
 
-      return fallbackWorkoutId;
+      return allowAutoSelect ? fallbackWorkoutId : undefined;
     });
-  }, [selectedFromQuery, workouts, fallbackWorkoutId]);
+  }, [allowAutoSelect, selectedFromQuery, workouts, fallbackWorkoutId]);
 
   const selectedWorkout = useMemo(
     () => workouts.find((w) => w.id === selectedWorkoutId),
@@ -121,7 +124,15 @@ export const useWorkoutsPageVM = () => {
     toggleSeeAll,
 
     setSelectWorkout: (id: string) =>
-      setSelectedWorkoutId((current) => (current === id ? undefined : id)),
+      setSelectedWorkoutId((current) => {
+        if (current === id) {
+          setAllowAutoSelect(false);
+          return undefined;
+        }
+
+        setAllowAutoSelect(true);
+        return id;
+      }),
 
     openModal,
     closeModal,
