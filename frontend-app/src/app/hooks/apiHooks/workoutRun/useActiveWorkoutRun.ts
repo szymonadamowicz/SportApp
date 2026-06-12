@@ -27,6 +27,15 @@ export const useActiveWorkoutRun = (workoutId?: string) => {
     refetchOnMount: true,
   });
 
+  if (!isReady || !isAuthenticated) {
+    return {
+      activeRun: null,
+      isLoading: query.isLoading,
+      isError: query.isError,
+      refetch: query.refetch,
+    };
+  }
+
   return {
     activeRun: query.data ?? null,
     isLoading: query.isLoading,
@@ -51,6 +60,15 @@ export const useLatestActiveWorkoutRun = () => {
     refetchInterval: 10_000,
     refetchOnMount: true,
   });
+
+  if (!isReady || !isAuthenticated) {
+    return {
+      activeRun: null,
+      isLoading: query.isLoading,
+      isError: query.isError,
+      refetch: query.refetch,
+    };
+  }
 
   const queriedActiveRun = query.data ?? null;
   const activeRun =

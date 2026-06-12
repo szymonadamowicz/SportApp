@@ -49,38 +49,34 @@ public sealed class ProgressService(IWorkoutRepository repo, ICurrentUser curren
             .ToList();
 
         var today = DateTime.UtcNow.Date;
+        var latestDay = days[0];
 
-        int current = 0;
-        int longest = 0;
-        int temp = 0;
-
-        DateTime? lastDate = days.FirstOrDefault();
-
-        foreach (var day in days)
+        var current = 0;
+        if (latestDay == today || latestDay == today.AddDays(-1))
         {
-            if (temp == 0)
+            current = 1;
+
+            for (var i = 1; i < days.Count; i++)
             {
-                if (day != today)
+                if (days[i] != days[i - 1].AddDays(-1))
                     break;
 
-                temp = 1;
-                current = 1;
-                longest = 1;
-                continue;
-            }
-
-            var expected = days[temp - 1].AddDays(-1);
-
-            if (day == expected)
-            {
-                temp++;
                 current++;
-                longest = Math.Max(longest, temp);
+            }
+        }
+
+        var longest = 1;
+        var run = 1;
+        for (var i = 1; i < days.Count; i++)
+        {
+            if (days[i] == days[i - 1].AddDays(-1))
+            {
+                run++;
+                longest = Math.Max(longest, run);
             }
             else
             {
-                longest = Math.Max(longest, temp);
-                break;
+                run = 1;
             }
         }
 
@@ -88,7 +84,7 @@ public sealed class ProgressService(IWorkoutRepository repo, ICurrentUser curren
         {
             Current = current,
             Longest = longest,
-            LastWorkoutDate = lastDate
+            LastWorkoutDate = latestDay
         };
     }
 

@@ -225,7 +225,7 @@ export default function Hero({
         <div className="flex flex-col items-stretch gap-3 sm:items-start lg:items-end">
           <button
             onClick={onPrimaryAction}
-            className="inline-flex min-h-12 items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold text-black active:scale-[0.98]"
+            className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold text-black transition hover:-translate-y-0.5 hover:brightness-105 active:scale-[0.98]"
             style={{
               background: hasActiveRun
                 ? "linear-gradient(135deg, #67e8f9, #4ade80)"

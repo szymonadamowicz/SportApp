@@ -95,4 +95,44 @@ describe("mockProgressService", () => {
 
     expect(result.streak.current).toBe(2);
   });
+
+  it("keeps current streak when latest completed workout was yesterday", async () => {
+    listSpy.mockReturnValue(sampleWorkouts.filter((workout) => workout.id !== "w-today"));
+
+    const result = await mockProgressService.fetchProgress("all");
+
+    expect(result.streak.current).toBe(1);
+    expect(result.streak.longest).toBe(1);
+  });
+
+  it("keeps longest streak when current streak is broken", async () => {
+    listSpy.mockReturnValue([
+      {
+        id: "w-older-a",
+        title: "Older A",
+        scheduledAt: "2026-03-20T08:00:00.000Z",
+        completedAt: "2026-03-20T09:00:00.000Z",
+        exercises: [],
+      },
+      {
+        id: "w-older-b",
+        title: "Older B",
+        scheduledAt: "2026-03-21T08:00:00.000Z",
+        completedAt: "2026-03-21T09:00:00.000Z",
+        exercises: [],
+      },
+      {
+        id: "w-later",
+        title: "Later",
+        scheduledAt: "2026-03-25T08:00:00.000Z",
+        completedAt: "2026-03-25T09:00:00.000Z",
+        exercises: [],
+      },
+    ]);
+
+    const result = await mockProgressService.fetchProgress("all");
+
+    expect(result.streak.current).toBe(0);
+    expect(result.streak.longest).toBe(2);
+  });
 });

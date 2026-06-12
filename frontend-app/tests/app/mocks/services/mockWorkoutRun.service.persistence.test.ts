@@ -1,15 +1,25 @@
 import { mockWorkoutRunService } from "@/mocks/services/mockWorkoutRun.service";
 import { workoutRunsRepository } from "@/mocks/repositories/workoutRuns.repository";
 import { workoutsRepository } from "@/mocks/repositories/workouts.repository";
+import { authStorage } from "@/contexts/auth/authStorage";
 
 jest.mock("@/mocks/runtime/delay", () => ({
   mockDelay: jest.fn(() => Promise.resolve()),
 }));
 
+const setMockSession = (login: string) => {
+  authStorage.write({
+    user: { login },
+    accessToken: `mock:${login}`,
+    lastActive: Date.now(),
+  });
+};
+
 describe("mock workout run service - progress persistence", () => {
   beforeEach(() => {
     workoutsRepository.__reset();
     workoutRunsRepository.__reset();
+    setMockSession("user");
   });
 
   it("retrieves active run by workout ID", async () => {
@@ -136,6 +146,26 @@ describe("mock workout run service - progress persistence", () => {
 
     expect(latest?.runId).toBe(run.runId);
     expect(latest?.remainingSeconds).toBe(20);
+  });
+
+  it("does not leak active workout runs between mock accounts", async () => {
+    const workout = workoutsRepository.list()[0];
+
+    const firstUserRun = await mockWorkoutRunService.startRun(workout.id);
+    expect(firstUserRun.runId).toBeTruthy();
+
+    setMockSession("second-user");
+
+    const secondUserActive = await mockWorkoutRunService.getActiveRun(workout.id);
+    const secondUserLatest = await mockWorkoutRunService.getLatestActiveRun();
+
+    expect(secondUserActive).toBeNull();
+    expect(secondUserLatest).toBeNull();
+
+    setMockSession("user");
+
+    const firstUserActive = await mockWorkoutRunService.getActiveRun(workout.id);
+    expect(firstUserActive?.runId).toBe(firstUserRun.runId);
   });
 
   it("resume-aware start returns entries and next step when run is already active", async () => {

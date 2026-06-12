@@ -18,6 +18,7 @@ import {
 } from "@/types/auth/auth";
 import { authStorage } from "./authStorage";
 import { useQueryClient } from "@tanstack/react-query";
+import { clearLiveActiveWorkoutRun } from "@/state/activeWorkoutRun.live";
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -75,6 +76,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const token = await loginApi(payload);
 
     if (!token) throw new Error("Invalid credentials");
+    clearLiveActiveWorkoutRun();
+    queryClient.clear();
 
     const nextSession: AuthSession = {
       user: { login: payload.login },
@@ -84,12 +87,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setSession(nextSession);
     authStorage.write(nextSession);
-  }, []);
+  }, [queryClient]);
 
   const register = useCallback(async (payload: AuthRegisterPayload) => {
     const token = await registerApi(payload);
 
     if (!token) throw new Error("Register failed");
+    clearLiveActiveWorkoutRun();
+    queryClient.clear();
 
     const nextSession: AuthSession = {
       user: { login: payload.login },
@@ -99,11 +104,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setSession(nextSession);
     authStorage.write(nextSession);
-  }, []);
+  }, [queryClient]);
 
   const logout = useCallback(async () => {
     setSession(null);
     authStorage.write(null);
+    clearLiveActiveWorkoutRun();
     queryClient.clear();
     router.replace("/login");
   }, [router, queryClient]);

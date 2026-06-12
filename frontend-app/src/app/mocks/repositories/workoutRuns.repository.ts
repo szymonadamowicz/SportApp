@@ -7,6 +7,7 @@ import {
 } from "@/types/workout/workoutRun";
 
 type WorkoutRunRecord = Omit<WorkoutRunStartDto, "entries"> & {
+  ownerLogin: string;
   finishedAt?: string;
   durationSec?: number;
   notes?: string;
@@ -74,8 +75,10 @@ const toStartDto = (
   };
 };
 
-const requireRun = (runId: string): WorkoutRunRecord => {
-  const run = runsState.find((entry) => entry.runId === runId);
+const requireRun = (ownerLogin: string, runId: string): WorkoutRunRecord => {
+  const run = runsState.find(
+    (entry) => entry.ownerLogin === ownerLogin && entry.runId === runId,
+  );
   if (!run) {
     throw new Error(`Workout run not found: ${runId}`);
   }
@@ -83,9 +86,10 @@ const requireRun = (runId: string): WorkoutRunRecord => {
 };
 
 export const workoutRunsRepository = {
-  create(run: WorkoutRunStartDto): WorkoutRunStartDto {
+  create(ownerLogin: string, run: WorkoutRunStartDto): WorkoutRunStartDto {
     const record: WorkoutRunRecord = {
       ...run,
+      ownerLogin,
       isResumed: false,
       nextStepIndex: 0,
       activePhase: "exercise",
@@ -101,9 +105,12 @@ export const workoutRunsRepository = {
     return deepClone(toStartDto(record, false));
   },
 
-  getActive(workoutId: string): WorkoutRunStartDto | null {
+  getActive(ownerLogin: string, workoutId: string): WorkoutRunStartDto | null {
     const run = runsState.find(
-      (entry) => entry.workoutId === workoutId && !entry.finishedAt,
+      (entry) =>
+        entry.ownerLogin === ownerLogin &&
+        entry.workoutId === workoutId &&
+        !entry.finishedAt,
     );
 
     if (!run) {
@@ -113,9 +120,9 @@ export const workoutRunsRepository = {
     return deepClone(toStartDto(run, true));
   },
 
-  getLatestActive(): WorkoutRunStartDto | null {
+  getLatestActive(ownerLogin: string): WorkoutRunStartDto | null {
     const run = runsState
-      .filter((entry) => !entry.finishedAt)
+      .filter((entry) => entry.ownerLogin === ownerLogin && !entry.finishedAt)
       .sort(
         (a, b) =>
           new Date(b.lastProgressAt ?? b.startedAt).getTime() -
@@ -130,10 +137,11 @@ export const workoutRunsRepository = {
   },
 
   saveProgress(
+    ownerLogin: string,
     runId: string,
     payload: SaveWorkoutRunProgressDto,
   ): WorkoutRunStartDto {
-    const run = requireRun(runId);
+    const run = requireRun(ownerLogin, runId);
     const now = new Date().toISOString();
 
     run.durationSec = payload.durationSec;
@@ -150,10 +158,11 @@ export const workoutRunsRepository = {
   },
 
   complete(
+    ownerLogin: string,
     runId: string,
     payload: CompleteWorkoutRunDto,
   ): WorkoutRunSummaryDto {
-    const run = requireRun(runId);
+    const run = requireRun(ownerLogin, runId);
 
     const finishedAt = new Date().toISOString();
 
@@ -195,8 +204,8 @@ export const workoutRunsRepository = {
     };
   },
 
-  cancel(runId: string): void {
-    const run = requireRun(runId);
+  cancel(ownerLogin: string, runId: string): void {
+    const run = requireRun(ownerLogin, runId);
     const finishedAt = new Date().toISOString();
 
     run.finishedAt = finishedAt;

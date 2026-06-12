@@ -5,5 +5,9 @@ export default function LandingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <PageTransition>{children}</PageTransition>;
+  return (
+    <div className="min-h-dvh overflow-clip">
+      <PageTransition>{children}</PageTransition>
+    </div>
+  );
 }
